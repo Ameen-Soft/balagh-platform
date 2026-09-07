@@ -9,6 +9,9 @@
 * [الوحدات الوظيفية والميزات الأساسية](#الوحدات-الوظيفية-والميزات-الأساسية)
 * [المعمارية التقنية المعتمدة](#المعمارية-التقنية-المعتمدة)
 * [المتطلبات غير الوظيفية ومعايير الموثوقية](#المتطلبات-غير-الوظيفية-ومعايير-الموثوقية)
+* [هيكلية المشروع والتوثيق](#هيكلية-المشروع-والتوثيق)
+* [التشغيل السريع](#التشغيل-السريع)
+* [حالة التقدم في المشروع](#حالة-التقدم-في-المشروع)
 
 ---
 
@@ -102,6 +105,54 @@
 * **قابلية التوسع الهيكلي:** بناء قواعد البيانات والخدمات البرمجية بطريقة تتيح إضافة قطاعات ومؤسسات ووزارات جديدة دون الحاجة لإعادة هيكلة النظام البرمجي.
 
 ---
+
+## هيكلية المشروع والتوثيق
+
+```text
+├── backend/          # خادم الويب ولوحات التحكم ومخرجات الـ APIs (Laravel 12)
+├── mobile/           # تطبيق الهاتف الذكي للمواطنين والفرق الميدانية (Flutter)
+└── docs/             # وثائق التحليل والتصميم المعماري ومخططات قواعد البيانات (ERD)
+```
+
+> [!TIP]
+> **للاطلاع على وثيقة التحليل الفني الشامل والمخططات المعمارية (ERD & Class Diagrams):**  
+> تفضل بمراجعة وثيقة: **[تحليل وتصميم النظام ومخططات قاعدة البيانات](docs/system_analysis_and_design.md)**.
+
+---
+
+## التشغيل السريع
+
+### 1. الواجهة الخلفية (Backend - Laravel)
+```bash
+cd backend
+composer install
+cp .env.example .env     # ثم ضبط إعدادات قاعدة البيانات في ملف .env
+php artisan key:generate
+php artisan migrate
+php artisan serve
+```
+
+### 2. تطبيق الهاتف المحمول (Mobile - Flutter)
+```bash
+cd mobile
+flutter pub get
+flutter run
+```
+
+---
+
+## حالة التقدم في المشروع
+
+- [x] تهيئة مستودع المشروع وهيكلة المجلدات (Monorepo Setup).
+- [x] إعداد البنية التحتية للواجهة الخلفية (Laravel 12 + Jetstream + Sanctum).
+- [x] إعداد مشروع تطبيق الهاتف (Flutter).
+- [x] توثيق وتصميم قاعدة البيانات والـ ERD كاملاً في [docs/system_analysis_and_design.md](docs/system_analysis_and_design.md).
+- [x] إنشاء وتطبيق ملفات تهجير قاعدة البيانات (Migrations) لجميع الجداول.
+- [ ] إنشاء نماذج البيانات (Eloquent Models) والـ Seeders.
+- [ ] إعداد نقاط نهاية المصادقة (Sanctum Auth APIs).
+- [ ] واجهات تطبيق الموبايل (Onboarding & Authentication Flow).
+
+---
 ---
 
 # A Smart National Portal for Public Complaints Management, Developmental Projects Support, and Geographic Tracking
@@ -115,6 +166,9 @@
 * [Functional Modules & Key Features](#functional-modules--key-features)
 * [Technical Architecture & Stack](#technical-architecture--stack)
 * [Non-Functional Requirements & System Reliability](#non-functional-requirements--system-reliability)
+* [Project Structure & Documentation](#project-structure--documentation)
+* [Quick Start & Installation](#quick-start--installation)
+* [Project Roadmap](#project-roadmap)
 
 ---
 
@@ -206,3 +260,51 @@ The platform enforces a granular, hierarchical Role-Based Access Control archite
 * **Zero-Drop Guarantee:** Resilient routing and transfer mechanisms prevent reports from being discarded due to misclassification.
 * **Data & Evidence Integrity:** Hardened location coordinates prevent spatial spoofing and require on-site proximity verification for ticket resolution.
 * **Architectural Scalability:** Modular relational schema and service layers designed to accommodate new ministries, municipalities, and sectors without refactoring base code.
+
+---
+
+## Project Structure & Documentation
+
+```text
+├── backend/          # Web server, admin dashboards, and RESTful APIs (Laravel 12)
+├── mobile/           # Cross-platform mobile application for citizens and field teams (Flutter)
+└── docs/             # Technical specifications, architecture, and ERD schemas
+```
+
+> [!TIP]
+> **Comprehensive System Analysis & Architecture Diagrams (ERD & Class Diagrams):**  
+> Explore the full technical document here: **[System Analysis & Design Document](docs/system_analysis_and_design.md)**.
+
+---
+
+## Quick Start & Installation
+
+### 1. Backend (Laravel)
+```bash
+cd backend
+composer install
+cp .env.example .env     # Configure database credentials in .env
+php artisan key:generate
+php artisan migrate
+php artisan serve
+```
+
+### 2. Mobile App (Flutter)
+```bash
+cd mobile
+flutter pub get
+flutter run
+```
+
+---
+
+## Project Roadmap
+
+- [x] Monorepo repository setup & directory structuring.
+- [x] Backend infrastructure setup (Laravel 12 + Jetstream + Sanctum).
+- [x] Mobile application project initialization (Flutter).
+- [x] Comprehensive database design & ERD documentation in [docs/system_analysis_and_design.md](docs/system_analysis_and_design.md).
+- [x] Complete database migrations implemented for all platform tables.
+- [ ] Eloquent Models & Data Seeders implementation.
+- [ ] Authentication endpoints (Sanctum Auth APIs).
+- [ ] Mobile UI implementation (Onboarding & Authentication Flow).
