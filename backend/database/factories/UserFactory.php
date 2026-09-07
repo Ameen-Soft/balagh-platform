@@ -36,7 +36,31 @@ class UserFactory extends Factory
             'remember_token' => Str::random(10),
             'profile_photo_path' => null,
             'current_team_id' => null,
+            'phone' => fake()->unique()->numerify('77#######'),
+            'national_id' => fake()->unique()->numerify('10##########'),
+            'department_id' => null,
+            'is_active' => true,
         ];
+    }
+
+    /**
+     * Indicate that the user is assigned to a specific department.
+     */
+    public function withDepartment(?int $departmentId = null): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'department_id' => $departmentId,
+        ]);
+    }
+
+    /**
+     * Indicate that the user account is inactive.
+     */
+    public function inactive(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'is_active' => false,
+        ]);
     }
 
     /**

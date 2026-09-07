@@ -11,6 +11,7 @@
 * [المتطلبات غير الوظيفية ومعايير الموثوقية](#المتطلبات-غير-الوظيفية-ومعايير-الموثوقية)
 * [هيكلية المشروع والتوثيق](#هيكلية-المشروع-والتوثيق)
 * [التشغيل السريع](#التشغيل-السريع)
+* [حسابات الاختبار والتطوير](#حسابات-الاختبار-والتطوير)
 * [حالة التقدم في المشروع](#حالة-التقدم-في-المشروع)
 
 ---
@@ -128,7 +129,7 @@ cd backend
 composer install
 cp .env.example .env     # ثم ضبط إعدادات قاعدة البيانات في ملف .env
 php artisan key:generate
-php artisan migrate
+php artisan migrate --seed
 php artisan serve
 ```
 
@@ -141,6 +142,22 @@ flutter run
 
 ---
 
+## حسابات الاختبار والتطوير (Default Test Accounts)
+
+تم تزويد النظام بحسابات اختبارية قياسية عبر الـ Seeders لتسهيل التجربة وفحص الصلاحيات والـ APIs:
+
+| الدور (Role) | البريد الإلكتروني (Email) | كلمة المرور (Password) | الصلاحيات والمسؤوليات |
+| :--- | :--- | :--- | :--- |
+| **المدير العام (Super Admin)** | `admin@example.test` | `password` | إشراف شامل على المنصة، إدارة الوزارات، وتعديل الإعدادات |
+| **مشرف الوزارة (Ministry Admin)** | `ministry@example.test` | `password` | مراجعة البلاغات، التحويل بين الوزارات، وإسناد المهام الميدانية |
+| **الموظف الميداني (Field Worker)** | `worker@example.test` | `password` | استلام المهام الميدانية ورفع التوثيق البصري بعد الإصلاح |
+| **المواطن (Citizen)** | `citizen@example.test` | `password` | تقديم الشكاوى، تتبع مسار المعالجة، ودعم المشاريع التنموية |
+
+> [!NOTE]
+> كلمة المرور `password` مخصصة لبيئة التطوير والاختبار المحلي فقط (Development Only).
+
+---
+
 ## حالة التقدم في المشروع
 
 - [x] تهيئة مستودع المشروع وهيكلة المجلدات (Monorepo Setup).
@@ -148,7 +165,7 @@ flutter run
 - [x] إعداد مشروع تطبيق الهاتف (Flutter).
 - [x] توثيق وتصميم قاعدة البيانات والـ ERD كاملاً في [docs/system_analysis_and_design.md](docs/system_analysis_and_design.md).
 - [x] إنشاء وتطبيق ملفات تهجير قاعدة البيانات (Migrations) لجميع الجداول.
-- [ ] إنشاء نماذج البيانات (Eloquent Models) والـ Seeders.
+- [x] إنشاء نماذج البيانات (17 Eloquent Models) والعلاقات الكاملة وبذور البيانات (Seeders).
 - [ ] إعداد نقاط نهاية المصادقة (Sanctum Auth APIs).
 - [ ] واجهات تطبيق الموبايل (Onboarding & Authentication Flow).
 
@@ -168,6 +185,7 @@ flutter run
 * [Non-Functional Requirements & System Reliability](#non-functional-requirements--system-reliability)
 * [Project Structure & Documentation](#project-structure--documentation)
 * [Quick Start & Installation](#quick-start--installation)
+* [Default Test Accounts](#default-test-accounts)
 * [Project Roadmap](#project-roadmap)
 
 ---
@@ -285,7 +303,7 @@ cd backend
 composer install
 cp .env.example .env     # Configure database credentials in .env
 php artisan key:generate
-php artisan migrate
+php artisan migrate --seed
 php artisan serve
 ```
 
@@ -298,6 +316,22 @@ flutter run
 
 ---
 
+## Default Test Accounts
+
+The platform includes standard seeded accounts for development and API testing across all 4 system roles:
+
+| Role | Email | Password | Responsibilities & Scope |
+| :--- | :--- | :--- | :--- |
+| **Super Admin** | `admin@example.test` | `password` | Full administrative control across all ministries and system configurations |
+| **Ministry Admin** | `ministry@example.test` | `password` | Ticket review, inter-ministerial transfers, and field task dispatching |
+| **Field Worker** | `worker@example.test` | `password` | Task execution, geolocation verification, and post-repair proof uploads |
+| **Citizen** | `citizen@example.test` | `password` | Submitting grievances, real-time status tracking, and simulated project crowdfunding |
+
+> [!NOTE]
+> The password `password` is exclusively configured for local development and test environments.
+
+---
+
 ## Project Roadmap
 
 - [x] Monorepo repository setup & directory structuring.
@@ -305,6 +339,6 @@ flutter run
 - [x] Mobile application project initialization (Flutter).
 - [x] Comprehensive database design & ERD documentation in [docs/system_analysis_and_design.md](docs/system_analysis_and_design.md).
 - [x] Complete database migrations implemented for all platform tables.
-- [ ] Eloquent Models & Data Seeders implementation.
+- [x] Complete Eloquent Models (17 Models), domain relationships, and reproducible seeders.
 - [ ] Authentication endpoints (Sanctum Auth APIs).
 - [ ] Mobile UI implementation (Onboarding & Authentication Flow).
