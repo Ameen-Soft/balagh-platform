@@ -45,6 +45,11 @@ class Complaint extends Model
         return $this->belongsTo(Department::class, 'current_department_id');
     }
 
+    public function ministry()
+    {
+        return $this->hasOneThrough(Ministry::class, Department::class, 'id', 'id', 'current_department_id', 'ministry_id');
+    }
+
     public function duplicateOf()
     {
         return $this->belongsTo(Complaint::class, 'duplicate_of_id');

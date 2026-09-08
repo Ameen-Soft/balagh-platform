@@ -19,4 +19,14 @@ return Application::configure(basePath: dirname(__DIR__))
         $exceptions->shouldRenderJsonWhen(
             fn (Request $request) => $request->is('api/*') || $request->expectsJson(),
         );
+
+        $exceptions->render(function (\Illuminate\Validation\ValidationException $e, Request $request) {
+            if ($request->is('api/*') || $request->expectsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => $e->getMessage() ?: 'بيانات الإدخال غير صالحة، يرجى التحقق من الحقول المطلوبة.',
+                    'errors' => $e->errors(),
+                ], 422);
+            }
+        });
     })->create();

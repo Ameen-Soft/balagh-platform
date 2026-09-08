@@ -2,6 +2,13 @@
 
 namespace App\Providers;
 
+use App\Models\Complaint;
+use App\Models\FieldAssignment;
+use App\Models\Project;
+use App\Policies\ComplaintPolicy;
+use App\Policies\FieldAssignmentPolicy;
+use App\Policies\ProjectPolicy;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -19,6 +26,8 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        //
+        Gate::policy(Complaint::class, ComplaintPolicy::class);
+        Gate::policy(FieldAssignment::class, FieldAssignmentPolicy::class);
+        Gate::policy(Project::class, ProjectPolicy::class);
     }
 }
