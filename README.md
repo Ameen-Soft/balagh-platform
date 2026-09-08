@@ -12,6 +12,7 @@
 * [هيكلية المشروع والتوثيق](#هيكلية-المشروع-والتوثيق)
 * [التشغيل السريع](#التشغيل-السريع)
 * [حسابات الاختبار والتطوير](#حسابات-الاختبار-والتطوير)
+* [توثيق واجهات البرمجة](#توثيق-واجهات-البرمجة)
 * [حالة التقدم في المشروع](#حالة-التقدم-في-المشروع)
 
 ---
@@ -110,7 +111,7 @@
 ## هيكلية المشروع والتوثيق
 
 ```text
-├── backend/          # خادم الويب ولوحات التحكم ومخرجات الـ APIs (Laravel 12)
+├── backend/          # خادم الويب ولوحات التحكم ومخرجات الـ APIs (Laravel 13)
 ├── mobile/           # تطبيق الهاتف الذكي للمواطنين والفرق الميدانية (Flutter)
 └── docs/             # وثائق التحليل والتصميم المعماري ومخططات قواعد البيانات (ERD)
 ```
@@ -142,7 +143,7 @@ flutter run
 
 ---
 
-## حسابات الاختبار والتطوير (Default Test Accounts)
+## حسابات الاختبار والتطوير
 
 تم تزويد النظام بحسابات اختبارية قياسية عبر الـ Seeders لتسهيل التجربة وفحص الصلاحيات والـ APIs:
 
@@ -158,16 +159,44 @@ flutter run
 
 ---
 
+## توثيق واجهات البرمجة
+
+تتوفر جميع واجهات البرمجة الخاصة بالمنصة تحت البادئة الموحدة `/api/v1` ومحمية بواسطة Sanctum Tokens:
+
+| الميثود (Method) | المسار (Endpoint) | الوصف والوظيفة | الصلاحية / المصادقة |
+| :--- | :--- | :--- | :--- |
+| `POST` | `/api/v1/auth/register` | إنشاء حساب مواطن جديد وإصدار توكن Sanctum تلقائياً | متاح للجميع (Public) |
+| `POST` | `/api/v1/auth/login` | تسجيل الدخول للأنظمة والحصول على توكن الصلاحيات | متاح للجميع (Public) |
+| `GET` | `/api/v1/auth/me` | استعراض بيانات الملف الشخصي والأدوار والصلاحيات للمستخدم الحالي | مصادقة (`auth:sanctum`) |
+| `POST` | `/api/v1/auth/logout` | إبطال التوكن الحالي وتسجيل الخروج بأمان | مصادقة (`auth:sanctum`) |
+| `GET` | `/api/v1/complaints` | استعراض قائمة البلاغات مع الفلترة والبحث وتحديد النطاق بحسب الدور | مصادقة (`auth:sanctum`) |
+| `POST` | `/api/v1/complaints` | تقديم بلاغ جديد مع التحقق الإجرائي، كشف التكرار، والتوجيه التلقائي | مصادقة (`auth:sanctum`) |
+| `GET` | `/api/v1/complaints/{id}` | عرض تفاصيل البلاغ الشاملة (المرفقات، الخط الزمني، والتحويلات) | مصادقة (`auth:sanctum`) |
+| `PATCH` | `/api/v1/complaints/{id}/status` | تحديث حالة البلاغ وإضافة الملاحظات مع تدوين الخط الزمني | مصادقة (`auth:sanctum`) |
+| `POST` | `/api/v1/complaints/{id}/transfer` | تحويل البلاغ بين الإدارات أو الوزارات مع حفظ سبب وتاريخ التحويل | موظف الوزارة / المشرف |
+| `POST` | `/api/v1/complaints/{id}/assign` | إسناد البلاغ إلى باحث ميداني وتحديث حالة المهمة | موظف الوزارة / المشرف |
+| `GET` | `/api/v1/field-assignments` | استعراض قائمة المهام الميدانية المسندة للموظف أو الإدارة | موظف ميداني / مشرف |
+| `POST` | `/api/v1/field-assignments/{id}/start` | تسجيل بدء تنفيذ المعاينة الميدانية وتحديث حالة البلاغ | الباحث الميداني المكلف |
+| `POST` | `/api/v1/field-assignments/{id}/complete` | إتمام المهمة، رفع أدلة الإنجاز، والتحقق الجغرافي الصارم (Geofencing) | الباحث الميداني المكلف |
+| `GET` | `/api/v1/projects` | استعراض المشاريع التنموية ونسب الإنجاز والمبالغ المجمعة | متاح للجميع (Public) |
+| `GET` | `/api/v1/projects/{id}` | استعراض تفاصيل المشروع ومراحله والمساهمات المسجلة | متاح للجميع (Public) |
+| `POST` | `/api/v1/projects/{id}/contribute` | تسجيل مساهمة مجتمعية بمشروع بدقة مالية متناهية (BCMath) | مصادقة (`auth:sanctum`) |
+
+---
+
 ## حالة التقدم في المشروع
 
 - [x] تهيئة مستودع المشروع وهيكلة المجلدات (Monorepo Setup).
-- [x] إعداد البنية التحتية للواجهة الخلفية (Laravel 12 + Jetstream + Sanctum).
+- [x] إعداد البنية التحتية للواجهة الخلفية (Laravel 13 + Jetstream + Sanctum).
 - [x] إعداد مشروع تطبيق الهاتف (Flutter).
 - [x] توثيق وتصميم قاعدة البيانات والـ ERD كاملاً في [docs/system_analysis_and_design.md](docs/system_analysis_and_design.md).
 - [x] إنشاء وتطبيق ملفات تهجير قاعدة البيانات (Migrations) لجميع الجداول.
 - [x] إنشاء نماذج البيانات (17 Eloquent Models) والعلاقات الكاملة وبذور البيانات (Seeders).
-- [ ] إعداد نقاط نهاية المصادقة (Sanctum Auth APIs).
-- [ ] واجهات تطبيق الموبايل (Onboarding & Authentication Flow).
+- [x] بناء طبقة الخدمات ومحرك البلاغات والمعاملات الذرية (Services & Business Logic Layer).
+- [x] إنشاء واجهات برمجة التطبيقات الكاملة (REST APIs v1) تحت مسار `/api/v1`.
+- [x] تطبيق سياسات الأمان والتفويض الهرمي (Policies & FormRequests).
+- [x] كتابة الاختبارات الآلية الشاملة وسيناريو المحاكاة الكامل (Feature & E2E Tests: 100% Pass).
+- [ ] المرحلة التالية: واجهات وتكامل تطبيق الموبايل (Flutter Mobile UI & API Integration).
 
 ---
 ---
@@ -186,6 +215,7 @@ flutter run
 * [Project Structure & Documentation](#project-structure--documentation)
 * [Quick Start & Installation](#quick-start--installation)
 * [Default Test Accounts](#default-test-accounts)
+* [REST APIs v1 Reference](#rest-apis-v1-reference)
 * [Project Roadmap](#project-roadmap)
 
 ---
@@ -284,7 +314,7 @@ The platform enforces a granular, hierarchical Role-Based Access Control archite
 ## Project Structure & Documentation
 
 ```text
-├── backend/          # Web server, admin dashboards, and RESTful APIs (Laravel 12)
+├── backend/          # Web server, admin dashboards, and RESTful APIs (Laravel 13)
 ├── mobile/           # Cross-platform mobile application for citizens and field teams (Flutter)
 └── docs/             # Technical specifications, architecture, and ERD schemas
 ```
@@ -332,13 +362,41 @@ The platform includes standard seeded accounts for development and API testing a
 
 ---
 
+## REST APIs v1 Reference
+
+All platform endpoints are versioned under `/api/v1` and protected via Sanctum personal access tokens:
+
+| Method | Endpoint | Description & Functionality | Access / Auth |
+| :--- | :--- | :--- | :--- |
+| `POST` | `/api/v1/auth/register` | Register a new citizen account and issue Sanctum token | Public |
+| `POST` | `/api/v1/auth/login` | Authenticate user credentials and return access token | Public |
+| `GET` | `/api/v1/auth/me` | Fetch authenticated user profile, roles, and permissions | Authenticated (`auth:sanctum`) |
+| `POST` | `/api/v1/auth/logout` | Revoke current access token and log out | Authenticated (`auth:sanctum`) |
+| `GET` | `/api/v1/complaints` | Paginated complaints list with filtering, search, and role scoping | Authenticated (`auth:sanctum`) |
+| `POST` | `/api/v1/complaints` | File complaint with auto-routing, duplicate detection, and attachments | Authenticated (`auth:sanctum`) |
+| `GET` | `/api/v1/complaints/{id}` | Retrieve comprehensive complaint details, history, and timeline | Authenticated (`auth:sanctum`) |
+| `PATCH` | `/api/v1/complaints/{id}/status` | Update complaint status and append timeline record | Authenticated (`auth:sanctum`) |
+| `POST` | `/api/v1/complaints/{id}/transfer` | Inter-department / Inter-ministerial transfer with reason logging | Ministry Admin / Staff |
+| `POST` | `/api/v1/complaints/{id}/assign` | Assign complaint to a verified field worker | Ministry Admin / Staff |
+| `GET` | `/api/v1/field-assignments` | List field work assignments scoped to worker or department | Field Worker / Admin |
+| `POST` | `/api/v1/field-assignments/{id}/start` | Mark field assignment in-progress upon arrival | Assigned Field Worker |
+| `POST` | `/api/v1/field-assignments/{id}/complete` | Submit resolution report and evidence with strict geofencing | Assigned Field Worker |
+| `GET` | `/api/v1/projects` | Browse active developmental projects and progress | Public |
+| `GET` | `/api/v1/projects/{id}` | View detailed project breakdown, phases, and contributions | Public |
+| `POST` | `/api/v1/projects/{id}/contribute` | Pledged financial contribution with atomic precision (BCMath) | Authenticated (`auth:sanctum`) |
+
+---
+
 ## Project Roadmap
 
 - [x] Monorepo repository setup & directory structuring.
-- [x] Backend infrastructure setup (Laravel 12 + Jetstream + Sanctum).
+- [x] Backend infrastructure setup (Laravel 13 + Jetstream + Sanctum).
 - [x] Mobile application project initialization (Flutter).
 - [x] Comprehensive database design & ERD documentation in [docs/system_analysis_and_design.md](docs/system_analysis_and_design.md).
 - [x] Complete database migrations implemented for all platform tables.
 - [x] Complete Eloquent Models (17 Models), domain relationships, and reproducible seeders.
-- [ ] Authentication endpoints (Sanctum Auth APIs).
-- [ ] Mobile UI implementation (Onboarding & Authentication Flow).
+- [x] Services Layer & Complaint Engine with atomic database transactions (`DB::transaction`).
+- [x] Complete RESTful APIs v1 implemented under `/api/v1`.
+- [x] Hierarchical authorization & validation layer (Policies & FormRequests).
+- [x] Comprehensive automated test suite & E2E lifecycle simulation (Feature Tests: 100% Pass).
+- [ ] Next Phase: Flutter Mobile UI & Client-side API Integration.
