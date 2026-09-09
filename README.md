@@ -1,4 +1,4 @@
-# بوابة وطنية ذكية لإدارة الشكاوى العامة ودعم المشاريع التنموية وتتبعها جغرافياً
+# منصة بــــادر - البوابة الوطنية الذكية لإدارة البلاغات والشكاوى التنموية وتتبعها جغرافياً
 
 ---
 
@@ -7,6 +7,7 @@
 * [الرؤية والأهداف الاستراتيجية](#الرؤية-والأهداف-الاستراتيجية)
 * [الفئات المستهدفة وأدوار النظام](#الفئات-المستهدفة-وأدوار-النظام-rbac)
 * [الوحدات الوظيفية والميزات الأساسية](#الوحدات-الوظيفية-والميزات-الأساسية)
+* [بوابات الويب واللوحات الرقابية والشفافية](#بوابات-الويب-ولوحات-التحكم-الرقابية-والشفافية-العامة)
 * [المعمارية التقنية المعتمدة](#المعمارية-التقنية-المعتمدة)
 * [المتطلبات غير الوظيفية ومعايير الموثوقية](#المتطلبات-غير-الوظيفية-ومعايير-الموثوقية)
 * [هيكلية المشروع والتوثيق](#هيكلية-المشروع-والتوثيق)
@@ -18,7 +19,7 @@
 ---
 
 ## نبذة عن المشروع
-البوابة الوطنية الذكية هي منصة برمجية متكاملة تهدف إلى بناء حلقة وصل رقمية فعالة ومباشرة بين المواطنين ومختلف الجهات الحكومية (الوزارات والمؤسسات الرسمية). يتكون النظام من تطبيق للهواتف الذكية يخدم المواطنين والفرق الميدانية، إلى جانب لوحات تحكم مركزية متخصصة ومستقلة لكل وزارة وإدارة عليا.
+**منصة بــــادر** هي منظومة وطنية برمجية متكاملة تهدف إلى بناء حلقة وصل رقمية فعالة ومباشرة بين المواطنين ومختلف الجهات الحكومية (الوزارات والمؤسسات الرسمية). يتكون النظام من تطبيق للهواتف الذكية يخدم المواطنين والفرق الميدانية، إلى جانب بوابات ويب ولوحات تحكم مركزية متخصصة ومستقلة لكل وزارة وإدارة عليا وللشفافية العامة.
 
 يتيح النظام للمواطنين إرسال وتوجيه الشكاوى بدقة عالية عبر نظام تصنيف متسلسل، مدعوماً بالتوثيق البصري الإلزامي من كاميرا التطبيق مع التقاط الإحداثيات الجغرافية المباشرة (GPS). كما يتميز النظام بمرونة إدارية تمكن الوزارات من إعادة توجيه البلاغات الخاطئة آلياً إلى جهات الاختصاص دون رفضها أو ضياعها. وبالإضافة إلى إدارة الشكاوى، يتضمن النظام قسماً تفاعلياً لعرض المشاريع الحكومية المخطط لها أو المتعثرة، متيحاً للمجتمع والشركات الاطلاع عليها ودعمها ضمن نموذج محاكاة للتمويل الجماعي، مما يرفع من مستوى الشفافية، يسرع الاستجابة الميدانية، ويعزز كفاءة إدارة الموارد والخدمات العامة.
 
@@ -85,18 +86,39 @@
 
 ---
 
+## بوابات الويب ولوحات التحكم الرقابية والشفافية العامة
+
+توفر المنصة واجهات وبوابات ويب متخصصة مبنية باستخدام **Laravel Blade** و **Livewire** و **Tailwind CSS** بنظام تصميم فخم يعتمد درجات **الأسود الفاحم والأونيكس (Obsidian Black Theme)** مع لمسات وتطعيمات الهوية الوطنية اليمنية (الأحمر والذهبي والأبيض):
+
+| البوابة / الواجهة | المسار (URL / Route) | الميزات والمهام التشغيلية الأساسية | الصلاحية وحاجز الأمان |
+| :--- | :--- | :--- | :--- |
+| **البوابة الوطنية العامة** | `/` (`home`) | قسم رئيسي تفاعلي مع إحصائيات حية، ركائز المنظومة، أحدث البلاغات المنجزة، والمشاريع التنموية | متاح للجميع (بدون تسجيل دخول) |
+| **سجل الشفافية العامة** | `/public/complaints` | دليل رقمي عام للبلاغات مع حجب وتشفير بيانات المواطن الحساسة لحماية الخصوصية | متاح للجميع (بدون تسجيل دخول) |
+| **ملف الشفافية للبلاغ** | `/public/complaints/{id}` | خط زمني تدقيقي علني يوثق مراحل المعالجة وإثبات الإنجاز دون كشف بيانات المواطن | متاح للجميع (بدون تسجيل دخول) |
+| **دليل المشاريع التنموية** | `/public/projects` | رقابة مجتمعية على المشاريع التنموية ومتابعة مسار التنفيذ والإنجاز الفعلي (%) | متاح للجميع (بدون تسجيل دخول) |
+| **لوحة الإدارة العامة (Super Admin)** | `/admin/dashboard` | رقابة وطنية شاملة، مؤشرات الأداء (KPIs)، توزيع الحالات، ومتابعة مركزية لكافة الوزارات والمستخدمين والمشاريع | محمية بـ Middleware صارم (`super_admin`) مع إرجاع 403 للمحاولات غير المصرح بها |
+| **بوابة الوزارة والعمليات التشغيلية (Ministry Admin)** | `/ministry/dashboard` | محطة عمل تشغيلية لنطاق الإدارة المعنية: تدقيق البلاغات، إسناد المهام للفرق الميدانية، التحويل البيني بين الجهات، وتحديث المعالجة | محمية بـ Middleware صارم (`ministry_admin`) مع إرجاع 403 للمحاولات غير المصرح بها |
+
+---
+
 ## المعمارية التقنية المعتمدة
 
 * **الواجهة الخلفية وتطوير واجهات البرمجة (Backend & APIs):**
-  * إطار العمل: Laravel مع لغة PHP، لإنشاء واجهات برمجية متينة (RESTful APIs) وإدارة العمليات والصلاحيات المعقدة بكفاءة وأمان عاليين.
+  * إطار العمل: Laravel 13 مع لغة PHP 8.2+، لإنشاء واجهات برمجية متينة (RESTful APIs v1) وإدارة المعاملات الذرية (`DB::transaction`) والصلاحيات الهرمية.
 * **قواعد البيانات (Database):**
-  * نظام MySQL لإدارة وتخزين العلاقات المترابطة بين الوزارات، المستخدمين، الشكاوى، مسارات التحويل، والمشاريع.
+  * نظام MySQL 8+ لإدارة وتخزين العلاقات المترابطة بين الوزارات، الإدارات، المستخدمين، الشكاوى، مسارات التحويل، والتكليفات الميدانية.
+* **بوابات الويب ولوحات التحكم الإدارية (Web Dashboards & Portals):**
+  * قوالب **Laravel Blade** مدمجة مع **Livewire 3** و **Tailwind CSS** و **Alpine.js**.
+  * **نظام التصميم وتجربة المستخدم (UI/UX System):**
+    * **الثيم الأسود الفاخر (Obsidian Near-Black Theme):** اعتماد لوحة لونية هادئة وقاتمة (`#08080a`، `#0d0d11`، `zinc-800/900`) خالية تماماً من أي تشبعات زرقاء، مع شريط العلم اليمني وألوان الهوية الوطنية.
+    * **الهيدر العائم (Floating Header):** شريط علوي زجاجي شبه شفاف عائم (`fixed top-0 z-40 backdrop-blur-md`) لا يقتطع من مساحة الصفحة الفعلية.
+    * **القائمة الجانبية الثابتة (Sticky Sidebar):** شريط جانبي ثابت على أجهزة الكمبيوتر المكتبية والمحمولة، يتحول تلقائياً إلى درج جانبي منزلق (`Slide-over Drawer`) للشاشات اللمسية والجوالات.
+    * **دعم وتنسيق الـ RTL:** تصحيح وتنسيق اتجاه النصوص والقوائم المنسدلة (`select`) لتثبيت السهم في الجهة المقابلة للنص العربي دون أي تداخل.
+    * **التجاوب الشامل مع الهواتف الذكية:** تحويل تلقائي للجداول والبيانات المعقدة إلى بطاقات تفاعلية ذكية (Mobile Cards Feed) مخصصة للمس بالأصابع.
 * **تطبيقات الهواتف المحمولة (Mobile App):**
-  * إطار العمل: Flutter بلغة Dart، لبرمجة تطبيق هجين موحد وعالي الأداء يعمل على نظامي Android و iOS، ويسهل التكامل مع الكاميرا ونظام تحديد المواقع (GPS).
-* **لوحات التحكم الإدارية (Web Dashboards):**
-  * قوالب Laravel Blade مدعومة بإطار Tailwind CSS لبناء واجهات إدارة سريعة الاستجابة ومناسبة لكافة الشاشات.
+  * إطار العمل: Flutter بلغة Dart، لبرمجة تطبيق هجين موحد وعالي الأداء يعمل على نظامي Android و iOS مع قفل الموقع الجغرافي والكاميرا الحية.
 * **خدمات نظم المعلومات الجغرافية (GIS):**
-  * مكتبة Leaflet أو واجهة Google Maps API لعرض وإدارة الخرائط والتثبيت الجغرافي.
+  * مكتبة Leaflet وواجهة Google Maps API لعرض وإدارة الخرائط والتثبيت الجغرافي والتحقق المحيطي (Geofencing).
 
 ---
 
@@ -187,7 +209,7 @@ flutter run
 ## حالة التقدم في المشروع
 
 - [x] تهيئة مستودع المشروع وهيكلة المجلدات (Monorepo Setup).
-- [x] إعداد البنية التحتية للواجهة الخلفية (Laravel 13 + Jetstream + Sanctum).
+- [x] إعداد البنية التحتية للواجهة الخلفية (Laravel 13 + Jetstream + Sanctum + Livewire 3).
 - [x] إعداد مشروع تطبيق الهاتف (Flutter).
 - [x] توثيق وتصميم قاعدة البيانات والـ ERD كاملاً في [docs/system_analysis_and_design.md](docs/system_analysis_and_design.md).
 - [x] إنشاء وتطبيق ملفات تهجير قاعدة البيانات (Migrations) لجميع الجداول.
@@ -195,13 +217,19 @@ flutter run
 - [x] بناء طبقة الخدمات ومحرك البلاغات والمعاملات الذرية (Services & Business Logic Layer).
 - [x] إنشاء واجهات برمجة التطبيقات الكاملة (REST APIs v1) تحت مسار `/api/v1`.
 - [x] تطبيق سياسات الأمان والتفويض الهرمي (Policies & FormRequests).
-- [x] كتابة الاختبارات الآلية الشاملة وسيناريو المحاكاة الكامل (Feature & E2E Tests: 100% Pass).
+- [x] بناء طبقة الاستعلامات عالية الأداء (`ComplaintQueryService` و `StatisticsQueryService`).
+- [x] تطبيق حواجز المصادقة والتفويض الصارمة عبر الـ Middleware وحظر الوصول غير المصرح به (403 Forbidden).
+- [x] بناء بوابة الشفافية المجتمعية والرقابة العامة (`/` و `/public/complaints` و `/public/projects`).
+- [x] لوحة الإدارة المركزية والرقابة الوطنية للمدير العام (`/admin/*`).
+- [x] محطة العمل التشغيلية للوزارات والجهات الحكومية (`/ministry/*`).
+- [x] نظام التصميم الفاخر (Obsidian Near-Black Theme `#08080a`، هيدر عائم، قائمة جانبية ثابتة، وواجهات متجاوبة بالكامل مع الجوالات).
+- [x] جناح الاختبارات الآلية الشاملة (72 اختباراً بنجاح 100%، و 267 توكيداً).
 - [ ] المرحلة التالية: واجهات وتكامل تطبيق الموبايل (Flutter Mobile UI & API Integration).
 
 ---
 ---
 
-# A Smart National Portal for Public Complaints Management, Developmental Projects Support, and Geographic Tracking
+# Bader Platform - A Smart National Portal for Public Complaints Management, Developmental Projects Support, and Geographic Tracking
 
 ---
 
@@ -210,6 +238,7 @@ flutter run
 * [Vision & Strategic Objectives](#vision--strategic-objectives)
 * [Target Roles & Access Control](#target-roles--access-control-rbac)
 * [Functional Modules & Key Features](#functional-modules--key-features)
+* [Web Dashboards & Public Transparency Architecture](#web-dashboards--public-transparency-architecture)
 * [Technical Architecture & Stack](#technical-architecture--stack)
 * [Non-Functional Requirements & System Reliability](#non-functional-requirements--system-reliability)
 * [Project Structure & Documentation](#project-structure--documentation)
@@ -221,7 +250,7 @@ flutter run
 ---
 
 ## Project Overview
-The Smart National Portal is a comprehensive, centralized software ecosystem engineered to bridge communication between citizens and government bodies, including ministries and public authorities. The platform couples a cross-platform mobile application for citizens and field response teams with specialized, secure web dashboards for ministerial administrators and executive leadership.
+**Bader Platform** is a comprehensive, centralized software ecosystem engineered to bridge communication between citizens and government bodies, including ministries and public authorities. The platform couples a cross-platform mobile application for citizens and field response teams with specialized, secure web dashboards for ministerial administrators and executive leadership, as well as an open public transparency portal.
 
 Through the mobile application, citizens submit precisely categorized complaints accompanied by mandatory real-time camera captures and verified GPS coordinates. To eliminate ticket drop-off and bureaucratic dead ends, the portal features inter-ministerial forwarding, enabling agencies to re-route misdirected requests directly to the competent authority without cancellation. In addition to incident handling, the portal hosts an interactive development portal showcasing delayed and planned infrastructure initiatives, empowering the public and corporate entities to view details and participate through a simulated crowdfunding model to maximize transparency, resource utilization, and civic trust.
 
@@ -288,18 +317,39 @@ The platform enforces a granular, hierarchical Role-Based Access Control archite
 
 ---
 
+## Web Dashboards & Public Transparency Architecture
+
+The platform provides dedicated, role-specific web interfaces built with **Laravel Blade**, **Livewire 3**, and **Tailwind CSS** styled in an **Obsidian Black theme** (`#08080a`) with subtle Yemeni national identity accents (Red, White, Black, Gold):
+
+| Interface / Portal | URL / Route | Key Features & Responsibilities | Authorization / Security Barrier |
+| :--- | :--- | :--- | :--- |
+| **National Public Portal** | `/` (`home`) | Hero section with live statistics, platform pillars, recently resolved complaints, and national projects preview | Public (No auth required) |
+| **Public Transparency Registry** | `/public/complaints` | Public directory of complaints with masked citizen identity for complete privacy protection | Public (No auth required) |
+| **Complaint Transparency Dossier** | `/public/complaints/{id}` | Detailed public audit timeline, proof of work, and resolution status with citizen data masked | Public (No auth required) |
+| **Development Projects Directory** | `/public/projects` | Community oversight of public developmental projects with progress tracking (%) | Public (No auth required) |
+| **Super Admin Global Dashboard** | `/admin/dashboard` | National oversight KPI dashboard, status distributions, nationwide monitoring of complaints, ministries, categories, users, and projects | Strict Middleware (`super_admin`), 403 Forbidden for unauthorized roles |
+| **Ministry Admin Operational Workstation** | `/ministry/dashboard` | Department-scoped operational processing: ticket reviews, field worker dispatching, inter-departmental transfers, and resolution tracking | Strict Middleware (`ministry_admin`), 403 Forbidden for unauthorized roles |
+
+---
+
 ## Technical Architecture & Stack
 
 * **Backend & API Architecture:**
-  * Framework: Laravel (PHP) for constructing enterprise-grade RESTful APIs, securing transactional workflows, and handling authentication.
+  * Framework: Laravel 13 (PHP 8.2+) for constructing enterprise-grade RESTful APIs (v1), securing atomic transactional workflows (`DB::transaction`), and role-based policies.
 * **Database Management System:**
-  * MySQL relational database configured for data normalization across ministries, users, tickets, routing histories, and developmental initiatives.
+  * MySQL 8+ relational database configured for normalized entities across ministries, departments, users, tickets, routing histories, field assignments, and developmental initiatives.
+* **Web Dashboards & Administrative Portals:**
+  * **Laravel Blade** coupled with **Livewire 3**, **Alpine.js**, and **Tailwind CSS**.
+  * **UI/UX Design System:**
+    * **Obsidian Near-Black Theme:** Curated deep obsidian palette (`#08080a`, `#0d0d11`, `zinc-800/900`) devoid of cold blue tinting, highlighted by Yemeni national identity touches (Red, Gold, White).
+    * **Floating Header:** Translucent backdrop-blurred glass header (`fixed top-0 z-40 backdrop-blur-md`) maximizing viewport workspace without vertical content clipping.
+    * **Sticky Desktop Sidebar & Mobile Drawer:** Fixed desktop navigation sidebar seamlessly transforming into a slide-over touch drawer on mobile and tablet screens.
+    * **Refined RTL Typography & Form Controls:** Custom right-to-left alignment ensuring `select` arrows and action triggers rest opposite text labels without overlapping.
+    * **Mobile-Responsive Data Cards:** Dual desktop-table / mobile-card rendering (Mobile Cards Feed) optimized for seamless one-handed touch interaction.
 * **Mobile Application Development:**
   * Framework: Flutter (Dart) delivering a unified, high-performance client application across Android and iOS with native hardware integration (Camera and Location Services).
-* **Administrative Dashboards:**
-  * Laravel Blade combined with Tailwind CSS for high-performance, modular, and responsive administrative web consoles.
 * **Geospatial & Mapping Integration:**
-  * Leaflet library or Google Maps API for coordinate plotting, geofencing, and map visualization.
+  * Leaflet library and Google Maps API for coordinate plotting, geofencing, and map visualization.
 
 ---
 
@@ -390,7 +440,7 @@ All platform endpoints are versioned under `/api/v1` and protected via Sanctum p
 ## Project Roadmap
 
 - [x] Monorepo repository setup & directory structuring.
-- [x] Backend infrastructure setup (Laravel 13 + Jetstream + Sanctum).
+- [x] Backend infrastructure setup (Laravel 13 + Jetstream + Sanctum + Livewire 3).
 - [x] Mobile application project initialization (Flutter).
 - [x] Comprehensive database design & ERD documentation in [docs/system_analysis_and_design.md](docs/system_analysis_and_design.md).
 - [x] Complete database migrations implemented for all platform tables.
@@ -398,5 +448,11 @@ All platform endpoints are versioned under `/api/v1` and protected via Sanctum p
 - [x] Services Layer & Complaint Engine with atomic database transactions (`DB::transaction`).
 - [x] Complete RESTful APIs v1 implemented under `/api/v1`.
 - [x] Hierarchical authorization & validation layer (Policies & FormRequests).
-- [x] Comprehensive automated test suite & E2E lifecycle simulation (Feature Tests: 100% Pass).
-- [ ] Next Phase: Flutter Mobile UI & Client-side API Integration.
+- [x] Query Layer (`ComplaintQueryService`, `StatisticsQueryService`) for high-performance read models.
+- [x] Strict role-based authorization middleware barrier (403 Forbidden on unauthorized access).
+- [x] Public Transparency & Community Oversight Portal (`/`, `/public/complaints`, `/public/projects`).
+- [x] Super Admin Global Monitoring Dashboard (`/admin/*`).
+- [x] Ministry Admin Operational Processing Workstation (`/ministry/*`).
+- [x] Modern UI/UX Design System: Obsidian Near-Black Theme (`#08080a`), Floating Header, Sticky Desktop Sidebar / Mobile Drawer, full RTL & Mobile-Responsive Cards.
+- [x] Comprehensive automated test suite (72 Tests: 100% Pass, 267 Assertions).
+- [ ] Next Phase: Flutter Mobile App Development (Citizen & Field Worker experiences).

@@ -41,6 +41,34 @@ class Project extends Model
         return $this->belongsTo(User::class, 'created_by');
     }
 
+    public function creator()
+    {
+        return $this->createdBy();
+    }
+
+    public function getNameAttribute(): string
+    {
+        return $this->title ?? '';
+    }
+
+    public function getBudgetAttribute(): float
+    {
+        return (float) ($this->target_amount ?? 0);
+    }
+
+    public function getProgressPercentageAttribute(): int
+    {
+        if ($this->target_amount > 0) {
+            return (int) min(100, round((($this->current_amount ?? 0) / $this->target_amount) * 100));
+        }
+        return 0;
+    }
+
+    public function getBeneficiariesCountAttribute(): int
+    {
+        return 2500;
+    }
+
     public function phases()
     {
         return $this->hasMany(ProjectPhase::class);

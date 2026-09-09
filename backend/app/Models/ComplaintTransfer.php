@@ -38,4 +38,9 @@ class ComplaintTransfer extends Model
     {
         return $this->belongsTo(User::class, 'transferred_by');
     }
+
+    public function transferredByUser()
+    {
+        return $this->transferredBy();
+    }
 }

@@ -1,7 +1,63 @@
+@import url('https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700;800;900&family=Tajawal:wght@300;400;500;700;800&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
+:root {
+    --yemen-red: #CE1126;
+    --yemen-red-hover: #B70E20;
+    --yemen-black: #08080a;
+    --yemen-black-light: #121217;
+    --yemen-white: #FFFFFF;
+    --yemen-gold: #D97706;
+    --yemen-emerald: #059669;
+}
+
 [x-cloak] {
-    display: none;
+    display: none !important;
+}
+
+body {
+    font-family: 'Cairo', 'Tajawal', system-ui, -apple-system, sans-serif;
+    direction: rtl;
+    text-align: right;
+}
+
+/* Custom scrollbars */
+::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+::-webkit-scrollbar-track {
+    background: #f1f5f9;
+}
+::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+    background: #94a3b8;
+}
+
+/* RTL Dropdown Fix: Position arrow on the opposite (left) side away from Arabic text */
+select:not([multiple]),
+[dir="rtl"] select:not([multiple]),
+body select:not([multiple]) {
+    background-position: left 0.75rem center !important;
+    padding-left: 2.5rem !important;
+    padding-right: 0.875rem !important;
+    text-align: right !important;
+    background-size: 1.25em 1.25em !important;
+    background-repeat: no-repeat !important;
+}
+
+/* RTL form text alignment */
+input, textarea, select {
+    text-align: right;
+}
+
+/* Smooth mobile drawer transitions */
+.sidebar-transition {
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
