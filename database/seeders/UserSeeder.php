@@ -58,8 +58,8 @@ class UserSeeder extends Seeder
             ],
             [
                 'email' => 'citizen@example.test',
-                'name' => 'أحمد المواطن الصالح',
-                'phone' => '770000004',
+                'name' => 'امين جمال العليمي',
+                'phone' => '777235077',
                 'national_id' => '100000000004',
                 'department_id' => null,
                 'is_active' => true,

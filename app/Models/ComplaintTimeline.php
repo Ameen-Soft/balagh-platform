@@ -22,13 +22,45 @@ class ComplaintTimeline extends Model
         'performed_by',
     ];
 
+    protected $appends = [
+        'action',
+        'notes',
+    ];
+
     public function complaint()
     {
         return $this->belongsTo(Complaint::class);
     }
 
-    public function performer()
+    public function actor()
     {
         return $this->belongsTo(User::class, 'performed_by');
+    }
+
+    public function performer()
+    {
+        return $this->actor();
+    }
+
+    public function getActionAttribute(): string
+    {
+        return match ($this->event_type) {
+            'created' => 'إنشاء البلاغ',
+            'verified' => 'التحقق والمطابقة',
+            'assigned' => 'إسناد للميدان',
+            'transferred' => 'إحالة لجهة أخرى',
+            'status_changed' => 'تغيير الحالة',
+            'evidence_uploaded' => 'رفع صور توثيقية',
+            'resolved' => 'معالجة البلاغ',
+            'closed' => 'إغلاق نهائي للبلاغ',
+            'reopened' => 'إعادة فتح البلاغ',
+            'rejected' => 'رفض البلاغ',
+            default => (string) ($this->description ?? $this->event_type ?? 'إجراء نظام'),
+        };
+    }
+
+    public function getNotesAttribute(): ?string
+    {
+        return $this->description;
     }
 }

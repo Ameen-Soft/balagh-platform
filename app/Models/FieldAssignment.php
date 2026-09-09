@@ -41,4 +41,13 @@ class FieldAssignment extends Model
     {
         return $this->belongsTo(User::class, 'assigned_by');
     }
+
+    public function evidence()
+    {
+        return $this->hasMany(ComplaintAttachment::class, 'complaint_id', 'complaint_id')
+            ->where(function ($query) {
+                $query->where('type', 'after')
+                    ->orWhere('type', 'completion_evidence');
+            });
+    }
 }

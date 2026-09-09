@@ -11,11 +11,11 @@ class FieldAssignmentPolicy
     use HandlesAuthorization;
 
     /**
-     * Super Admin bypass for all abilities.
+     * Super Admin bypass for monitoring abilities only.
      */
     public function before(User $user, string $ability): ?bool
     {
-        if ($user->hasRole('Super Admin')) {
+        if ($user->hasRole('Super Admin') && in_array($ability, ['viewAny', 'view'])) {
             return true;
         }
 

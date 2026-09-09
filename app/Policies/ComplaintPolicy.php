@@ -11,14 +11,17 @@ class ComplaintPolicy
     use HandlesAuthorization;
 
     /**
-     * Super Admin bypass for all abilities.
+     * Super Admin bypass for monitoring abilities only.
      */
     public function before(User $user, string $ability): ?bool
     {
-        if ($user->hasRole('Super Admin')) {
+        // Super Admin has global read/monitoring access across the entire platform
+        if ($user->hasRole('Super Admin') && in_array($ability, ['viewAny', 'view'])) {
             return true;
         }
 
+        // Operational actions (review, transfer, assignFieldWorker, reject, close)
+        // belong strictly to the respective Ministry Admin / Department
         return null;
     }
 
