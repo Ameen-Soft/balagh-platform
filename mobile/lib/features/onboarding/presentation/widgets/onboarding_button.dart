@@ -25,7 +25,7 @@ class OnboardingButton extends StatelessWidget {
         borderRadius: BorderRadius.circular(26),
         boxShadow: [
           BoxShadow(
-            color: AppColors.yemenRed.withOpacity(0.35),
+            color: AppColors.yemenRed.withValues(alpha: 0.35),
             offset: const Offset(0, 6),
             blurRadius: 14,
           ),
@@ -36,8 +36,8 @@ class OnboardingButton extends StatelessWidget {
         child: InkWell(
           borderRadius: BorderRadius.circular(26),
           onTap: onPressed,
-          splashColor: Colors.white.withOpacity(0.25),
-          highlightColor: Colors.white.withOpacity(0.1),
+          splashColor: Colors.white.withValues(alpha: 0.25),
+          highlightColor: Colors.white.withValues(alpha: 0.1),
           child: Center(
             child: AnimatedSwitcher(
               duration: const Duration(milliseconds: 250),

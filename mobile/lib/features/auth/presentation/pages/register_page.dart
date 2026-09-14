@@ -1,46 +1,67 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:mobile/core/constants/app_assets.dart';
 import 'package:mobile/core/constants/app_colors.dart';
 import 'package:mobile/features/auth/application/providers.dart';
 import '../widgets/auth_text_field.dart';
 
-class LoginPage extends ConsumerStatefulWidget {
-  const LoginPage({super.key});
+class RegisterPage extends ConsumerStatefulWidget {
+  const RegisterPage({super.key});
 
   @override
-  ConsumerState<LoginPage> createState() => _LoginPageState();
+  ConsumerState<RegisterPage> createState() => _RegisterPageState();
 }
 
-class _LoginPageState extends ConsumerState<LoginPage> {
+class _RegisterPageState extends ConsumerState<RegisterPage> {
   final _formKey = GlobalKey<FormState>();
+  late final TextEditingController _nameController;
   late final TextEditingController _emailController;
+  late final TextEditingController _phoneController;
+  late final TextEditingController _nationalIdController;
   late final TextEditingController _passwordController;
+  late final TextEditingController _passwordConfirmationController;
+
   bool _obscurePassword = true;
+  bool _obscureConfirmPassword = true;
 
   @override
   void initState() {
     super.initState();
+    _nameController = TextEditingController();
     _emailController = TextEditingController();
+    _phoneController = TextEditingController();
+    _nationalIdController = TextEditingController();
     _passwordController = TextEditingController();
+    _passwordConfirmationController = TextEditingController();
   }
 
   @override
   void dispose() {
+    _nameController.dispose();
     _emailController.dispose();
+    _phoneController.dispose();
+    _nationalIdController.dispose();
     _passwordController.dispose();
+    _passwordConfirmationController.dispose();
     super.dispose();
   }
 
-  Future<void> _submitLogin() async {
+  Future<void> _submitRegister() async {
     if (!(_formKey.currentState?.validate() ?? false)) return;
 
     FocusScope.of(context).unfocus();
 
-    await ref.read(authNotifierProvider.notifier).login(
+    await ref.read(authNotifierProvider.notifier).register(
+          name: _nameController.text.trim(),
           email: _emailController.text.trim(),
           password: _passwordController.text,
+          passwordConfirmation: _passwordConfirmationController.text,
+          phone: _phoneController.text.trim().isEmpty
+              ? null
+              : _phoneController.text.trim(),
+          nationalId: _nationalIdController.text.trim().isEmpty
+              ? null
+              : _nationalIdController.text.trim(),
         );
   }
 
@@ -48,7 +69,6 @@ class _LoginPageState extends ConsumerState<LoginPage> {
   Widget build(BuildContext context) {
     final authState = ref.watch(authNotifierProvider);
 
-    // Listen to error states and display SnackBar
     ref.listen(authNotifierProvider, (previous, next) {
       if (next.isError && next.errorMessage != null) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -68,71 +88,26 @@ class _LoginPageState extends ConsumerState<LoginPage> {
 
     return Scaffold(
       backgroundColor: AppColors.background,
+      appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_ios_new_rounded, color: AppColors.yemenBlack),
+          onPressed: () => context.pop(),
+        ),
+      ),
       body: SafeArea(
         child: Center(
           child: SingleChildScrollView(
-            padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
+            padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 8.0),
             child: Form(
               key: _formKey,
               child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  const SizedBox(height: 16),
-
-                  // Brand Logo
-                  Center(
-                    child: Container(
-                      height: 58,
-                      width: 190,
-                      clipBehavior: Clip.antiAlias,
-                      decoration: BoxDecoration(
-                        gradient: const LinearGradient(
-                          begin: Alignment.topCenter,
-                          end: Alignment.bottomCenter,
-                          colors: [
-                            Color(0xFFF9FAFB),
-                            Color(0xFFE5E9EE),
-                          ],
-                        ),
-                        borderRadius: BorderRadius.circular(29),
-                        border: Border.all(
-                          color: const Color(0xFFD1D5DB),
-                          width: 1.2,
-                        ),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withValues(alpha: 0.05),
-                            blurRadius: 10,
-                            offset: const Offset(0, 3),
-                          ),
-                        ],
-                      ),
-                      child: Center(
-                        child: Transform.scale(
-                          scale: 2.6,
-                          child: Image.asset(
-                            AppAssets.logoHorizontal,
-                            fit: BoxFit.contain,
-                            errorBuilder: (context, error, stackTrace) => const Text(
-                              'بلاغ',
-                              style: TextStyle(
-                                fontSize: 24,
-                                fontWeight: FontWeight.bold,
-                                color: AppColors.yemenBlack,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-
-                  const SizedBox(height: 32),
-
                   // Title & Subtitle
                   const Text(
-                    'تسجيل الدخول',
+                    'إنشاء حساب جديد',
                     textAlign: TextAlign.center,
                     style: TextStyle(
                       fontSize: 24,
@@ -142,7 +117,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                   ),
                   const SizedBox(height: 8),
                   const Text(
-                    'أهلاً بك مجدداً في منصة بلاغ الوطنية',
+                    'انضم إلى منصة بلاغ للمشاركة المجتمعية الفعالة',
                     textAlign: TextAlign.center,
                     style: TextStyle(
                       fontSize: 14,
@@ -150,7 +125,24 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                     ),
                   ),
 
-                  const SizedBox(height: 32),
+                  const SizedBox(height: 28),
+
+                  // Name Field
+                  AuthTextField(
+                    controller: _nameController,
+                    label: 'الاسم الكامل',
+                    hint: 'محمد أحمد علي',
+                    prefixIcon: Icons.person_outline_rounded,
+                    enabled: !authState.isLoading,
+                    validator: (value) {
+                      if (value == null || value.trim().isEmpty) {
+                        return 'يرجى إدخال الاسم الكامل';
+                      }
+                      return null;
+                    },
+                  ),
+
+                  const SizedBox(height: 16),
 
                   // Email Field
                   AuthTextField(
@@ -172,7 +164,31 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                     },
                   ),
 
-                  const SizedBox(height: 20),
+                  const SizedBox(height: 16),
+
+                  // Phone Field (Optional)
+                  AuthTextField(
+                    controller: _phoneController,
+                    label: 'رقم الهاتف (اختياري)',
+                    hint: '770000000',
+                    prefixIcon: Icons.phone_outlined,
+                    keyboardType: TextInputType.phone,
+                    enabled: !authState.isLoading,
+                  ),
+
+                  const SizedBox(height: 16),
+
+                  // National ID Field (Optional)
+                  AuthTextField(
+                    controller: _nationalIdController,
+                    label: 'رقم الهوية الوطنية (اختياري)',
+                    hint: '01010000000',
+                    prefixIcon: Icons.badge_outlined,
+                    keyboardType: TextInputType.number,
+                    enabled: !authState.isLoading,
+                  ),
+
+                  const SizedBox(height: 16),
 
                   // Password Field
                   AuthTextField(
@@ -181,9 +197,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                     hint: '••••••••',
                     prefixIcon: Icons.lock_outline_rounded,
                     obscureText: _obscurePassword,
-                    textInputAction: TextInputAction.done,
                     enabled: !authState.isLoading,
-                    onFieldSubmitted: (_) => _submitLogin(),
                     suffixIcon: IconButton(
                       icon: Icon(
                         _obscurePassword
@@ -202,8 +216,45 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                       if (value == null || value.isEmpty) {
                         return 'يرجى إدخال كلمة المرور';
                       }
-                      if (value.length < 6) {
-                        return 'كلمة المرور يجب ألا تقل عن 6 أحرف';
+                      if (value.length < 8) {
+                        return 'كلمة المرور يجب ألا تقل عن 8 أحرف';
+                      }
+                      return null;
+                    },
+                  ),
+
+                  const SizedBox(height: 16),
+
+                  // Password Confirmation Field
+                  AuthTextField(
+                    controller: _passwordConfirmationController,
+                    label: 'تأكيد كلمة المرور',
+                    hint: '••••••••',
+                    prefixIcon: Icons.lock_clock_outlined,
+                    obscureText: _obscureConfirmPassword,
+                    textInputAction: TextInputAction.done,
+                    enabled: !authState.isLoading,
+                    onFieldSubmitted: (_) => _submitRegister(),
+                    suffixIcon: IconButton(
+                      icon: Icon(
+                        _obscureConfirmPassword
+                            ? Icons.visibility_off_outlined
+                            : Icons.visibility_outlined,
+                        color: AppColors.textSecondary,
+                        size: 20,
+                      ),
+                      onPressed: () {
+                        setState(() {
+                          _obscureConfirmPassword = !_obscureConfirmPassword;
+                        });
+                      },
+                    ),
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'يرجى تأكيد كلمة المرور';
+                      }
+                      if (value != _passwordController.text) {
+                        return 'كلمتا المرور غير متطابقتين';
                       }
                       return null;
                     },
@@ -215,7 +266,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                   SizedBox(
                     height: 52,
                     child: ElevatedButton(
-                      onPressed: authState.isLoading ? null : _submitLogin,
+                      onPressed: authState.isLoading ? null : _submitRegister,
                       style: ElevatedButton.styleFrom(
                         backgroundColor: AppColors.yemenRed,
                         foregroundColor: Colors.white,
@@ -235,7 +286,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                               ),
                             )
                           : const Text(
-                              'تسجيل الدخول',
+                              'إنشاء الحساب',
                               style: TextStyle(
                                 fontSize: 16,
                                 fontWeight: FontWeight.w700,
@@ -244,25 +295,23 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                     ),
                   ),
 
-                  const SizedBox(height: 24),
+                  const SizedBox(height: 20),
 
-                  // Register Navigation Link
+                  // Login Navigation Link
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       const Text(
-                        'ليس لديك حساب؟',
+                        'لديك حساب بالفعل؟',
                         style: TextStyle(
                           fontSize: 14,
                           color: AppColors.textSecondary,
                         ),
                       ),
                       TextButton(
-                        onPressed: authState.isLoading
-                            ? null
-                            : () => context.push('/register'),
+                        onPressed: authState.isLoading ? null : () => context.pop(),
                         child: const Text(
-                          'إنشاء حساب جديد',
+                          'تسجيل الدخول',
                           style: TextStyle(
                             fontSize: 14,
                             fontWeight: FontWeight.w700,

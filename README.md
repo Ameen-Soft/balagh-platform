@@ -117,6 +117,11 @@
     * **التجاوب الشامل مع الهواتف الذكية:** تحويل تلقائي للجداول والبيانات المعقدة إلى بطاقات تفاعلية ذكية (Mobile Cards Feed) مخصصة للمس بالأصابع.
 * **تطبيقات الهواتف المحمولة (Mobile App):**
   * إطار العمل: Flutter بلغة Dart، لبرمجة تطبيق هجين موحد وعالي الأداء يعمل على نظامي Android و iOS مع قفل الموقع الجغرافي والكاميرا الحية.
+  * **إدارة الحالة (State Management):** استخدام Riverpod 3.x مع نمط `Notifier<T>` / `AsyncNotifier<T>` الحديث (وليس `StateNotifier` القديم).
+  * **الشبكات (Networking):** عميل Dio HTTP مع حقن تلقائي لرمز المرور (Bearer token) عبر الـ interceptors ومعالجة مهيكلة للأخطاء.
+  * **التخزين الآمن (Secure Storage):** مكتبة `flutter_secure_storage` لحفظ رمز Sanctum مشفراً في Android Keystore / iOS Keychain.
+  * **التوجيه (Routing):** مكتبة GoRouter مرتبطة بـ Riverpod عبر `refreshListenable` لإدارة حراس التوجيه التفاعلية المعتمدة على المصادقة واستعادة الجلسة بسلاسة وبدون وميض (zero-flicker).
+  * **البنية المعمارية (Architecture):** معمارية نظيفة (Clean Architecture) مقسمة حسب الميزة (`domain/entities`, `domain/repositories`, `data/models`, `data/datasources`, `data/repositories`, `application/`, `presentation/`).
 * **خدمات نظم المعلومات الجغرافية (GIS):**
   * مكتبة Leaflet وواجهة Google Maps API لعرض وإدارة الخرائط والتثبيت الجغرافي والتحقق المحيطي (Geofencing).
 
@@ -162,6 +167,18 @@ cd mobile
 flutter pub get
 flutter run
 ```
+
+> [!IMPORTANT]
+> **الاختبار على الأجهزة الحقيقية (نقطة اتصال من الهاتف → اللابتوب):**  
+> عند الاختبار على هاتف حقيقي متصل بنقطة اتصال (Hotspot) مع اللابتوب، يجب تشغيل خادم Laravel ليستمع على جميع الواجهات:  
+> ```bash
+> php artisan serve --host=0.0.0.0 --port=8000
+> ```  
+> قم بتحديث `serverIp` في ملف `mobile/lib/core/network/api_endpoints.dart` ليطابق عنوان الـ IP الخاص باللابتوب (مثال: `192.168.43.172`).  
+> في نظام Windows، اسمح للمنفذ 8000 بالمرور عبر جدار الحماية (Firewall):
+> ```powershell
+> New-NetFirewallRule -DisplayName "Laravel Dev" -Direction Inbound -LocalPort 8000 -Protocol TCP -Action Allow
+> ```
 
 ---
 
@@ -225,7 +242,8 @@ flutter run
 - [x] نظام التصميم الفاخر (Obsidian Near-Black Theme `#08080a`، هيدر عائم، قائمة جانبية ثابتة، وواجهات متجاوبة بالكامل مع الجوالات).
 - [x] جناح الاختبارات الآلية الشاملة (72 اختباراً بنجاح 100%، و 267 توكيداً).
 - [x] تطوير شاشات الترحيب والتعريف بالنظام وتخزين الحالة الأولى (Flutter Onboarding Flow & SharedPreferences).
-- [ ] استكمال واجهات وتكامل تطبيق الموبايل (المصادقة، تقديم الشكاوى، والمشاريع التنموية).
+- [x] نظام المصادقة لتطبيق الهاتف: دورة كاملة لتسجيل الدخول / التسجيل / تسجيل الخروج متكاملة مع واجهات Laravel Sanctum، إدارة الحالة باستخدام Riverpod `Notifier<AuthState>`، عميل الشبكة Dio، التخزين الآمن `flutter_secure_storage`، وحراس التوجيه GoRouter مع استعادة الجلسة بدون وميض، مبنية على بنية Clean Architecture (بنجاح 3 اختبارات للمصادقة).
+- [ ] المرحلة القادمة: الميزات الأساسية لتطبيق الهاتف — تقديم الشكاوى للمواطنين مع التوثيق بالكاميرا و GPS، التتبع في الوقت الفعلي، وتنفيذ المهام للفرق الميدانية.
 
 ---
 ---
@@ -349,6 +367,11 @@ The platform provides dedicated, role-specific web interfaces built with **Larav
     * **Mobile-Responsive Data Cards:** Dual desktop-table / mobile-card rendering (Mobile Cards Feed) optimized for seamless one-handed touch interaction.
 * **Mobile Application Development:**
   * Framework: Flutter (Dart) delivering a unified, high-performance client application across Android and iOS with native hardware integration (Camera and Location Services).
+  * **State Management:** Riverpod 3.x with modern `Notifier<T>` / `AsyncNotifier<T>` pattern (not legacy `StateNotifier`).
+  * **Networking:** Dio HTTP client with automatic Bearer token injection via interceptors and structured exception handling.
+  * **Secure Storage:** `flutter_secure_storage` for encrypted Sanctum token persistence in Android Keystore / iOS Keychain.
+  * **Routing:** GoRouter with Riverpod-driven `refreshListenable` for reactive auth-aware route guards and zero-flicker session restoration.
+  * **Architecture:** Clean Architecture per feature (`domain/entities`, `domain/repositories`, `data/models`, `data/datasources`, `data/repositories`, `application/`, `presentation/`).
 * **Geospatial & Mapping Integration:**
   * Leaflet library and Google Maps API for coordinate plotting, geofencing, and map visualization.
 
@@ -394,6 +417,18 @@ cd mobile
 flutter pub get
 flutter run
 ```
+
+> [!IMPORTANT]
+> **Physical Device Testing (Phone Hotspot → Laptop):**  
+> When testing on a real phone connected via mobile hotspot, the Laravel server must listen on all interfaces:  
+> ```bash
+> php artisan serve --host=0.0.0.0 --port=8000
+> ```  
+> Update `serverIp` in `mobile/lib/core/network/api_endpoints.dart` to your laptop's Wi-Fi IP (e.g. `192.168.43.172`).  
+> On Windows, allow port 8000 through the firewall:
+> ```powershell
+> New-NetFirewallRule -DisplayName "Laravel Dev" -Direction Inbound -LocalPort 8000 -Protocol TCP -Action Allow
+> ```
 
 ---
 
@@ -457,4 +492,5 @@ All platform endpoints are versioned under `/api/v1` and protected via Sanctum p
 - [x] Modern UI/UX Design System: Obsidian Near-Black Theme (`#08080a`), Floating Header, Sticky Desktop Sidebar / Mobile Drawer, full RTL & Mobile-Responsive Cards.
 - [x] Comprehensive automated test suite (72 Tests: 100% Pass, 267 Assertions).
 - [x] Mobile Onboarding Experience & First-Launch Persistence (Flutter PageView, SharedPreferences & Clean Architecture).
-- [ ] Next Phase: Flutter Mobile App Authentication & Core Features (Citizen & Field Worker experiences).
+- [x] Mobile Authentication System: Full login/register/logout flow integrated with Laravel Sanctum API, Riverpod `Notifier<AuthState>`, Dio HTTP client, `flutter_secure_storage`, GoRouter auth guards with zero-flicker session restoration, and Clean Architecture (3 Auth Tests Passed).
+- [ ] Next Phase: Flutter Mobile App Core Features — Citizen complaint submission with camera/GPS, real-time tracking, and Field Worker task execution.

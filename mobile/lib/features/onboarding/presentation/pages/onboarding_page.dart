@@ -1,15 +1,17 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:mobile/core/constants/app_colors.dart';
-import 'package:mobile/features/onboarding/domain/entities/onboarding_item.dart';
-import 'package:mobile/features/onboarding/domain/repositories/onboarding_repository.dart';
-import 'package:mobile/features/onboarding/presentation/widgets/onboarding_button.dart';
-import 'package:mobile/features/onboarding/presentation/widgets/onboarding_dots.dart';
-import 'package:mobile/features/onboarding/presentation/widgets/onboarding_header.dart';
-import 'package:mobile/features/onboarding/presentation/widgets/onboarding_item_view.dart';
+import '../../../../core/constants/app_colors.dart';
+import '../../../../core/router/app_router.dart';
+import '../../domain/entities/onboarding_item.dart';
+import '../../domain/repositories/onboarding_repository.dart';
+import '../widgets/onboarding_button.dart';
+import '../widgets/onboarding_dots.dart';
+import '../widgets/onboarding_header.dart';
+import '../widgets/onboarding_item_view.dart';
 
 /// The main Onboarding Screen managing PageView, Dots, and Persistent State
-class OnboardingPage extends StatefulWidget {
+class OnboardingPage extends ConsumerStatefulWidget {
   final OnboardingRepository repository;
 
   const OnboardingPage({
@@ -18,10 +20,10 @@ class OnboardingPage extends StatefulWidget {
   });
 
   @override
-  State<OnboardingPage> createState() => _OnboardingPageState();
+  ConsumerState<OnboardingPage> createState() => _OnboardingPageState();
 }
 
-class _OnboardingPageState extends State<OnboardingPage> {
+class _OnboardingPageState extends ConsumerState<OnboardingPage> {
   final PageController _pageController = PageController();
   int _currentIndex = 0;
 
@@ -45,6 +47,7 @@ class _OnboardingPageState extends State<OnboardingPage> {
     await widget.repository.completeOnboarding();
 
     if (!mounted) return;
+    ref.read(onboardingStatusProvider.notifier).setCompleted(true);
     // Navigate to Login/Home using GoRouter
     context.go('/login');
   }
@@ -126,7 +129,7 @@ class _TopographyBackgroundPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final paint = Paint()
-      ..color = const Color(0xFFF3F4F6).withOpacity(0.45)
+      ..color = const Color(0xFFF3F4F6).withValues(alpha: 0.45)
       ..style = PaintingStyle.stroke
       ..strokeWidth = 1.0;
 
