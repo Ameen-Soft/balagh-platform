@@ -224,7 +224,8 @@ flutter run
 - [x] محطة العمل التشغيلية للوزارات والجهات الحكومية (`/ministry/*`).
 - [x] نظام التصميم الفاخر (Obsidian Near-Black Theme `#08080a`، هيدر عائم، قائمة جانبية ثابتة، وواجهات متجاوبة بالكامل مع الجوالات).
 - [x] جناح الاختبارات الآلية الشاملة (72 اختباراً بنجاح 100%، و 267 توكيداً).
-- [ ] المرحلة التالية: واجهات وتكامل تطبيق الموبايل (Flutter Mobile UI & API Integration).
+- [x] تطوير شاشات الترحيب والتعريف بالنظام وتخزين الحالة الأولى (Flutter Onboarding Flow & SharedPreferences).
+- [ ] استكمال واجهات وتكامل تطبيق الموبايل (المصادقة، تقديم الشكاوى، والمشاريع التنموية).
 
 ---
 ---
@@ -455,4 +456,5 @@ All platform endpoints are versioned under `/api/v1` and protected via Sanctum p
 - [x] Ministry Admin Operational Processing Workstation (`/ministry/*`).
 - [x] Modern UI/UX Design System: Obsidian Near-Black Theme (`#08080a`), Floating Header, Sticky Desktop Sidebar / Mobile Drawer, full RTL & Mobile-Responsive Cards.
 - [x] Comprehensive automated test suite (72 Tests: 100% Pass, 267 Assertions).
-- [ ] Next Phase: Flutter Mobile App Development (Citizen & Field Worker experiences).
+- [x] Mobile Onboarding Experience & First-Launch Persistence (Flutter PageView, SharedPreferences & Clean Architecture).
+- [ ] Next Phase: Flutter Mobile App Authentication & Core Features (Citizen & Field Worker experiences).

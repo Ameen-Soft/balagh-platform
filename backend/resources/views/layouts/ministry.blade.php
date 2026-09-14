@@ -51,7 +51,7 @@
                             </svg>
                         </div>
                         <div>
-                            <h1 class="text-base font-black text-white leading-tight">بَــــادِر</h1>
+                            <h1 class="text-base font-black text-white leading-tight">بــــادر</h1>
                             <span class="text-[11px] font-bold text-amber-500 uppercase tracking-wide">بوابة العمليات التشغيلية</span>
                         </div>
                     </div>

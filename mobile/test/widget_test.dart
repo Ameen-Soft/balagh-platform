@@ -1,30 +1,50 @@
-// This is a basic Flutter widget test.
-//
-// To perform an interaction with a widget in your test, use the WidgetTester
-// utility in the flutter_test package. For example, you can send tap and scroll
-// gestures. You can also use WidgetTester to find child widgets in the widget
-// tree, read text, and verify that the values of widget properties are correct.
-
-import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-
-import 'package:mobile/main.dart';
+import 'package:mobile/features/onboarding/data/datasources/onboarding_local_data_source.dart';
+import 'package:mobile/features/onboarding/data/repositories/onboarding_repository_impl.dart';
+import 'package:mobile/features/onboarding/domain/entities/onboarding_item.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
-  testWidgets('Counter increments smoke test', (WidgetTester tester) async {
-    // Build our app and trigger a frame.
-    await tester.pumpWidget(const MyApp());
+  TestWidgetsFlutterBinding.ensureInitialized();
 
-    // Verify that our counter starts at 0.
-    expect(find.text('0'), findsOneWidget);
-    expect(find.text('1'), findsNothing);
+  group('Onboarding Unit Tests', () {
+    test('OnboardingItem should contain exactly 3 items with proper Arabic texts', () {
+      expect(OnboardingItem.items.length, 3);
+      expect(OnboardingItem.items[0].title, 'صوتك يبني وطناً.');
+      expect(OnboardingItem.items[1].title, 'رصد ميداني ذكي:');
+      expect(OnboardingItem.items[2].title, 'شراكة تصنع الأثر:');
+    });
 
-    // Tap the '+' icon and trigger a frame.
-    await tester.tap(find.byIcon(Icons.add));
-    await tester.pump();
+    test('OnboardingRepository default state should be not completed (false)', () async {
+      SharedPreferences.setMockInitialValues({});
+      final prefs = await SharedPreferences.getInstance();
+      final dataSource = OnboardingLocalDataSourceImpl(prefs);
+      final repository = OnboardingRepositoryImpl(dataSource);
 
-    // Verify that our counter has incremented.
-    expect(find.text('0'), findsNothing);
-    expect(find.text('1'), findsOneWidget);
+      final isCompleted = await repository.isOnboardingCompleted();
+      expect(isCompleted, false);
+    });
+
+    test('completeOnboarding should set state to completed (true)', () async {
+      SharedPreferences.setMockInitialValues({});
+      final prefs = await SharedPreferences.getInstance();
+      final dataSource = OnboardingLocalDataSourceImpl(prefs);
+      final repository = OnboardingRepositoryImpl(dataSource);
+
+      await repository.completeOnboarding();
+      final isCompleted = await repository.isOnboardingCompleted();
+      expect(isCompleted, true);
+    });
+
+    test('resetOnboarding should reset state back to false', () async {
+      SharedPreferences.setMockInitialValues({'onboarding_completed': true});
+      final prefs = await SharedPreferences.getInstance();
+      final dataSource = OnboardingLocalDataSourceImpl(prefs);
+      final repository = OnboardingRepositoryImpl(dataSource);
+
+      expect(await repository.isOnboardingCompleted(), true);
+      await repository.resetOnboarding();
+      expect(await repository.isOnboardingCompleted(), false);
+    });
   });
 }
