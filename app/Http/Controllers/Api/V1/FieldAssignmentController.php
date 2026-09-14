@@ -6,6 +6,7 @@ use App\Http\Controllers\Api\ApiResponseTrait;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Complaint\AssignFieldWorkerRequest;
 use App\Http\Requests\FieldWork\CompleteFieldAssignmentRequest;
+use App\Http\Requests\FieldWork\VerifyFieldWorkerLocationRequest;
 use App\Http\Resources\FieldAssignmentResource;
 use App\Models\Complaint;
 use App\Models\FieldAssignment;
@@ -57,6 +58,35 @@ class FieldAssignmentController extends Controller
             'تم إسناد البلاغ للموظف الميداني بنجاح.',
             201
         );
+    }
+
+    /**
+     * Accept the field assignment.
+     */
+    public function accept(Request $request, FieldAssignment $assignment): JsonResponse
+    {
+        Gate::authorize('accept', $assignment);
+
+        $accepted = $this->fieldWorkService->acceptAssignment($assignment, $request->user());
+
+        return $this->successResponse(new FieldAssignmentResource($accepted), 'تم قبول المهمة الميدانية بنجاح.');
+    }
+
+    /**
+     * Verify the field worker's geographic proximity to the complaint site.
+     */
+    public function verifyLocation(VerifyFieldWorkerLocationRequest $request, FieldAssignment $assignment): JsonResponse
+    {
+        Gate::authorize('verifyLocation', $assignment);
+
+        $result = $this->fieldWorkService->verifyWorkerLocation(
+            $assignment,
+            (float) $request->validated('latitude'),
+            (float) $request->validated('longitude'),
+            $request->user()
+        );
+
+        return $this->successResponse($result, 'تم التحقق من الموقع الجغرافي للموظف الميداني بنجاح.');
     }
 
     /**

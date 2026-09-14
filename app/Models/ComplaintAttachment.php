@@ -38,4 +38,13 @@ class ComplaintAttachment extends Model
     {
         return $this->belongsTo(User::class, 'uploaded_by');
     }
+
+    public function setTypeAttribute($value): void
+    {
+        $this->attributes['type'] = match ($value) {
+            'initial_evidence' => 'before',
+            'completion_evidence' => 'after',
+            default => $value,
+        };
+    }
 }

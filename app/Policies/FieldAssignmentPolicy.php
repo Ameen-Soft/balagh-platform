@@ -51,12 +51,32 @@ class FieldAssignmentPolicy
     }
 
     /**
+     * Determine whether the field worker can accept the assignment.
+     */
+    public function accept(User $user, FieldAssignment $assignment): bool
+    {
+        return $assignment->worker_id === $user->id
+            && in_array($assignment->status, ['assigned', 'pending'])
+            && $user->hasPermission('tasks.update_status');
+    }
+
+    /**
      * Determine whether the field worker can start the assignment.
      */
     public function start(User $user, FieldAssignment $assignment): bool
     {
         return $assignment->worker_id === $user->id
-            && in_array($assignment->status, ['assigned', 'pending'])
+            && in_array($assignment->status, ['assigned', 'pending', 'accepted'])
+            && $user->hasPermission('tasks.update_status');
+    }
+
+    /**
+     * Determine whether the field worker can verify their location for the assignment.
+     */
+    public function verifyLocation(User $user, FieldAssignment $assignment): bool
+    {
+        return $assignment->worker_id === $user->id
+            && in_array($assignment->status, ['assigned', 'pending', 'accepted', 'in_progress'])
             && $user->hasPermission('tasks.update_status');
     }
 

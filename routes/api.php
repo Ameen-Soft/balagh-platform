@@ -1,8 +1,11 @@
 <?php
 
 use App\Http\Controllers\Api\V1\AuthController;
+use App\Http\Controllers\Api\V1\CategoryController;
 use App\Http\Controllers\Api\V1\ComplaintController;
 use App\Http\Controllers\Api\V1\FieldAssignmentController;
+use App\Http\Controllers\Api\V1\MinistryController;
+use App\Http\Controllers\Api\V1\NotificationController;
 use App\Http\Controllers\Api\V1\ProjectController;
 use App\Http\Controllers\Api\V1\TransferController;
 use Illuminate\Support\Facades\Route;
@@ -26,6 +29,12 @@ Route::prefix('v1')->group(function () {
         Route::post('/login', [AuthController::class, 'login']);
     });
 
+    // Reference Data: Ministries & Cascading Categories
+    Route::get('/ministries', [MinistryController::class, 'index']);
+    Route::get('/ministries/{ministry}', [MinistryController::class, 'show']);
+    Route::get('/categories', [CategoryController::class, 'index']);
+    Route::get('/categories/{category}', [CategoryController::class, 'show']);
+
     // Public Project Discovery
     Route::get('/projects', [ProjectController::class, 'index']);
     Route::get('/projects/{project}', [ProjectController::class, 'show']);
@@ -41,6 +50,13 @@ Route::prefix('v1')->group(function () {
         Route::prefix('auth')->group(function () {
             Route::get('/me', [AuthController::class, 'me']);
             Route::post('/logout', [AuthController::class, 'logout']);
+        });
+
+        // User Notifications
+        Route::prefix('notifications')->group(function () {
+            Route::get('/', [NotificationController::class, 'index']);
+            Route::patch('/{notification}/read', [NotificationController::class, 'markAsRead']);
+            Route::post('/read-all', [NotificationController::class, 'markAllAsRead']);
         });
 
         // Complaints Management
@@ -60,7 +76,9 @@ Route::prefix('v1')->group(function () {
         // Field Work & Assignments
         Route::prefix('field-assignments')->group(function () {
             Route::get('/', [FieldAssignmentController::class, 'index']);
+            Route::patch('/{assignment}/accept', [FieldAssignmentController::class, 'accept']);
             Route::post('/{assignment}/start', [FieldAssignmentController::class, 'start']);
+            Route::post('/{assignment}/verify-location', [FieldAssignmentController::class, 'verifyLocation']);
             Route::post('/{assignment}/complete', [FieldAssignmentController::class, 'complete']);
         });
 
