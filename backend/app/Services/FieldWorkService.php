@@ -77,6 +77,48 @@ class FieldWorkService
     }
 
     /**
+     * Accept a field assignment.
+     *
+     * @throws ValidationException
+     */
+    public function acceptAssignment(FieldAssignment $assignment, User $worker): FieldAssignment
+    {
+        if ($assignment->worker_id !== $worker->id) {
+            throw ValidationException::withMessages([
+                'assignment' => ['غير مصرح لك بقبول هذه المهمة الميدانية.'],
+            ]);
+        }
+
+        if (! in_array($assignment->status, ['pending', 'assigned'])) {
+            throw ValidationException::withMessages([
+                'assignment' => ['لا يمكن قبول هذه المهمة لأن حالتها الحالية ليست قيد الانتظار.'],
+            ]);
+        }
+
+        $oldStatus = $assignment->status;
+
+        return DB::transaction(function () use ($assignment, $worker, $oldStatus) {
+            $assignment->update([
+                'status' => 'accepted',
+            ]);
+
+            $complaint = $assignment->complaint;
+            if ($complaint) {
+                ComplaintTimeline::create([
+                    'complaint_id' => $complaint->id,
+                    'event_type' => 'status_changed',
+                    'description' => "قبل الموظف الميداني [{$worker->name}] المهمة وهو في الطريق إلى الموقع.",
+                    'old_value' => $oldStatus,
+                    'new_value' => 'accepted',
+                    'performed_by' => $worker->id,
+                ]);
+            }
+
+            return $assignment->fresh(['complaint', 'worker']);
+        });
+    }
+
+    /**
      * Start a field assignment.
      *
      * @throws ValidationException
@@ -89,7 +131,15 @@ class FieldWorkService
             ]);
         }
 
-        return DB::transaction(function () use ($assignment, $worker) {
+        if (! in_array($assignment->status, ['pending', 'assigned', 'accepted'])) {
+            throw ValidationException::withMessages([
+                'assignment' => ['لا يمكن بدء هذه المهمة الميدانية في حالتها الحالية.'],
+            ]);
+        }
+
+        $oldStatus = $assignment->status;
+
+        return DB::transaction(function () use ($assignment, $worker, $oldStatus) {
             $assignment->update([
                 'status' => 'in_progress',
                 'started_at' => now(),
@@ -103,7 +153,7 @@ class FieldWorkService
                     'complaint_id' => $complaint->id,
                     'event_type' => 'status_changed',
                     'description' => "بدأ الموظف الميداني [{$worker->name}] في تنفيذ المعاينة الميدانية.",
-                    'old_value' => 'assigned',
+                    'old_value' => $oldStatus,
                     'new_value' => 'in_progress',
                     'performed_by' => $worker->id,
                 ]);
@@ -111,6 +161,60 @@ class FieldWorkService
 
             return $assignment->fresh(['complaint', 'worker']);
         });
+    }
+
+    /**
+     * Verify worker geolocation proximity against complaint coordinates.
+     *
+     * @throws ValidationException
+     */
+    public function verifyWorkerLocation(
+        FieldAssignment $assignment,
+        float $latitude,
+        float $longitude,
+        User $worker
+    ): array {
+        if ($assignment->worker_id !== $worker->id) {
+            throw ValidationException::withMessages([
+                'assignment' => ['غير مصرح لك بإجراء التحقق من الموقع لهذه المهمة.'],
+            ]);
+        }
+
+        $complaint = $assignment->complaint;
+        if (! $complaint) {
+            throw ValidationException::withMessages([
+                'assignment' => ['البلاغ المرتبط بهذه المهمة غير موجود.'],
+            ]);
+        }
+
+        $allowedRadius = (float) config('balagh.geo.field_worker_radius_meters', 500.0);
+        $distance = $this->geoService->calculateDistance(
+            $latitude,
+            $longitude,
+            (float) $complaint->latitude,
+            (float) $complaint->longitude
+        );
+
+        $isWithinRange = $distance <= $allowedRadius;
+
+        return [
+            'assignment_id' => $assignment->id,
+            'complaint_id' => $complaint->id,
+            'worker_location' => [
+                'latitude' => $latitude,
+                'longitude' => $longitude,
+            ],
+            'complaint_location' => [
+                'latitude' => (float) $complaint->latitude,
+                'longitude' => (float) $complaint->longitude,
+            ],
+            'distance_meters' => $distance,
+            'allowed_radius_meters' => $allowedRadius,
+            'is_within_range' => $isWithinRange,
+            'message' => $isWithinRange
+                ? 'الموظف الميداني متواجد داخل النطاق الجغرافي المحدد للبلاغ.'
+                : "الموظف الميداني يبعد {$distance} متراً عن موقع البلاغ (الحد الأقصى المسموح: {$allowedRadius} متراً).",
+        ];
     }
 
     /**
@@ -179,7 +283,7 @@ class FieldWorkService
                         'captured_latitude' => $latitude,
                         'captured_longitude' => $longitude,
                         'uploaded_by' => $worker->id,
-                        'type' => 'completion_evidence',
+                        'type' => 'after',
                     ]);
                 }
             }

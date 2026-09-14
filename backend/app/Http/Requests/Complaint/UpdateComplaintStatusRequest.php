@@ -14,7 +14,7 @@ class UpdateComplaintStatusRequest extends BaseApiRequest
     public function rules(): array
     {
         return [
-            'status' => ['required', 'string', 'in:new,under_review,in_progress,resolved,rejected,closed'],
+            'status' => ['required', 'string', 'in:new,under_review,assigned,in_progress,resolved,rejected,closed,reopened'],
             'notes' => ['nullable', 'string', 'max:1000'],
             'reason' => ['nullable', 'string', 'max:500'],
         ];

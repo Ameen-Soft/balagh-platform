@@ -62,6 +62,7 @@ class Complaint extends Model
             'resolved' => 'تم الإنجاز',
             'rejected' => 'مرفوض',
             'closed' => 'مغلق',
+            'reopened' => 'أُعيد فتحها',
             default => $this->status ?? 'غير محدد',
         };
     }

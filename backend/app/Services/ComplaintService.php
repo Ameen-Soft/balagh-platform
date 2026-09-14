@@ -70,7 +70,7 @@ class ComplaintService
                         'captured_latitude' => $data['latitude'],
                         'captured_longitude' => $data['longitude'],
                         'uploaded_by' => $citizen->id,
-                        'type' => 'initial_evidence',
+                        'type' => 'before',
                     ]);
                 }
             }

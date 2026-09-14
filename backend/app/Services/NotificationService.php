@@ -3,11 +3,25 @@
 namespace App\Services;
 
 use App\Models\Notification;
+use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\Log;
 use Throwable;
 
 class NotificationService
 {
+    /**
+     * Get paginated notifications for a specific user.
+     */
+    public function getUserNotifications(int $userId, ?bool $unreadOnly = null, int $perPage = 15): LengthAwarePaginator
+    {
+        $query = Notification::where('user_id', $userId);
+
+        if ($unreadOnly) {
+            $query->where('is_read', false);
+        }
+
+        return $query->latest('created_at')->latest('id')->paginate($perPage);
+    }
     /**
      * Send a notification to a specific user.
      * Wrapped in try-catch to ensure notification side-effects never break primary transactions.

@@ -208,15 +208,24 @@ flutter run
 | `POST` | `/api/v1/auth/login` | تسجيل الدخول للأنظمة والحصول على توكن الصلاحيات | متاح للجميع (Public) |
 | `GET` | `/api/v1/auth/me` | استعراض بيانات الملف الشخصي والأدوار والصلاحيات للمستخدم الحالي | مصادقة (`auth:sanctum`) |
 | `POST` | `/api/v1/auth/logout` | إبطال التوكن الحالي وتسجيل الخروج بأمان | مصادقة (`auth:sanctum`) |
+| `GET` | `/api/v1/ministries` | استعراض قائمة الوزارات الحكومية النشطة وأقسامها | متاح للجميع (Public) |
+| `GET` | `/api/v1/ministries/{id}` | استعراض تفاصيل وزارة معينة وأقسامها التابعة | متاح للجميع (Public) |
+| `GET` | `/api/v1/categories` | استعراض التصنيفات المتسلسلة مع دعم الفلترة بحسب الوزارة والقسم والمستوى | متاح للجميع (Public) |
+| `GET` | `/api/v1/categories/{id}` | استعراض تفاصيل تصنيف معين وتصنيفاته الفرعية | متاح للجميع (Public) |
+| `GET` | `/api/v1/notifications` | استعراض إشعارات المستخدم مع الترقيم والفلترة بحسب غير المقروء | مصادقة (`auth:sanctum`) |
+| `PATCH` | `/api/v1/notifications/{id}/read` | تأشير إشعار معين كمقروء للمستخدم | مصادقة (`auth:sanctum`) |
+| `POST` | `/api/v1/notifications/read-all` | تأشير جميع إشعارات المستخدم كمقروءة دفعة واحدة | مصادقة (`auth:sanctum`) |
 | `GET` | `/api/v1/complaints` | استعراض قائمة البلاغات مع الفلترة والبحث وتحديد النطاق بحسب الدور | مصادقة (`auth:sanctum`) |
 | `POST` | `/api/v1/complaints` | تقديم بلاغ جديد مع التحقق الإجرائي، كشف التكرار، والتوجيه التلقائي | مصادقة (`auth:sanctum`) |
 | `GET` | `/api/v1/complaints/{id}` | عرض تفاصيل البلاغ الشاملة (المرفقات، الخط الزمني، والتحويلات) | مصادقة (`auth:sanctum`) |
-| `PATCH` | `/api/v1/complaints/{id}/status` | تحديث حالة البلاغ وإضافة الملاحظات مع تدوين الخط الزمني | مصادقة (`auth:sanctum`) |
+| `PATCH` | `/api/v1/complaints/{id}/status` | تحديث حالة البلاغ (بما في ذلك `reopened` و `assigned`) مع تدوين الخط الزمني | مصادقة (`auth:sanctum`) |
 | `POST` | `/api/v1/complaints/{id}/transfer` | تحويل البلاغ بين الإدارات أو الوزارات مع حفظ سبب وتاريخ التحويل | موظف الوزارة / المشرف |
 | `POST` | `/api/v1/complaints/{id}/assign` | إسناد البلاغ إلى باحث ميداني وتحديث حالة المهمة | موظف الوزارة / المشرف |
 | `GET` | `/api/v1/field-assignments` | استعراض قائمة المهام الميدانية المسندة للموظف أو الإدارة | موظف ميداني / مشرف |
+| `PATCH` | `/api/v1/field-assignments/{id}/accept` | قبول المهمة الميدانية والانتقال لحالة مقبولة (`accepted`) | الباحث الميداني المكلف |
 | `POST` | `/api/v1/field-assignments/{id}/start` | تسجيل بدء تنفيذ المعاينة الميدانية وتحديث حالة البلاغ | الباحث الميداني المكلف |
-| `POST` | `/api/v1/field-assignments/{id}/complete` | إتمام المهمة، رفع أدلة الإنجاز، والتحقق الجغرافي الصارم (Geofencing) | الباحث الميداني المكلف |
+| `POST` | `/api/v1/field-assignments/{id}/verify-location` | التحقق الجغرافي اللحظي لموقع الباحث الميداني مقارنة بإحداثيات البلاغ | الباحث الميداني المكلف |
+| `POST` | `/api/v1/field-assignments/{id}/complete` | إتمام المهمة، رفع أدلة الإنجاز (`after`)، والتحقق الجغرافي الصارم (Geofencing) | الباحث الميداني المكلف |
 | `GET` | `/api/v1/projects` | استعراض المشاريع التنموية ونسب الإنجاز والمبالغ المجمعة | متاح للجميع (Public) |
 | `GET` | `/api/v1/projects/{id}` | استعراض تفاصيل المشروع ومراحله والمساهمات المسجلة | متاح للجميع (Public) |
 | `POST` | `/api/v1/projects/{id}/contribute` | تسجيل مساهمة مجتمعية بمشروع بدقة مالية متناهية (BCMath) | مصادقة (`auth:sanctum`) |
@@ -240,9 +249,10 @@ flutter run
 - [x] لوحة الإدارة المركزية والرقابة الوطنية للمدير العام (`/admin/*`).
 - [x] محطة العمل التشغيلية للوزارات والجهات الحكومية (`/ministry/*`).
 - [x] نظام التصميم الفاخر (Obsidian Near-Black Theme `#08080a`، هيدر عائم، قائمة جانبية ثابتة، وواجهات متجاوبة بالكامل مع الجوالات).
-- [x] جناح الاختبارات الآلية الشاملة (72 اختباراً بنجاح 100%، و 267 توكيداً).
+- [x] جناح الاختبارات الآلية الشاملة (80 اختباراً بنجاح 100%، و 376 توكيداً).
 - [x] تطوير شاشات الترحيب والتعريف بالنظام وتخزين الحالة الأولى (Flutter Onboarding Flow & SharedPreferences).
 - [x] نظام المصادقة لتطبيق الهاتف: دورة كاملة لتسجيل الدخول / التسجيل / تسجيل الخروج متكاملة مع واجهات Laravel Sanctum، إدارة الحالة باستخدام Riverpod `Notifier<AuthState>`، عميل الشبكة Dio، التخزين الآمن `flutter_secure_storage`، وحراس التوجيه GoRouter مع استعادة الجلسة بدون وميض، مبنية على بنية Clean Architecture (بنجاح 3 اختبارات للمصادقة).
+- [x] إثراء وتوسيع واجهات برمجة التطبيقات (Backend API Enrichment - Phase 01): إضافة واجهات الوزارات النشطة والتصنيفات المتسلسلة، نظام الإشعارات المتكامل، قبول المهام الميدانية، والتحقق الجغرافي اللحظي للموقع، ودعم حالتي `reopened` و `assigned` ومطابقة معايير المرفقات (`before` / `after`).
 - [ ] المرحلة القادمة: الميزات الأساسية لتطبيق الهاتف — تقديم الشكاوى للمواطنين مع التوثيق بالكاميرا و GPS، التتبع في الوقت الفعلي، وتنفيذ المهام للفرق الميدانية.
 
 ---
@@ -458,15 +468,24 @@ All platform endpoints are versioned under `/api/v1` and protected via Sanctum p
 | `POST` | `/api/v1/auth/login` | Authenticate user credentials and return access token | Public |
 | `GET` | `/api/v1/auth/me` | Fetch authenticated user profile, roles, and permissions | Authenticated (`auth:sanctum`) |
 | `POST` | `/api/v1/auth/logout` | Revoke current access token and log out | Authenticated (`auth:sanctum`) |
+| `GET` | `/api/v1/ministries` | Browse active governmental ministries and departments | Public |
+| `GET` | `/api/v1/ministries/{id}` | Retrieve specific ministry details and active departments | Public |
+| `GET` | `/api/v1/categories` | Cascading taxonomy categories with ministry/department/parent filtering | Public |
+| `GET` | `/api/v1/categories/{id}` | Retrieve specific category details and child subcategories | Public |
+| `GET` | `/api/v1/notifications` | Paginated user notifications with unread filtering support | Authenticated (`auth:sanctum`) |
+| `PATCH` | `/api/v1/notifications/{id}/read` | Mark an individual notification as read | Authenticated (`auth:sanctum`) |
+| `POST` | `/api/v1/notifications/read-all` | Batch mark all user notifications as read | Authenticated (`auth:sanctum`) |
 | `GET` | `/api/v1/complaints` | Paginated complaints list with filtering, search, and role scoping | Authenticated (`auth:sanctum`) |
 | `POST` | `/api/v1/complaints` | File complaint with auto-routing, duplicate detection, and attachments | Authenticated (`auth:sanctum`) |
 | `GET` | `/api/v1/complaints/{id}` | Retrieve comprehensive complaint details, history, and timeline | Authenticated (`auth:sanctum`) |
-| `PATCH` | `/api/v1/complaints/{id}/status` | Update complaint status and append timeline record | Authenticated (`auth:sanctum`) |
+| `PATCH` | `/api/v1/complaints/{id}/status` | Update complaint status (including `reopened` & `assigned`) with timeline log | Authenticated (`auth:sanctum`) |
 | `POST` | `/api/v1/complaints/{id}/transfer` | Inter-department / Inter-ministerial transfer with reason logging | Ministry Admin / Staff |
 | `POST` | `/api/v1/complaints/{id}/assign` | Assign complaint to a verified field worker | Ministry Admin / Staff |
 | `GET` | `/api/v1/field-assignments` | List field work assignments scoped to worker or department | Field Worker / Admin |
+| `PATCH` | `/api/v1/field-assignments/{id}/accept` | Accept field assignment transitioning to `accepted` status | Assigned Field Worker |
 | `POST` | `/api/v1/field-assignments/{id}/start` | Mark field assignment in-progress upon arrival | Assigned Field Worker |
-| `POST` | `/api/v1/field-assignments/{id}/complete` | Submit resolution report and evidence with strict geofencing | Assigned Field Worker |
+| `POST` | `/api/v1/field-assignments/{id}/verify-location` | Real-time worker geolocation verification against incident coordinates | Assigned Field Worker |
+| `POST` | `/api/v1/field-assignments/{id}/complete` | Submit resolution report and evidence (`after`) with strict geofencing | Assigned Field Worker |
 | `GET` | `/api/v1/projects` | Browse active developmental projects and progress | Public |
 | `GET` | `/api/v1/projects/{id}` | View detailed project breakdown, phases, and contributions | Public |
 | `POST` | `/api/v1/projects/{id}/contribute` | Pledged financial contribution with atomic precision (BCMath) | Authenticated (`auth:sanctum`) |
@@ -490,7 +509,8 @@ All platform endpoints are versioned under `/api/v1` and protected via Sanctum p
 - [x] Super Admin Global Monitoring Dashboard (`/admin/*`).
 - [x] Ministry Admin Operational Processing Workstation (`/ministry/*`).
 - [x] Modern UI/UX Design System: Obsidian Near-Black Theme (`#08080a`), Floating Header, Sticky Desktop Sidebar / Mobile Drawer, full RTL & Mobile-Responsive Cards.
-- [x] Comprehensive automated test suite (72 Tests: 100% Pass, 267 Assertions).
+- [x] Comprehensive automated test suite (80 Tests: 100% Pass, 376 Assertions).
 - [x] Mobile Onboarding Experience & First-Launch Persistence (Flutter PageView, SharedPreferences & Clean Architecture).
 - [x] Mobile Authentication System: Full login/register/logout flow integrated with Laravel Sanctum API, Riverpod `Notifier<AuthState>`, Dio HTTP client, `flutter_secure_storage`, GoRouter auth guards with zero-flicker session restoration, and Clean Architecture (3 Auth Tests Passed).
+- [x] Backend API Enrichment (Phase 01): Implemented endpoints for active ministries, cascading taxonomy categories, notification management, field assignment acceptance, and real-time worker geolocation verification; added `reopened` & `assigned` statuses, and aligned attachment schemas (`before` / `after`).
 - [ ] Next Phase: Flutter Mobile App Core Features — Citizen complaint submission with camera/GPS, real-time tracking, and Field Worker task execution.
