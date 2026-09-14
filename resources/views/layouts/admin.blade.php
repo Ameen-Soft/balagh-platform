@@ -50,7 +50,7 @@
                         </svg>
                     </div>
                     <div>
-                        <h1 class="text-base font-black text-white leading-tight">منصة بَــــادِر</h1>
+                        <h1 class="text-base font-black text-white leading-tight">منصة بــــادر</h1>
                         <span class="text-[11px] font-bold text-red-500 uppercase tracking-wide">الإدارة العامة والرقابة</span>
                     </div>
                 </div>
@@ -160,7 +160,6 @@
                         </svg>
                     </button>
                     <h2 class="text-sm sm:text-base md:text-lg font-bold text-white truncate">{{ $headerTitle ?? 'لوحة الإدارة العامة' }}</h2>
-                    <span class="hidden sm:inline-block text-xs font-semibold px-2.5 py-0.5 rounded-full bg-red-950/80 text-red-400 border border-red-800/80 shrink-0">رقابة عليا</span>
                 </div>
                 <div class="flex items-center gap-2 sm:gap-4 text-xs font-semibold text-zinc-400 shrink-0">
                     <span class="hidden md:inline">التاريخ: {{ now()->translatedFormat('l j F Y') }}</span>

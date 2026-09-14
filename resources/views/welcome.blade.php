@@ -72,7 +72,7 @@
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="text-center max-w-2xl mx-auto mb-16">
                 <h2 class="text-xs font-bold text-red-600 tracking-wider uppercase mb-2">ركائز المنظومة الوطنية</h2>
-                <h3 class="text-3xl font-black text-slate-900">كيف تعمل منصة بَــــادِر؟</h3>
+                <h3 class="text-3xl font-black text-slate-900">كيف تعمل منصة بــــادر؟</h3>
                 <p class="text-sm text-slate-600 mt-3 leading-relaxed">
                     منظومة متكاملة تربط المواطن في الميدان بالكوادر الحكومية المشرفة والمهندسين المنفذين بآلية ذكية وسريعة.
                 </p>

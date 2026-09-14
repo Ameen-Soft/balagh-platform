@@ -94,7 +94,7 @@ class WebDashboardsAndSecurityTest extends TestCase
         $response = $this->get('/');
 
         $response->assertStatus(200)
-            ->assertSee('بَــــادِر')
+            ->assertSee('بــــادر')
             ->assertSee('الجمهورية اليمنية')
             ->assertSee('إجمالي البلاغات المسجلة')
             ->assertSee('نسبة الإنجاز والمعالجة');

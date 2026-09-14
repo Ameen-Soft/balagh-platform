@@ -41,7 +41,7 @@
                         </div>
                         <div class="flex flex-col">
                             <span class="text-xl sm:text-2xl font-black tracking-tight text-white flex items-center gap-1.5">
-                                بَــــادِر
+                                بــــادر
                             </span>
                         </div>
                     </a>
@@ -140,7 +140,7 @@
                 <div class="md:col-span-2 space-y-4">
                     <div class="flex items-center gap-3">
                         <div class="w-9 h-9 rounded-lg bg-red-600 flex items-center justify-center text-white font-black text-lg">ب</div>
-                        <span class="text-xl font-black text-white">بَــــادِر - الجمهورية اليمنية</span>
+                        <span class="text-xl font-black text-white">بــــادر - الجمهورية اليمنية</span>
                     </div>
                     <p class="text-sm text-slate-400 leading-relaxed max-w-md">
                         المنصة الوطنية الرقمية الموحدة لاستقبال وتصنيف وتوجيه شكاوى وبلاغات المواطنين، وإتاحة الرقابة المجتمعية التشاركية على المشاريع التنموية بمرونة وشفافية متكاملة.
