@@ -10,6 +10,8 @@ import '../domain/entities/ministry_entity.dart';
 import '../domain/repositories/complaint_repository.dart';
 import 'create_complaint_notifier.dart';
 import 'create_complaint_state.dart';
+import 'my_complaints_notifier.dart';
+import 'my_complaints_state.dart';
 
 final cameraServiceProvider = Provider<CameraService>((ref) {
   return CameraService();
@@ -53,7 +55,24 @@ final myComplaintsProvider =
   return repository.getComplaints();
 });
 
+final recentComplaintsProvider =
+    FutureProvider<List<ComplaintEntity>>((ref) async {
+  final repository = ref.watch(complaintRepositoryProvider);
+  return repository.getComplaints(page: 1);
+});
+
 final createComplaintNotifierProvider =
     NotifierProvider<CreateComplaintNotifier, CreateComplaintState>(() {
   return CreateComplaintNotifier();
+});
+
+final myComplaintsNotifierProvider =
+    NotifierProvider<MyComplaintsNotifier, MyComplaintsState>(() {
+  return MyComplaintsNotifier();
+});
+
+final complaintDetailsProvider =
+    FutureProvider.family<ComplaintEntity, int>((ref, id) async {
+  final repository = ref.watch(complaintRepositoryProvider);
+  return repository.getComplaintDetails(id);
 });

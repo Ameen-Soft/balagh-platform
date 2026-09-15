@@ -6,6 +6,8 @@ import 'package:mobile/features/auth/application/providers.dart';
 import 'package:mobile/features/auth/presentation/pages/login_page.dart';
 import 'package:mobile/features/auth/presentation/pages/register_page.dart';
 import 'package:mobile/features/auth/presentation/pages/splash_page.dart';
+import 'package:mobile/features/complaints/domain/entities/complaint_entity.dart';
+import 'package:mobile/features/complaints/presentation/pages/complaint_details_page.dart';
 import 'package:mobile/features/complaints/presentation/pages/create_complaint_page.dart';
 import 'package:mobile/features/complaints/presentation/pages/my_complaints_page.dart';
 import 'package:mobile/features/home/presentation/pages/home_page.dart';
@@ -88,6 +90,21 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         path: '/my-complaints',
         name: 'my-complaints',
         builder: (context, state) => const MyComplaintsPage(),
+      ),
+      GoRoute(
+        path: '/complaints/:id',
+        name: 'complaint-details',
+        builder: (context, state) {
+          final idParam = state.pathParameters['id'] ?? '';
+          final id = int.tryParse(idParam) ?? 0;
+          final extra = state.extra;
+          final initialComplaint = extra is ComplaintEntity ? extra : null;
+
+          return ComplaintDetailsPage(
+            complaintId: id,
+            initialComplaint: initialComplaint,
+          );
+        },
       ),
     ],
     redirect: (BuildContext context, GoRouterState state) {

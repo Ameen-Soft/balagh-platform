@@ -6,6 +6,7 @@ import 'package:mobile/features/complaints/application/complaints_providers.dart
 import 'package:mobile/features/complaints/domain/entities/category_entity.dart';
 import 'package:mobile/features/complaints/domain/entities/complaint_entity.dart';
 import 'package:mobile/features/complaints/domain/entities/ministry_entity.dart';
+import 'package:mobile/features/complaints/domain/entities/paginated_complaints_result.dart';
 import 'package:mobile/features/complaints/domain/repositories/complaint_repository.dart';
 
 class FakeComplaintRepository implements ComplaintRepository {
@@ -44,8 +45,7 @@ class FakeComplaintRepository implements ComplaintRepository {
     int? departmentId,
     int? parentId,
     int? level,
-  }) async =>
-      [];
+  }) async => [];
 
   @override
   Future<ComplaintEntity> getComplaintDetails(int id) async =>
@@ -58,8 +58,17 @@ class FakeComplaintRepository implements ComplaintRepository {
     int? categoryId,
     int? departmentId,
     String? search,
+  }) async => [];
+
+  @override
+  Future<PaginatedComplaintsResult> getPaginatedComplaints({
+    int page = 1,
+    String? status,
+    int? categoryId,
+    int? departmentId,
+    String? search,
   }) async =>
-      [];
+      PaginatedComplaintsResult.empty();
 
   @override
   Future<List<MinistryEntity>> getMinistries() async => [];
@@ -89,7 +98,10 @@ class FakeLocationService extends LocationService {
   @override
   Future<LocationResult> getCurrentLocation() async {
     if (shouldThrow) {
-      throw const LocationException('خدمات الموقع غير مفعلة.', isGpsDisabled: true);
+      throw const LocationException(
+        'خدمات الموقع غير مفعلة.',
+        isGpsDisabled: true,
+      );
     }
     return returnResult;
   }
@@ -141,98 +153,186 @@ void main() {
         code: 'MPW',
       );
       notifier.selectMinistry(ministry);
-      expect(container.read(createComplaintNotifierProvider).selectedMinistry?.id, 1);
-      expect(container.read(createComplaintNotifierProvider).selectedParentCategory, isNull);
-      expect(container.read(createComplaintNotifierProvider).selectedCategory, isNull);
+      expect(
+        container.read(createComplaintNotifierProvider).selectedMinistry?.id,
+        1,
+      );
+      expect(
+        container.read(createComplaintNotifierProvider).selectedParentCategory,
+        isNull,
+      );
+      expect(
+        container.read(createComplaintNotifierProvider).selectedCategory,
+        isNull,
+      );
 
       const parentCategory = CategoryEntity(
         id: 10,
         name: 'صيانة الطرق',
         level: 1,
-        children: [
-          CategoryEntity(id: 20, name: 'حفر عميقة', level: 2),
-        ],
+        children: [CategoryEntity(id: 20, name: 'حفر عميقة', level: 2)],
       );
       notifier.selectParentCategory(parentCategory);
-      expect(container.read(createComplaintNotifierProvider).selectedParentCategory?.id, 10);
-      expect(container.read(createComplaintNotifierProvider).selectedCategory, isNull); // has children, so leaf is null
+      expect(
+        container
+            .read(createComplaintNotifierProvider)
+            .selectedParentCategory
+            ?.id,
+        10,
+      );
+      expect(
+        container.read(createComplaintNotifierProvider).selectedCategory,
+        isNull,
+      ); // has children, so leaf is null
 
       const subCategory = CategoryEntity(id: 20, name: 'حفر عميقة', level: 2);
       notifier.selectCategory(subCategory);
-      expect(container.read(createComplaintNotifierProvider).selectedCategory?.id, 20);
-      expect(container.read(createComplaintNotifierProvider).canProceedFromCategoryStep, true);
+      expect(
+        container.read(createComplaintNotifierProvider).selectedCategory?.id,
+        20,
+      );
+      expect(
+        container
+            .read(createComplaintNotifierProvider)
+            .canProceedFromCategoryStep,
+        true,
+      );
     });
 
-    test('Details validation checks title length >= 3 and description >= 10', () {
-      final notifier = container.read(createComplaintNotifierProvider.notifier);
-      expect(container.read(createComplaintNotifierProvider).canProceedFromDetailsStep, false);
+    test(
+      'Details validation checks title length >= 3 and description >= 10',
+      () {
+        final notifier = container.read(
+          createComplaintNotifierProvider.notifier,
+        );
+        expect(
+          container
+              .read(createComplaintNotifierProvider)
+              .canProceedFromDetailsStep,
+          false,
+        );
 
-      notifier.setTitle('هو');
-      notifier.setDescription('وصف قصير');
-      expect(container.read(createComplaintNotifierProvider).canProceedFromDetailsStep, false);
+        notifier.setTitle('هو');
+        notifier.setDescription('وصف قصير');
+        expect(
+          container
+              .read(createComplaintNotifierProvider)
+              .canProceedFromDetailsStep,
+          false,
+        );
 
-      notifier.setTitle('هبوط في شارع حدة');
-      notifier.setDescription('هبوط إسفلتي مفاجئ يقطع حركة السير أمام المارة');
-      expect(container.read(createComplaintNotifierProvider).canProceedFromDetailsStep, true);
-    });
+        notifier.setTitle('هبوط في شارع حدة');
+        notifier.setDescription(
+          'هبوط إسفلتي مفاجئ يقطع حركة السير أمام المارة',
+        );
+        expect(
+          container
+              .read(createComplaintNotifierProvider)
+              .canProceedFromDetailsStep,
+          true,
+        );
+      },
+    );
 
     test('Camera capture sets imagePath and handles errors', () async {
       final notifier = container.read(createComplaintNotifierProvider.notifier);
       await notifier.capturePhoto();
-      expect(container.read(createComplaintNotifierProvider).imagePath, '/tmp/fake_photo.jpg');
-      expect(container.read(createComplaintNotifierProvider).cameraError, isNull);
+      expect(
+        container.read(createComplaintNotifierProvider).imagePath,
+        '/tmp/fake_photo.jpg',
+      );
+      expect(
+        container.read(createComplaintNotifierProvider).cameraError,
+        isNull,
+      );
 
       notifier.removePhoto();
       expect(container.read(createComplaintNotifierProvider).imagePath, isNull);
 
       fakeCamera.shouldThrow = true;
       await notifier.capturePhoto();
-      expect(container.read(createComplaintNotifierProvider).cameraError, isNotNull);
+      expect(
+        container.read(createComplaintNotifierProvider).cameraError,
+        isNotNull,
+      );
       expect(container.read(createComplaintNotifierProvider).imagePath, isNull);
     });
 
     test('Location capture sets coordinates and accuracy', () async {
       final notifier = container.read(createComplaintNotifierProvider.notifier);
       await notifier.captureLocation();
-      expect(container.read(createComplaintNotifierProvider).latitude, 15.369445);
-      expect(container.read(createComplaintNotifierProvider).longitude, 44.191006);
-      expect(container.read(createComplaintNotifierProvider).locationAccuracy, 8.5);
-      expect(container.read(createComplaintNotifierProvider).locationError, isNull);
+      expect(
+        container.read(createComplaintNotifierProvider).latitude,
+        15.369445,
+      );
+      expect(
+        container.read(createComplaintNotifierProvider).longitude,
+        44.191006,
+      );
+      expect(
+        container.read(createComplaintNotifierProvider).locationAccuracy,
+        8.5,
+      );
+      expect(
+        container.read(createComplaintNotifierProvider).locationError,
+        isNull,
+      );
 
       fakeLocation.shouldThrow = true;
       await notifier.captureLocation();
-      expect(container.read(createComplaintNotifierProvider).locationError, isNotNull);
-      expect(container.read(createComplaintNotifierProvider).isGpsDisabled, true);
+      expect(
+        container.read(createComplaintNotifierProvider).locationError,
+        isNotNull,
+      );
+      expect(
+        container.read(createComplaintNotifierProvider).isGpsDisabled,
+        true,
+      );
     });
 
     test('Submission completes successfully with all required data', () async {
       final notifier = container.read(createComplaintNotifierProvider.notifier);
 
       // Step 0: Category
-      notifier.selectCategory(const CategoryEntity(id: 5, name: 'إنارة الطرق', level: 1));
+      notifier.selectCategory(
+        const CategoryEntity(id: 5, name: 'إنارة الطرق', level: 1),
+      );
 
       // Step 1: Details
       notifier.setTitle('أعمدة الإنارة مطفأة بالكامل');
-      notifier.setDescription('انقطاع تام للإنارة في شارع الستين الغربي منذ 3 أيام');
+      notifier.setDescription(
+        'انقطاع تام للإنارة في شارع الستين الغربي منذ 3 أيام',
+      );
 
       // Step 2: Evidence
       await notifier.capturePhoto();
       await notifier.captureLocation();
 
-      expect(container.read(createComplaintNotifierProvider).isReadyToSubmit, true);
+      expect(
+        container.read(createComplaintNotifierProvider).isReadyToSubmit,
+        true,
+      );
 
       // Submit
       final success = await notifier.submitComplaint();
       expect(success, true);
       expect(container.read(createComplaintNotifierProvider).isSuccess, true);
-      expect(container.read(createComplaintNotifierProvider).createdComplaint?.complaintNumber, 'CMP-000999');
+      expect(
+        container
+            .read(createComplaintNotifierProvider)
+            .createdComplaint
+            ?.complaintNumber,
+        'CMP-000999',
+      );
       expect(fakeRepo.createdTitle, 'أعمدة الإنارة مطفأة بالكامل');
     });
 
     test('Submission failure sets errorMessage gracefully', () async {
       final notifier = container.read(createComplaintNotifierProvider.notifier);
 
-      notifier.selectCategory(const CategoryEntity(id: 5, name: 'إنارة الطرق', level: 1));
+      notifier.selectCategory(
+        const CategoryEntity(id: 5, name: 'إنارة الطرق', level: 1),
+      );
       notifier.setTitle('أعمدة الإنارة مطفأة');
       notifier.setDescription('انقطاع تام للإنارة في شارع الستين الغربي');
       await notifier.capturePhoto();
@@ -242,7 +342,10 @@ void main() {
       final success = await notifier.submitComplaint();
       expect(success, false);
       expect(container.read(createComplaintNotifierProvider).isSuccess, false);
-      expect(container.read(createComplaintNotifierProvider).errorMessage, isNotNull);
+      expect(
+        container.read(createComplaintNotifierProvider).errorMessage,
+        isNotNull,
+      );
     });
   });
 }

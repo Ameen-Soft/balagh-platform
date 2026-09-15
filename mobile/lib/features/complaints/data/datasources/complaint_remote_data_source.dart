@@ -5,9 +5,19 @@ import 'package:mobile/core/network/api_exceptions.dart';
 import '../models/category_model.dart';
 import '../models/complaint_model.dart';
 import '../models/ministry_model.dart';
+import '../models/paginated_complaints_model.dart';
+import '../models/pagination_meta_model.dart';
 
 abstract class ComplaintRemoteDataSource {
   Future<List<ComplaintModel>> getComplaints({
+    int page = 1,
+    String? status,
+    int? categoryId,
+    int? departmentId,
+    String? search,
+  });
+
+  Future<PaginatedComplaintsModel> getPaginatedComplaints({
     int page = 1,
     String? status,
     int? categoryId,
@@ -72,6 +82,38 @@ class ComplaintRemoteDataSourceImpl implements ComplaintRemoteDataSource {
     }
 
     return [];
+  }
+
+  @override
+  Future<PaginatedComplaintsModel> getPaginatedComplaints({
+    int page = 1,
+    String? status,
+    int? categoryId,
+    int? departmentId,
+    String? search,
+  }) async {
+    final Map<String, dynamic> queryParams = {
+      'page': page,
+      if (status != null && status.isNotEmpty) 'status': status,
+      'category_id': ?categoryId,
+      'department_id': ?departmentId,
+      if (search != null && search.isNotEmpty) 'search': search,
+    };
+
+    final response = await apiClient.get(
+      ApiEndpoints.complaints,
+      queryParameters: queryParams,
+    );
+
+    final data = response.data;
+    if (data is Map<String, dynamic>) {
+      return PaginatedComplaintsModel.fromJson(data);
+    }
+
+    return PaginatedComplaintsModel(
+      items: [],
+      meta: PaginationMetaModel.empty(),
+    );
   }
 
   @override

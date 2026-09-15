@@ -1,9 +1,18 @@
 import '../entities/category_entity.dart';
 import '../entities/complaint_entity.dart';
 import '../entities/ministry_entity.dart';
+import '../entities/paginated_complaints_result.dart';
 
 abstract class ComplaintRepository {
   Future<List<ComplaintEntity>> getComplaints({
+    int page = 1,
+    String? status,
+    int? categoryId,
+    int? departmentId,
+    String? search,
+  });
+
+  Future<PaginatedComplaintsResult> getPaginatedComplaints({
     int page = 1,
     String? status,
     int? categoryId,

@@ -3,14 +3,46 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../application/complaints_providers.dart';
-import '../../domain/entities/complaint_entity.dart';
+import '../../application/my_complaints_state.dart';
+import '../widgets/complaint_card.dart';
 
-class MyComplaintsPage extends ConsumerWidget {
+class MyComplaintsPage extends ConsumerStatefulWidget {
   const MyComplaintsPage({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final complaintsAsync = ref.watch(myComplaintsProvider);
+  ConsumerState<MyComplaintsPage> createState() => _MyComplaintsPageState();
+}
+
+class _MyComplaintsPageState extends ConsumerState<MyComplaintsPage> {
+  final ScrollController _scrollController = ScrollController();
+
+  @override
+  void initState() {
+    super.initState();
+    _scrollController.addListener(_onScroll);
+  }
+
+  @override
+  void dispose() {
+    _scrollController.removeListener(_onScroll);
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  void _onScroll() {
+    if (_scrollController.hasClients) {
+      final maxScroll = _scrollController.position.maxScrollExtent;
+      final currentScroll = _scrollController.position.pixels;
+      // Trigger loadMore when within 200px of bottom
+      if (maxScroll - currentScroll <= 200) {
+        ref.read(myComplaintsNotifierProvider.notifier).loadMore();
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final state = ref.watch(myComplaintsNotifierProvider);
 
     return Scaffold(
       backgroundColor: AppColors.backgroundSubtle,
@@ -42,74 +74,31 @@ class MyComplaintsPage extends ConsumerWidget {
           IconButton(
             tooltip: 'تحديث',
             icon: const Icon(Icons.refresh_rounded, color: AppColors.yemenBlack),
-            onPressed: () => ref.refresh(myComplaintsProvider),
+            onPressed: () =>
+                ref.read(myComplaintsNotifierProvider.notifier).refresh(),
           ),
           const SizedBox(width: 8),
         ],
       ),
       body: SafeArea(
-        child: RefreshIndicator(
-          color: AppColors.yemenRed,
-          onRefresh: () async => ref.refresh(myComplaintsProvider.future),
-          child: complaintsAsync.when(
-            data: (complaints) {
-              if (complaints.isEmpty) {
-                return _buildEmptyState(context);
-              }
-              return ListView.separated(
-                padding: const EdgeInsets.all(16),
-                itemCount: complaints.length,
-                separatorBuilder: (context, index) => const SizedBox(height: 14),
-                itemBuilder: (context, index) {
-                  return _buildComplaintCard(context, complaints[index]);
+        child: Column(
+          children: [
+            // Status Filter Bar
+            _buildFilterBar(state.selectedStatus),
+
+            // Content Area
+            Expanded(
+              child: RefreshIndicator(
+                color: AppColors.yemenRed,
+                onRefresh: () async {
+                  await ref
+                      .read(myComplaintsNotifierProvider.notifier)
+                      .refresh();
                 },
-              );
-            },
-            loading: () => const Center(
-              child: CircularProgressIndicator(color: AppColors.yemenRed),
-            ),
-            error: (err, _) => Center(
-              child: Padding(
-                padding: const EdgeInsets.all(24.0),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    const Icon(Icons.error_outline_rounded,
-                        size: 48, color: AppColors.yemenRed),
-                    const SizedBox(height: 16),
-                    const Text(
-                      'تعذر استرجاع قائمة البلاغات',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w700,
-                        color: AppColors.yemenBlack,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      err.toString(),
-                      textAlign: TextAlign.center,
-                      style: const TextStyle(
-                          fontSize: 12, color: AppColors.textSecondary),
-                    ),
-                    const SizedBox(height: 20),
-                    ElevatedButton.icon(
-                      onPressed: () => ref.refresh(myComplaintsProvider),
-                      icon: const Icon(Icons.refresh_rounded, size: 18),
-                      label: const Text('إعادة المحاولة'),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.yemenBlack,
-                        foregroundColor: Colors.white,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
+                child: _buildBodyContent(state),
               ),
             ),
-          ),
+          ],
         ),
       ),
       floatingActionButton: FloatingActionButton.extended(
@@ -125,11 +114,157 @@ class MyComplaintsPage extends ConsumerWidget {
     );
   }
 
+  Widget _buildFilterBar(String? selectedStatus) {
+    final List<Map<String, String?>> filters = [
+      {'label': 'الكل', 'status': null},
+      {'label': 'جديد وارد', 'status': 'new'},
+      {'label': 'قيد المراجعة', 'status': 'under_review'},
+      {'label': 'مسند للميدان', 'status': 'assigned'},
+      {'label': 'قيد التنفيذ', 'status': 'in_progress'},
+      {'label': 'تم الإنجاز', 'status': 'resolved'},
+      {'label': 'أُعيد فتحها', 'status': 'reopened'},
+      {'label': 'مغلق', 'status': 'closed'},
+      {'label': 'مرفوض', 'status': 'rejected'},
+    ];
+
+    return Container(
+      height: 48,
+      margin: const EdgeInsets.only(top: 8, bottom: 4),
+      child: ListView.separated(
+        padding: const EdgeInsets.symmetric(horizontal: 16),
+        scrollDirection: Axis.horizontal,
+        itemCount: filters.length,
+        separatorBuilder: (context, index) => const SizedBox(width: 8),
+        itemBuilder: (context, index) {
+          final filter = filters[index];
+          final status = filter['status'];
+          final isSelected = selectedStatus == status;
+
+          return ChoiceChip(
+            label: Text(filter['label']!),
+            selected: isSelected,
+            onSelected: (_) {
+              ref
+                  .read(myComplaintsNotifierProvider.notifier)
+                  .filterByStatus(status);
+            },
+            selectedColor: AppColors.yemenBlack,
+            backgroundColor: Colors.white,
+            labelStyle: TextStyle(
+              fontSize: 12,
+              fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+              color: isSelected ? Colors.white : AppColors.textSecondary,
+            ),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(20),
+              side: BorderSide(
+                color: isSelected ? AppColors.yemenBlack : AppColors.borderSubtle,
+              ),
+            ),
+            showCheckmark: false,
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _buildBodyContent(MyComplaintsState state) {
+    if (state.isLoadingInitial) {
+      return const Center(
+        child: CircularProgressIndicator(color: AppColors.yemenRed),
+      );
+    }
+
+    if (state.errorMessage != null && state.complaints.isEmpty) {
+      return Center(
+        child: Padding(
+          padding: const EdgeInsets.all(24.0),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Icon(Icons.error_outline_rounded,
+                  size: 48, color: AppColors.yemenRed),
+              const SizedBox(height: 16),
+              const Text(
+                'تعذر استرجاع قائمة البلاغات',
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.yemenBlack,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                state.errorMessage!,
+                textAlign: TextAlign.center,
+                style: const TextStyle(
+                    fontSize: 12, color: AppColors.textSecondary),
+              ),
+              const SizedBox(height: 20),
+              ElevatedButton.icon(
+                onPressed: () => ref
+                    .read(myComplaintsNotifierProvider.notifier)
+                    .loadInitial(),
+                icon: const Icon(Icons.refresh_rounded, size: 18),
+                label: const Text('إعادة المحاولة'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.yemenBlack,
+                  foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    if (state.complaints.isEmpty) {
+      return _buildEmptyState(context);
+    }
+
+    final totalItems = state.complaints.length + (state.isLoadingMore ? 1 : 0);
+
+    return ListView.separated(
+      controller: _scrollController,
+      padding: const EdgeInsets.all(16),
+      itemCount: totalItems,
+      separatorBuilder: (context, index) => const SizedBox(height: 14),
+      itemBuilder: (context, index) {
+        if (index == state.complaints.length) {
+          return const Padding(
+            padding: EdgeInsets.symmetric(vertical: 16.0),
+            child: Center(
+              child: SizedBox(
+                width: 24,
+                height: 24,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2.5,
+                  color: AppColors.yemenRed,
+                ),
+              ),
+            ),
+          );
+        }
+
+        final item = state.complaints[index];
+        return ComplaintCard(
+          complaint: item,
+          onTap: () {
+            context.push('/complaints/${item.id}', extra: item);
+          },
+        );
+      },
+    );
+  }
+
   Widget _buildEmptyState(BuildContext context) {
     return ListView(
       padding: const EdgeInsets.all(32),
       children: [
-        const SizedBox(height: 60),
+        const SizedBox(height: 40),
         CircleAvatar(
           radius: 44,
           backgroundColor: AppColors.yemenRedLight,
@@ -177,159 +312,5 @@ class MyComplaintsPage extends ConsumerWidget {
         ),
       ],
     );
-  }
-
-  Widget _buildComplaintCard(BuildContext context, ComplaintEntity item) {
-    final statusColor = _getStatusColor(item.status);
-    final priorityColor = _getPriorityColor(item.priority);
-
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.borderSubtle),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.02),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Header: Code & Status Badge
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                item.complaintNumber,
-                style: const TextStyle(
-                  fontSize: 13,
-                  fontWeight: FontWeight.w800,
-                  color: AppColors.yemenBlack,
-                  fontFamily: 'monospace',
-                ),
-              ),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                decoration: BoxDecoration(
-                  color: statusColor.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: Text(
-                  item.statusArabic,
-                  style: TextStyle(
-                    fontSize: 11,
-                    fontWeight: FontWeight.w700,
-                    color: statusColor,
-                  ),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 10),
-
-          // Title
-          Text(
-            item.title,
-            style: const TextStyle(
-              fontSize: 15,
-              fontWeight: FontWeight.w700,
-              color: AppColors.yemenBlack,
-            ),
-          ),
-          const SizedBox(height: 6),
-
-          // Category & Ministry
-          Row(
-            children: [
-              const Icon(Icons.business_rounded,
-                  size: 14, color: AppColors.textSecondary),
-              const SizedBox(width: 4),
-              Expanded(
-                child: Text(
-                  '${item.ministryName ?? "الجهة المعنية"} • ${item.category?.name ?? "عام"}',
-                  style: const TextStyle(
-                    fontSize: 12,
-                    color: AppColors.textSecondary,
-                  ),
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ),
-            ],
-          ),
-          const Divider(height: 20),
-
-          // Footer: Date & Priority
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              if (item.createdAt != null)
-                Text(
-                  '${item.createdAt!.year}-${item.createdAt!.month.toString().padLeft(2, '0')}-${item.createdAt!.day.toString().padLeft(2, '0')}',
-                  style: const TextStyle(
-                    fontSize: 11,
-                    color: AppColors.textMuted,
-                  ),
-                )
-              else
-                const SizedBox.shrink(),
-              Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                decoration: BoxDecoration(
-                  color: priorityColor.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(6),
-                ),
-                child: Text(
-                  item.priorityArabic,
-                  style: TextStyle(
-                    fontSize: 11,
-                    fontWeight: FontWeight.bold,
-                    color: priorityColor,
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
-  Color _getStatusColor(String status) {
-    switch (status) {
-      case 'new':
-        return AppColors.yemenGold;
-      case 'under_review':
-      case 'assigned':
-      case 'in_progress':
-        return const Color(0xFF2563EB); // Blue
-      case 'resolved':
-      case 'closed':
-        return AppColors.yemenEmerald;
-      case 'rejected':
-        return AppColors.yemenRed;
-      case 'reopened':
-        return const Color(0xFF9333EA); // Purple
-      default:
-        return AppColors.textSecondary;
-    }
-  }
-
-  Color _getPriorityColor(String priority) {
-    switch (priority) {
-      case 'urgent':
-      case 'high':
-        return AppColors.yemenRed;
-      case 'low':
-        return AppColors.textSecondary;
-      case 'medium':
-      default:
-        return AppColors.yemenGold;
-    }
   }
 }

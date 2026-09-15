@@ -1,6 +1,7 @@
 import '../../domain/entities/category_entity.dart';
 import '../../domain/entities/complaint_entity.dart';
 import '../../domain/entities/ministry_entity.dart';
+import '../../domain/entities/paginated_complaints_result.dart';
 import '../../domain/repositories/complaint_repository.dart';
 import '../datasources/complaint_remote_data_source.dart';
 
@@ -25,6 +26,30 @@ class ComplaintRepositoryImpl implements ComplaintRepository {
       search: search,
     );
     return models.map((m) => m.toEntity()).toList();
+  }
+
+  @override
+  Future<PaginatedComplaintsResult> getPaginatedComplaints({
+    int page = 1,
+    String? status,
+    int? categoryId,
+    int? departmentId,
+    String? search,
+  }) async {
+    final result = await remoteDataSource.getPaginatedComplaints(
+      page: page,
+      status: status,
+      categoryId: categoryId,
+      departmentId: departmentId,
+      search: search,
+    );
+    return PaginatedComplaintsResult(
+      complaints: result.items.map((m) => m.toEntity()).toList(),
+      currentPage: result.meta.currentPage,
+      lastPage: result.meta.lastPage,
+      total: result.meta.total,
+      hasMore: result.meta.hasMore,
+    );
   }
 
   @override

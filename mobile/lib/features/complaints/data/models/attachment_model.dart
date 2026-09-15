@@ -1,3 +1,4 @@
+import '../../../../core/network/media_url_resolver.dart';
 import '../../domain/entities/attachment_entity.dart';
 
 class AttachmentModel {
@@ -71,7 +72,7 @@ class AttachmentModel {
     return AttachmentEntity(
       id: id,
       filePath: filePath,
-      fileUrl: fileUrl,
+      fileUrl: MediaUrlResolver.resolve(fileUrl),
       fileType: fileType,
       capturedLatitude: capturedLatitude,
       capturedLongitude: capturedLongitude,

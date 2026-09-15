@@ -3,6 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:mobile/core/constants/app_colors.dart';
 import 'package:mobile/features/auth/application/providers.dart';
+import 'package:mobile/features/complaints/application/complaints_providers.dart';
+import 'package:mobile/features/complaints/presentation/widgets/complaint_card.dart';
 
 class HomePage extends ConsumerWidget {
   const HomePage({super.key});
@@ -72,9 +74,18 @@ class HomePage extends ConsumerWidget {
         ],
       ),
       body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(20.0),
-          child: Column(
+        child: RefreshIndicator(
+          color: AppColors.yemenRed,
+          onRefresh: () async {
+            ref.invalidate(recentComplaintsProvider);
+            try {
+              await ref.read(recentComplaintsProvider.future);
+            } catch (_) {}
+          },
+          child: SingleChildScrollView(
+            physics: const AlwaysScrollableScrollPhysics(),
+            padding: const EdgeInsets.all(20.0),
+            child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               // Welcome Card
@@ -263,10 +274,149 @@ class HomePage extends ConsumerWidget {
               ),
 
               const SizedBox(height: 24),
+
+              // Recent Complaints Section
+              _buildRecentComplaintsSection(context, ref),
+
+              const SizedBox(height: 24),
             ],
           ),
         ),
+        ),
       ),
+    );
+  }
+
+  Widget _buildRecentComplaintsSection(BuildContext context, WidgetRef ref) {
+    final recentAsync = ref.watch(recentComplaintsProvider);
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            const Text(
+              'شكاواي الأخيرة',
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w700,
+                color: AppColors.yemenBlack,
+              ),
+            ),
+            TextButton(
+              onPressed: () => context.push('/my-complaints'),
+              child: const Text(
+                'عرض الكل',
+                style: TextStyle(
+                  color: AppColors.yemenRed,
+                  fontWeight: FontWeight.w700,
+                  fontSize: 13,
+                ),
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 8),
+        recentAsync.when(
+          data: (complaints) {
+            if (complaints.isEmpty) {
+              return Container(
+                padding: const EdgeInsets.all(18),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: AppColors.borderSubtle),
+                ),
+                child: Row(
+                  children: [
+                    CircleAvatar(
+                      radius: 20,
+                      backgroundColor: AppColors.yemenRedLight,
+                      child: const Icon(Icons.inbox_outlined,
+                          size: 20, color: AppColors.yemenRed),
+                    ),
+                    const SizedBox(width: 12),
+                    const Expanded(
+                      child: Text(
+                        'لا توجد بلاغات مسجلة بعد. يمكنك تقديم بلاغ جديد الآن.',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: AppColors.textSecondary,
+                        ),
+                      ),
+                    ),
+                    TextButton(
+                      onPressed: () => context.push('/create-complaint'),
+                      child: const Text(
+                        'تقديم',
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.yemenRed,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            }
+
+            return Column(
+              children: complaints.take(2).map((item) {
+                return Padding(
+                  padding: const EdgeInsets.only(bottom: 12.0),
+                  child: ComplaintCard(
+                    complaint: item,
+                    onTap: () =>
+                        context.push('/complaints/${item.id}', extra: item),
+                  ),
+                );
+              }).toList(),
+            );
+          },
+          loading: () => const Center(
+            child: Padding(
+              padding: EdgeInsets.all(16.0),
+              child: CircularProgressIndicator(color: AppColors.yemenRed),
+            ),
+          ),
+          error: (err, _) => Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: AppColors.borderSubtle),
+            ),
+            child: Row(
+              children: [
+                const Icon(Icons.info_outline_rounded,
+                    color: AppColors.textMuted, size: 20),
+                const SizedBox(width: 8),
+                const Expanded(
+                  child: Text(
+                    'تعذر استرجاع الشكاوى الأخيرة.',
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: AppColors.textSecondary,
+                    ),
+                  ),
+                ),
+                TextButton(
+                  onPressed: () => ref.invalidate(recentComplaintsProvider),
+                  child: const Text(
+                    'إعادة المحاولة',
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: AppColors.yemenBlack,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ],
     );
   }
 
