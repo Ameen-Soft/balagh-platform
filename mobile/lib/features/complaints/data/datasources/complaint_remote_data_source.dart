@@ -99,20 +99,24 @@ class ComplaintRemoteDataSourceImpl implements ComplaintRemoteDataSource {
     dynamic payload;
 
     if (attachmentPaths != null && attachmentPaths.isNotEmpty) {
-      final List<MultipartFile> files = [];
+      final formData = FormData();
+      formData.fields.addAll([
+        MapEntry('title', title),
+        MapEntry('description', description),
+        MapEntry('category_id', categoryId.toString()),
+        MapEntry('latitude', latitude.toString()),
+        MapEntry('longitude', longitude.toString()),
+        if (priority != null && priority.isNotEmpty) MapEntry('priority', priority),
+      ]);
+
       for (final path in attachmentPaths) {
-        files.add(await MultipartFile.fromFile(path));
+        formData.files.add(MapEntry(
+          'attachments[]',
+          await MultipartFile.fromFile(path),
+        ));
       }
 
-      payload = FormData.fromMap({
-        'title': title,
-        'description': description,
-        'category_id': categoryId,
-        'latitude': latitude,
-        'longitude': longitude,
-        'priority': ?priority,
-        'attachments[]': files,
-      });
+      payload = formData;
     } else {
       payload = {
         'title': title,

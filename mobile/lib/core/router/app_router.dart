@@ -6,6 +6,8 @@ import 'package:mobile/features/auth/application/providers.dart';
 import 'package:mobile/features/auth/presentation/pages/login_page.dart';
 import 'package:mobile/features/auth/presentation/pages/register_page.dart';
 import 'package:mobile/features/auth/presentation/pages/splash_page.dart';
+import 'package:mobile/features/complaints/presentation/pages/create_complaint_page.dart';
+import 'package:mobile/features/complaints/presentation/pages/my_complaints_page.dart';
 import 'package:mobile/features/home/presentation/pages/home_page.dart';
 import 'package:mobile/features/onboarding/application/onboarding_provider.dart';
 import 'package:mobile/features/onboarding/presentation/pages/onboarding_page.dart';
@@ -77,6 +79,16 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         name: 'home',
         builder: (context, state) => const HomePage(),
       ),
+      GoRoute(
+        path: '/create-complaint',
+        name: 'create-complaint',
+        builder: (context, state) => const CreateComplaintPage(),
+      ),
+      GoRoute(
+        path: '/my-complaints',
+        name: 'my-complaints',
+        builder: (context, state) => const MyComplaintsPage(),
+      ),
     ],
     redirect: (BuildContext context, GoRouterState state) {
       final authState = ref.read(authNotifierProvider);
@@ -86,7 +98,6 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       final isLogin = state.matchedLocation == '/login';
       final isRegister = state.matchedLocation == '/register';
       final isOnboarding = state.matchedLocation == '/onboarding';
-      final isHome = state.matchedLocation == '/home';
 
       // 1. If onboarding is not completed, force /onboarding
       if (!isOnboardingCompleted) {
@@ -115,7 +126,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
 
       // 4. User is unauthenticated or has error
       if (authState.isUnauthenticated || authState.isError) {
-        if (isSplash || isHome) {
+        if (!isLogin && !isRegister) {
           return '/login';
         }
         return null;

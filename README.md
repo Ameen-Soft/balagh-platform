@@ -254,7 +254,8 @@ flutter run
 - [x] نظام المصادقة لتطبيق الهاتف: دورة كاملة لتسجيل الدخول / التسجيل / تسجيل الخروج متكاملة مع واجهات Laravel Sanctum، إدارة الحالة باستخدام Riverpod `Notifier<AuthState>`، عميل الشبكة Dio، التخزين الآمن `flutter_secure_storage`، وحراس التوجيه GoRouter مع استعادة الجلسة بدون وميض، مبنية على بنية Clean Architecture (بنجاح 3 اختبارات للمصادقة).
 - [x] إثراء وتوسيع واجهات برمجة التطبيقات (Backend API Enrichment - Phase 01): إضافة واجهات الوزارات النشطة والتصنيفات المتسلسلة، نظام الإشعارات المتكامل، قبول المهام الميدانية، والتحقق الجغرافي اللحظي للموقع، ودعم حالتي `reopened` و `assigned` ومطابقة معايير المرفقات (`before` / `after`).
 - [x] طبقة البيانات والنماذج الأساسية لتطبيق الهاتف (Flutter Core Models & Data Layer - Phase 02): بناء الكيانات والـ Models وعقود الـ Repositories ومصادر البيانات البعيدة لخصائص البلاغات (Complaints)، المشاريع التنموية (Projects)، والإشعارات (Notifications)، مع مطابقة عقود الـ JSON بنسبة 100% والتحقق باختبارات آلية شاملة (19 اختباراً ناجحاً بنسبة 100%).
-- [ ] المرحلة القادمة: الميزات الأساسية لتطبيق الهاتف — تقديم الشكاوى للمواطنين مع التوثيق بالكاميرا و GPS، التتبع في الوقت الفعلي، وتنفيذ المهام للفرق الميدانية.
+- [x] تقديم الشكاوى وتوثيقها بالكاميرا والـ GPS (Flutter Complaint Submission - Phase 03): بناء تدفق تقديم الشكاوى المتكامل (Wizard) للمواطنين، مع الاختيار المتسلسل للوزارة والتصنيفات، وإلزامية التوثيق بالكاميرا الحية فقط (حظر المعرض)، والتقاط إحداثيات الموقع (GPS)، وبطاقة المراجعة، وشاشة سجل البلاغات (`MyComplaintsPage`) مع اجتياز 26 اختباراً بنسبة نجاح 100%.
+- [ ] المرحلة القادمة (Phase 04): الميزات الميدانية وتتبع البلاغات في الوقت الفعلي للفرق الميدانية والمواطنين.
 
 ---
 ---
@@ -515,4 +516,5 @@ All platform endpoints are versioned under `/api/v1` and protected via Sanctum p
 - [x] Mobile Authentication System: Full login/register/logout flow integrated with Laravel Sanctum API, Riverpod `Notifier<AuthState>`, Dio HTTP client, `flutter_secure_storage`, GoRouter auth guards with zero-flicker session restoration, and Clean Architecture (3 Auth Tests Passed).
 - [x] Backend API Enrichment (Phase 01): Implemented endpoints for active ministries, cascading taxonomy categories, notification management, field assignment acceptance, and real-time worker geolocation verification; added `reopened` & `assigned` statuses, and aligned attachment schemas (`before` / `after`).
 - [x] Flutter Core Models & Data Layer (Phase 02): Implemented Clean Architecture Domain Entities, Data Models, Repository Contracts, and Remote Data Sources for Complaints, Projects, and Notifications features; strictly aligned with backend JSON contracts and backed by comprehensive unit tests (19 Tests: 100% Pass).
-- [ ] Next Phase: Flutter Mobile App Core Features — Citizen complaint submission with camera/GPS, real-time tracking, and Field Worker task execution.
+- [x] Complaint Submission Flow & Geolocation/Camera (Phase 03): Implemented complete citizen complaint filing wizard with cascading taxonomy (Ministry -> Category -> Sub-category), mandatory live camera evidence (strict gallery prohibition), GPS coordinate capture, review card, and citizen complaint history (`MyComplaintsPage`), verified with 26 automated unit tests passing 100%.
+- [ ] Next Phase (Phase 04): Field Worker Operations & Real-Time Tracking.
