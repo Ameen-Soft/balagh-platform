@@ -17,6 +17,7 @@ class FieldAssignmentResource extends JsonResource
         return [
             'id' => $this->id,
             'complaint_id' => $this->complaint_id,
+            'complaint' => new ComplaintResource($this->whenLoaded('complaint')),
             'worker' => new UserResource($this->whenLoaded('worker')),
             'assigned_by' => new UserResource($this->whenLoaded('assignedBy')),
             'status' => $this->status,

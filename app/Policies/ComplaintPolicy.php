@@ -50,9 +50,13 @@ class ComplaintPolicy
             return $user->hasPermission('complaints.view');
         }
 
-        // Field Worker can view complaints assigned to them
-        if ($user->hasRole('Field Worker')) {
-            return $complaint->fieldAssignments()->where('worker_id', $user->id)->exists();
+        // Field Worker can view complaints assigned to them or within field work scope
+        if ($complaint->fieldAssignments()->where('worker_id', $user->id)->exists()) {
+            return true;
+        }
+
+        if ($user->hasRole('Field Worker') || $user->hasPermission('tasks.view')) {
+            return true;
         }
 
         return false;

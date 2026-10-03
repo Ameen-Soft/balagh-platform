@@ -76,6 +76,7 @@ Route::prefix('v1')->group(function () {
         // Field Work & Assignments
         Route::prefix('field-assignments')->group(function () {
             Route::get('/', [FieldAssignmentController::class, 'index']);
+            Route::get('/{assignment}', [FieldAssignmentController::class, 'show']);
             Route::patch('/{assignment}/accept', [FieldAssignmentController::class, 'accept']);
             Route::post('/{assignment}/start', [FieldAssignmentController::class, 'start']);
             Route::post('/{assignment}/verify-location', [FieldAssignmentController::class, 'verifyLocation']);
