@@ -61,6 +61,28 @@ class FieldAssignmentController extends Controller
     }
 
     /**
+     * Display the specified field assignment.
+     */
+    public function show(FieldAssignment $assignment): JsonResponse
+    {
+        Gate::authorize('view', $assignment);
+
+        $assignment->load([
+            'complaint.category',
+            'complaint.currentDepartment.ministry',
+            'complaint.attachments',
+            'complaint.timeline',
+            'worker',
+            'assignedBy',
+        ]);
+
+        return $this->successResponse(
+            new FieldAssignmentResource($assignment),
+            'تفاصيل المهمة الميدانية.'
+        );
+    }
+
+    /**
      * Accept the field assignment.
      */
     public function accept(Request $request, FieldAssignment $assignment): JsonResponse

@@ -15,14 +15,6 @@ class TasksListPage extends ConsumerStatefulWidget {
 }
 
 class _TasksListPageState extends ConsumerState<TasksListPage> {
-  final List<({String label, String value})> _filterOptions = const [
-    (label: 'الكل', value: 'all'),
-    (label: 'بانتظار القبول', value: 'pending'),
-    (label: 'تم القبول', value: 'accepted'),
-    (label: 'قيد التنفيذ', value: 'in_progress'),
-    (label: 'مكتملة', value: 'completed'),
-  ];
-
   @override
   void initState() {
     super.initState();
@@ -35,6 +27,11 @@ class _TasksListPageState extends ConsumerState<TasksListPage> {
   Widget build(BuildContext context) {
     final state = ref.watch(fieldWorkNotifierProvider);
     final user = ref.watch(authNotifierProvider).user;
+
+    final pendingCount = state.assignments.where((a) => a.isPending).length;
+    final inProgressCount =
+        state.assignments.where((a) => a.isInProgress).length;
+    final completedCount = state.assignments.where((a) => a.isCompleted).length;
 
     return Scaffold(
       backgroundColor: AppColors.backgroundSubtle,
@@ -55,7 +52,7 @@ class _TasksListPageState extends ConsumerState<TasksListPage> {
           },
         ),
         title: const Text(
-          'المهام الميدانية',
+          'سجل المهام الميدانية',
           style: TextStyle(
             color: AppColors.yemenBlack,
             fontWeight: FontWeight.w800,
@@ -76,56 +73,133 @@ class _TasksListPageState extends ConsumerState<TasksListPage> {
       body: SafeArea(
         child: Column(
           children: [
-            // Field worker welcome strip
+            // Top Executive Header Banner
             Container(
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-              color: Colors.white,
-              child: Row(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+              decoration: const BoxDecoration(
+                color: Colors.white,
+                border: Border(
+                  bottom: BorderSide(color: AppColors.borderSubtle),
+                ),
+              ),
+              child: Column(
                 children: [
-                  Container(
-                    padding: const EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                      color: AppColors.deepBlack.withValues(alpha: 0.05),
-                      shape: BoxShape.circle,
-                    ),
-                    child: const Icon(
-                      Icons.engineering_rounded,
-                      size: 20,
-                      color: AppColors.deepBlack,
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'الموظف الميداني: ${user?.name ?? "ميداني"}',
+                  Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(10),
+                        decoration: BoxDecoration(
+                          color: AppColors.deepBlack.withValues(alpha: 0.06),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: const Icon(
+                          Icons.engineering_rounded,
+                          size: 24,
+                          color: AppColors.deepBlack,
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              user?.name ?? 'الموظف الميداني',
+                              style: const TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.bold,
+                                color: AppColors.textPrimary,
+                              ),
+                            ),
+                            const SizedBox(height: 2),
+                            Text(
+                              user?.department != null
+                                  ? user!.department!.name
+                                  : 'فريق الاستجابة والمعاينة الميدانية',
+                              style: const TextStyle(
+                                fontSize: 11,
+                                color: AppColors.textSecondary,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 10, vertical: 5),
+                        decoration: BoxDecoration(
+                          color: AppColors.yemenRed.withValues(alpha: 0.1),
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        child: Text(
+                          '${state.assignments.length} مهام',
                           style: const TextStyle(
-                            fontSize: 13,
+                            fontSize: 12,
                             fontWeight: FontWeight.bold,
-                            color: AppColors.textPrimary,
+                            color: AppColors.yemenRed,
                           ),
                         ),
-                        const SizedBox(height: 2),
-                        Text(
-                          'إجمالي المهام المسندة: ${state.assignments.length}',
-                          style: const TextStyle(
-                            fontSize: 11,
-                            color: AppColors.textSecondary,
-                          ),
+                      ),
+                    ],
+                  ),
+
+                  const SizedBox(height: 12),
+
+                  // Mini Quick Stats Row
+                  Row(
+                    children: [
+                      Expanded(
+                        child: _buildMiniStat(
+                          label: 'الكل',
+                          count: state.assignments.length,
+                          color: AppColors.deepBlack,
+                          isSelected: state.selectedFilter == 'all',
+                          onTap: () => ref
+                              .read(fieldWorkNotifierProvider.notifier)
+                              .setFilter('all'),
                         ),
-                      ],
-                    ),
+                      ),
+                      const SizedBox(width: 6),
+                      Expanded(
+                        child: _buildMiniStat(
+                          label: 'بالانتظار',
+                          count: pendingCount,
+                          color: AppColors.yemenGold,
+                          isSelected: state.selectedFilter == 'pending',
+                          onTap: () => ref
+                              .read(fieldWorkNotifierProvider.notifier)
+                              .setFilter('pending'),
+                        ),
+                      ),
+                      const SizedBox(width: 6),
+                      Expanded(
+                        child: _buildMiniStat(
+                          label: 'بالتنفيذ',
+                          count: inProgressCount,
+                          color: AppColors.yemenRed,
+                          isSelected: state.selectedFilter == 'in_progress',
+                          onTap: () => ref
+                              .read(fieldWorkNotifierProvider.notifier)
+                              .setFilter('in_progress'),
+                        ),
+                      ),
+                      const SizedBox(width: 6),
+                      Expanded(
+                        child: _buildMiniStat(
+                          label: 'مكتملة',
+                          count: completedCount,
+                          color: AppColors.yemenEmerald,
+                          isSelected: state.selectedFilter == 'completed',
+                          onTap: () => ref
+                              .read(fieldWorkNotifierProvider.notifier)
+                              .setFilter('completed'),
+                        ),
+                      ),
+                    ],
                   ),
                 ],
               ),
             ),
-
-            const Divider(height: 1, color: AppColors.borderSubtle),
-
-            // Horizontal Filter bar
-            _buildFilterBar(state.selectedFilter),
 
             // Main Content Area
             Expanded(
@@ -145,46 +219,49 @@ class _TasksListPageState extends ConsumerState<TasksListPage> {
     );
   }
 
-  Widget _buildFilterBar(String activeFilter) {
-    return Container(
-      height: 52,
-      color: Colors.white,
-      child: ListView.separated(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-        scrollDirection: Axis.horizontal,
-        itemCount: _filterOptions.length,
-        separatorBuilder: (context, index) => const SizedBox(width: 8),
-        itemBuilder: (context, index) {
-          final option = _filterOptions[index];
-          final isSelected = activeFilter == option.value;
-
-          return ChoiceChip(
-            label: Text(
-              option.label,
+  Widget _buildMiniStat({
+    required String label,
+    required int count,
+    required Color color,
+    required bool isSelected,
+    required VoidCallback onTap,
+  }) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(10),
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 8),
+        decoration: BoxDecoration(
+          color: isSelected
+              ? color.withValues(alpha: 0.12)
+              : AppColors.backgroundSubtle,
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(
+            color: isSelected ? color : AppColors.borderSubtle,
+            width: isSelected ? 1.5 : 1,
+          ),
+        ),
+        child: Column(
+          children: [
+            Text(
+              count.toString(),
               style: TextStyle(
-                fontSize: 12,
-                fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
-                color: isSelected ? Colors.white : AppColors.textPrimary,
+                fontSize: 14,
+                fontWeight: FontWeight.bold,
+                color: isSelected ? color : AppColors.textPrimary,
               ),
             ),
-            selected: isSelected,
-            selectedColor: AppColors.deepBlack,
-            backgroundColor: AppColors.backgroundSubtle,
-            checkmarkColor: Colors.white,
-            showCheckmark: false,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(20),
-              side: BorderSide(
-                color: isSelected ? AppColors.deepBlack : AppColors.borderSubtle,
+            const SizedBox(height: 2),
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: 10,
+                fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+                color: isSelected ? color : AppColors.textSecondary,
               ),
             ),
-            onSelected: (_) {
-              ref
-                  .read(fieldWorkNotifierProvider.notifier)
-                  .setFilter(option.value);
-            },
-          );
-        },
+          ],
+        ),
       ),
     );
   }
@@ -288,7 +365,7 @@ class _TasksListPageState extends ConsumerState<TasksListPage> {
                     ),
                     const SizedBox(height: 16),
                     const Text(
-                      'لا توجد مهام ميدانية مسندة إليك حالياً',
+                      'لا توجد مهام ضمن هذا التصنيف',
                       style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
@@ -297,7 +374,7 @@ class _TasksListPageState extends ConsumerState<TasksListPage> {
                     ),
                     const SizedBox(height: 8),
                     const Text(
-                      'عندما تسند الإدارة المختصة بلاغاً جديداً إليك، سيظهر هنا مباشرة.',
+                      'يمكنك اختيار تصنيف آخر من الأعلى أو سحب الشاشة للأسفل لتحديث القائمة.',
                       textAlign: TextAlign.center,
                       style: TextStyle(
                         fontSize: 13,
@@ -310,10 +387,13 @@ class _TasksListPageState extends ConsumerState<TasksListPage> {
                       onPressed: () {
                         ref
                             .read(fieldWorkNotifierProvider.notifier)
+                            .setFilter('all');
+                        ref
+                            .read(fieldWorkNotifierProvider.notifier)
                             .loadAssignments();
                       },
                       icon: const Icon(Icons.refresh_rounded, size: 16),
-                      label: const Text('تحديث القائمة'),
+                      label: const Text('عرض جميع المهام'),
                       style: OutlinedButton.styleFrom(
                         foregroundColor: AppColors.deepBlack,
                         side: const BorderSide(color: AppColors.borderSubtle),
@@ -344,7 +424,7 @@ class _TasksListPageState extends ConsumerState<TasksListPage> {
             ref
                 .read(fieldWorkNotifierProvider.notifier)
                 .selectAssignment(assignment.id);
-            context.push('/tasks/${assignment.id}');
+            context.push('/tasks/${assignment.id}', extra: assignment);
           },
         );
       },

@@ -21,6 +21,12 @@ class MediaUrlResolver {
       return 'http://$targetHost:$targetPort/$sanitized';
     }
 
+    // Handle relative paths without storage prefix like 'complaints/xyz.jpg'
+    if (!trimmed.startsWith('http://') && !trimmed.startsWith('https://')) {
+      final sanitized = trimmed.startsWith('/') ? trimmed.substring(1) : trimmed;
+      return 'http://$targetHost:$targetPort/storage/$sanitized';
+    }
+
     // Handle full URLs originating from Laravel's APP_URL=http://localhost:8000 or 127.0.0.1:8000
     if (!kIsWeb) {
       if (trimmed.contains('localhost:$targetPort')) {

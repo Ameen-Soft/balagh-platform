@@ -10,6 +10,7 @@ import 'package:mobile/features/complaints/domain/entities/complaint_entity.dart
 import 'package:mobile/features/complaints/presentation/pages/complaint_details_page.dart';
 import 'package:mobile/features/complaints/presentation/pages/create_complaint_page.dart';
 import 'package:mobile/features/complaints/presentation/pages/my_complaints_page.dart';
+import 'package:mobile/features/field_work/domain/entities/field_assignment_entity.dart';
 import 'package:mobile/features/field_work/presentation/pages/tasks_list_page.dart';
 import 'package:mobile/features/field_work/presentation/pages/task_details_page.dart';
 import 'package:mobile/features/field_work/presentation/pages/task_execution_page.dart';
@@ -26,8 +27,8 @@ class OnboardingStatusNotifier extends Notifier<bool> {
 
 final onboardingStatusProvider =
     NotifierProvider<OnboardingStatusNotifier, bool>(
-  OnboardingStatusNotifier.new,
-);
+      OnboardingStatusNotifier.new,
+    );
 
 /// Listenable to trigger GoRouter re-evaluations when AuthState or OnboardingStatus changes
 class RouterListenable extends ChangeNotifier {
@@ -65,9 +66,8 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/onboarding',
         name: 'onboarding',
-        builder: (context, state) => OnboardingPage(
-          repository: onboardingRepository,
-        ),
+        builder: (context, state) =>
+            OnboardingPage(repository: onboardingRepository),
       ),
       GoRoute(
         path: '/login',
@@ -120,7 +120,14 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         builder: (context, state) {
           final idParam = state.pathParameters['id'] ?? '';
           final id = int.tryParse(idParam) ?? 0;
-          return TaskDetailsPage(assignmentId: id);
+          final extra = state.extra;
+          final initialAssignment = extra is FieldWorkAssignmentEntity
+              ? extra
+              : null;
+          return TaskDetailsPage(
+            assignmentId: id,
+            initialAssignment: initialAssignment,
+          );
         },
       ),
       GoRoute(
@@ -129,7 +136,14 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         builder: (context, state) {
           final idParam = state.pathParameters['id'] ?? '';
           final id = int.tryParse(idParam) ?? 0;
-          return TaskExecutionPage(assignmentId: id);
+          final extra = state.extra;
+          final initialAssignment = extra is FieldWorkAssignmentEntity
+              ? extra
+              : null;
+          return TaskExecutionPage(
+            assignmentId: id,
+            initialAssignment: initialAssignment,
+          );
         },
       ),
     ],
@@ -170,13 +184,8 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           return '/home';
         }
 
-        // Field worker visiting home is redirected to tasks
-        if (isFieldWorker && state.matchedLocation == '/home') {
-          return '/tasks';
-        }
-
         if (isLogin || isRegister || isSplash) {
-          return isFieldWorker ? '/tasks' : '/home';
+          return '/home';
         }
         return null;
       }

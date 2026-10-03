@@ -42,10 +42,11 @@ class FieldWorkNotifier extends Notifier<FieldWorkState> {
 
   /// Select an assignment for detail view.
   void selectAssignment(int assignmentId) {
-    final assignment = state.assignments.firstWhere(
-      (a) => a.id == assignmentId,
-      orElse: () => state.assignments.first,
-    );
+    final matches = state.assignments.where((a) => a.id == assignmentId);
+    final assignment = matches.isNotEmpty
+        ? matches.first
+        : (state.assignments.isNotEmpty ? state.assignments.first : null);
+
     state = state.copyWith(
       selectedAssignment: assignment,
       // Reset verification when selecting a new assignment

@@ -11,10 +11,12 @@ import '../widgets/location_verifier.dart';
 
 class TaskExecutionPage extends ConsumerStatefulWidget {
   final int assignmentId;
+  final FieldWorkAssignmentEntity? initialAssignment;
 
   const TaskExecutionPage({
     super.key,
     required this.assignmentId,
+    this.initialAssignment,
   });
 
   @override
@@ -37,6 +39,11 @@ class _TaskExecutionPageState extends ConsumerState<TaskExecutionPage> {
       ref
           .read(fieldWorkNotifierProvider.notifier)
           .selectAssignment(widget.assignmentId);
+
+      final state = ref.read(fieldWorkNotifierProvider);
+      if (state.assignments.isEmpty) {
+        ref.read(fieldWorkNotifierProvider.notifier).loadAssignments();
+      }
     });
   }
 
@@ -199,7 +206,8 @@ class _TaskExecutionPageState extends ConsumerState<TaskExecutionPage> {
   Widget build(BuildContext context) {
     final state = ref.watch(fieldWorkNotifierProvider);
 
-    FieldWorkAssignmentEntity? assignment = state.selectedAssignment;
+    FieldWorkAssignmentEntity? assignment =
+        widget.initialAssignment ?? state.selectedAssignment;
     if (assignment == null || assignment.id != widget.assignmentId) {
       final match = state.assignments.where((a) => a.id == widget.assignmentId);
       if (match.isNotEmpty) {
@@ -208,9 +216,42 @@ class _TaskExecutionPageState extends ConsumerState<TaskExecutionPage> {
     }
 
     if (assignment == null) {
-      return const Scaffold(
+      if (state.isLoading) {
+        return const Scaffold(
+          backgroundColor: AppColors.backgroundSubtle,
+          body: Center(
+            child: CircularProgressIndicator(
+              valueColor: AlwaysStoppedAnimation<Color>(AppColors.yemenRed),
+            ),
+          ),
+        );
+      }
+      return Scaffold(
         backgroundColor: AppColors.backgroundSubtle,
-        body: Center(child: CircularProgressIndicator()),
+        appBar: AppBar(
+          title: const Text('تنفيذ المهمة'),
+          backgroundColor: Colors.white,
+          elevation: 0,
+        ),
+        body: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Icon(Icons.assignment_late_outlined,
+                  size: 48, color: AppColors.textMuted),
+              const SizedBox(height: 12),
+              const Text(
+                'لم يتم العثور على المهمة المحددة',
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 16),
+              ElevatedButton(
+                onPressed: () => context.pop(),
+                child: const Text('العودة للمهام'),
+              ),
+            ],
+          ),
+        ),
       );
     }
 

@@ -73,7 +73,13 @@ class FieldWorkService
             data: ['assignment_id' => $assignment->id, 'complaint_id' => $complaint->id]
         );
 
-        return $assignment->load(['complaint', 'worker', 'assignedBy']);
+        return $assignment->load([
+            'complaint.category',
+            'complaint.currentDepartment.ministry',
+            'complaint.attachments',
+            'worker',
+            'assignedBy',
+        ]);
     }
 
     /**
@@ -114,7 +120,13 @@ class FieldWorkService
                 ]);
             }
 
-            return $assignment->fresh(['complaint', 'worker']);
+            return $assignment->fresh([
+                'complaint.category',
+                'complaint.currentDepartment.ministry',
+                'complaint.attachments',
+                'worker',
+                'assignedBy',
+            ]);
         });
     }
 
@@ -159,7 +171,13 @@ class FieldWorkService
                 ]);
             }
 
-            return $assignment->fresh(['complaint', 'worker']);
+            return $assignment->fresh([
+                'complaint.category',
+                'complaint.currentDepartment.ministry',
+                'complaint.attachments',
+                'worker',
+                'assignedBy',
+            ]);
         });
     }
 
@@ -311,7 +329,13 @@ class FieldWorkService
             data: ['complaint_id' => $complaint->id]
         );
 
-        return $assignment->fresh(['complaint.attachments', 'worker']);
+        return $assignment->fresh([
+            'complaint.category',
+            'complaint.currentDepartment.ministry',
+            'complaint.attachments',
+            'worker',
+            'assignedBy',
+        ]);
     }
 
     /**
@@ -319,7 +343,14 @@ class FieldWorkService
      */
     public function listAssignments(User $user, ?string $status = null, int $perPage = 15): LengthAwarePaginator
     {
-        $query = FieldAssignment::with(['complaint.category', 'complaint.currentDepartment', 'worker', 'assignedBy']);
+        $query = FieldAssignment::with([
+            'complaint.category',
+            'complaint.currentDepartment.ministry',
+            'complaint.attachments',
+            'complaint.timeline',
+            'worker',
+            'assignedBy',
+        ]);
 
         if ($user->hasRole('Field Worker') && ! $user->hasRole('Super Admin')) {
             $query->where('worker_id', $user->id);
