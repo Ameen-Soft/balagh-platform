@@ -56,6 +56,8 @@ class UserEntity {
 
   bool get isCitizen => roles.any((r) => r.name.toLowerCase() == 'citizen');
   bool get isAdmin => roles.any((r) => r.name.toLowerCase() == 'admin');
+  bool get isFieldWorker =>
+      roles.any((r) => r.name.toLowerCase() == 'field worker');
 
   List<String> get allPermissions {
     final permissions = <String>{};

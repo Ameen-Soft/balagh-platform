@@ -80,7 +80,8 @@ class ApiExceptionHandler {
 
         String message = 'حدث خطأ أثناء معالجة الطلب.';
         if (data is Map<String, dynamic>) {
-          if (data['message'] is String && (data['message'] as String).isNotEmpty) {
+          if (data['message'] is String &&
+              (data['message'] as String).isNotEmpty) {
             message = data['message'];
           }
         }
@@ -128,7 +129,9 @@ class ApiExceptionHandler {
         return const NetworkException('تم إلغاء الطلب.');
 
       default:
-        return NetworkException(error.message ?? 'حدث خطأ غير متوقع في الشبكة.');
+        return NetworkException(
+          error.message ?? 'حدث خطأ غير متوقع في الشبكة.',
+        );
     }
   }
 }

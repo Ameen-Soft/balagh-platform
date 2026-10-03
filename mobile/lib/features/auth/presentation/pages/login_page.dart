@@ -3,8 +3,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:mobile/core/constants/app_assets.dart';
 import 'package:mobile/core/constants/app_colors.dart';
+import 'package:mobile/core/widgets/app_button.dart';
+import 'package:mobile/core/widgets/app_error_banner.dart';
+import 'package:mobile/core/widgets/app_text_field.dart';
 import 'package:mobile/features/auth/application/providers.dart';
-import '../widgets/auth_text_field.dart';
 
 class LoginPage extends ConsumerStatefulWidget {
   const LoginPage({super.key});
@@ -17,6 +19,8 @@ class _LoginPageState extends ConsumerState<LoginPage> {
   final _formKey = GlobalKey<FormState>();
   late final TextEditingController _emailController;
   late final TextEditingController _passwordController;
+  final FocusNode _emailFocusNode = FocusNode();
+  final FocusNode _passwordFocusNode = FocusNode();
   bool _obscurePassword = true;
 
   @override
@@ -30,6 +34,8 @@ class _LoginPageState extends ConsumerState<LoginPage> {
   void dispose() {
     _emailController.dispose();
     _passwordController.dispose();
+    _emailFocusNode.dispose();
+    _passwordFocusNode.dispose();
     super.dispose();
   }
 
@@ -44,23 +50,30 @@ class _LoginPageState extends ConsumerState<LoginPage> {
         );
   }
 
+  void _onFieldChanged() {
+    final authNotifier = ref.read(authNotifierProvider.notifier);
+    authNotifier.clearError();
+  }
+
   @override
   Widget build(BuildContext context) {
     final authState = ref.watch(authNotifierProvider);
 
-    // Listen to error states and display SnackBar
+    // Also surface floating notification if needed
     ref.listen(authNotifierProvider, (previous, next) {
-      if (next.isError && next.errorMessage != null) {
+      if (next.isError && next.errorMessage != null && previous?.errorMessage != next.errorMessage) {
+        ScaffoldMessenger.of(context).hideCurrentSnackBar();
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
               next.errorMessage!,
               textAlign: TextAlign.right,
-              style: const TextStyle(fontWeight: FontWeight.w600),
+              style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13),
             ),
             backgroundColor: AppColors.yemenRed,
             behavior: SnackBarBehavior.floating,
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+            margin: const EdgeInsets.all(16),
           ),
         );
       }
@@ -71,210 +84,242 @@ class _LoginPageState extends ConsumerState<LoginPage> {
       body: SafeArea(
         child: Center(
           child: SingleChildScrollView(
-            padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
-            child: Form(
-              key: _formKey,
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  const SizedBox(height: 16),
+            physics: const ClampingScrollPhysics(),
+            keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+            padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 20.0),
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 440),
+              child: Form(
+                key: _formKey,
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    const SizedBox(height: 8),
 
-                  // Brand Logo
-                  Center(
-                    child: Container(
-                      height: 58,
-                      width: 190,
-                      clipBehavior: Clip.antiAlias,
-                      decoration: BoxDecoration(
-                        gradient: const LinearGradient(
-                          begin: Alignment.topCenter,
-                          end: Alignment.bottomCenter,
-                          colors: [
-                            Color(0xFFF9FAFB),
-                            Color(0xFFE5E9EE),
-                          ],
-                        ),
-                        borderRadius: BorderRadius.circular(29),
-                        border: Border.all(
-                          color: const Color(0xFFD1D5DB),
-                          width: 1.2,
-                        ),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withValues(alpha: 0.05),
-                            blurRadius: 10,
-                            offset: const Offset(0, 3),
+                    // --- Brand Identity Header ---
+                    Center(
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          // Emblem Badge
+                          Container(
+                            width: 64,
+                            height: 64,
+                            padding: const EdgeInsets.all(12),
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(18),
+                              border: Border.all(color: AppColors.borderSubtle, width: 1.2),
+                              boxShadow: const [
+                                BoxShadow(
+                                  color: AppColors.shadowColor,
+                                  blurRadius: 16,
+                                  offset: Offset(0, 4),
+                                ),
+                              ],
+                            ),
+                            child: Image.asset(
+                              AppAssets.logoOnly,
+                              fit: BoxFit.contain,
+                              errorBuilder: (context, error, stackTrace) => const Icon(
+                                Icons.account_balance_rounded,
+                                color: AppColors.yemenRed,
+                                size: 30,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 12),
+                          const Text(
+                            'بــــادر',
+                            style: TextStyle(
+                              fontSize: 22,
+                              fontWeight: FontWeight.w900,
+                              color: AppColors.yemenBlack,
+                              letterSpacing: -0.5,
+                            ),
+                          ),
+                          const SizedBox(height: 2),
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                            decoration: BoxDecoration(
+                              color: AppColors.yemenRedLight,
+                              borderRadius: BorderRadius.circular(6),
+                            ),
+                            child: const Text(
+                              'المنصة الوطنية للمشاريع والشكاوى',
+                              style: TextStyle(
+                                fontSize: 11,
+                                fontWeight: FontWeight.w700,
+                                color: AppColors.yemenRed,
+                              ),
+                            ),
                           ),
                         ],
                       ),
-                      child: Center(
-                        child: Transform.scale(
-                          scale: 2.6,
-                          child: Image.asset(
-                            AppAssets.logoHorizontal,
-                            fit: BoxFit.contain,
-                            errorBuilder: (context, error, stackTrace) => const Text(
-                              'بلاغ',
-                              style: TextStyle(
-                                fontSize: 24,
-                                fontWeight: FontWeight.bold,
-                                color: AppColors.yemenBlack,
-                              ),
-                            ),
-                          ),
-                        ),
+                    ),
+
+                    const SizedBox(height: 28),
+
+                    // --- Welcome Title & Subtitle ---
+                    const Text(
+                      'تسجيل الدخول',
+                      textAlign: TextAlign.start,
+                      style: TextStyle(
+                        fontSize: 22,
+                        fontWeight: FontWeight.w800,
+                        color: AppColors.yemenBlack,
+                        letterSpacing: -0.3,
                       ),
                     ),
-                  ),
-
-                  const SizedBox(height: 32),
-
-                  // Title & Subtitle
-                  const Text(
-                    'تسجيل الدخول',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      fontSize: 24,
-                      fontWeight: FontWeight.w800,
-                      color: AppColors.yemenBlack,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  const Text(
-                    'أهلاً بك مجدداً في منصة بلاغ الوطنية',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: AppColors.textSecondary,
-                    ),
-                  ),
-
-                  const SizedBox(height: 32),
-
-                  // Email Field
-                  AuthTextField(
-                    controller: _emailController,
-                    label: 'البريد الإلكتروني',
-                    hint: 'name@example.com',
-                    prefixIcon: Icons.email_outlined,
-                    keyboardType: TextInputType.emailAddress,
-                    enabled: !authState.isLoading,
-                    validator: (value) {
-                      if (value == null || value.trim().isEmpty) {
-                        return 'يرجى إدخال البريد الإلكتروني';
-                      }
-                      final emailRegex = RegExp(r'^[^@]+@[^@]+\.[^@]+');
-                      if (!emailRegex.hasMatch(value.trim())) {
-                        return 'صيغة البريد الإلكتروني غير صحيحة';
-                      }
-                      return null;
-                    },
-                  ),
-
-                  const SizedBox(height: 20),
-
-                  // Password Field
-                  AuthTextField(
-                    controller: _passwordController,
-                    label: 'كلمة المرور',
-                    hint: '••••••••',
-                    prefixIcon: Icons.lock_outline_rounded,
-                    obscureText: _obscurePassword,
-                    textInputAction: TextInputAction.done,
-                    enabled: !authState.isLoading,
-                    onFieldSubmitted: (_) => _submitLogin(),
-                    suffixIcon: IconButton(
-                      icon: Icon(
-                        _obscurePassword
-                            ? Icons.visibility_off_outlined
-                            : Icons.visibility_outlined,
+                    const SizedBox(height: 6),
+                    const Text(
+                      'أهلاً بك مجدداً، سجّل الدخول لمتابعة بلاغاتك والمشاريع المجتمعية.',
+                      textAlign: TextAlign.start,
+                      style: TextStyle(
+                        fontSize: 13.5,
                         color: AppColors.textSecondary,
-                        size: 20,
+                        height: 1.4,
                       ),
-                      onPressed: () {
-                        setState(() {
-                          _obscurePassword = !_obscurePassword;
-                        });
+                    ),
+
+                    const SizedBox(height: 20),
+
+                    // --- In-page Error Banner ---
+                    if (authState.isError && authState.errorMessage != null) ...[
+                      AppErrorBanner(
+                        message: authState.errorMessage!,
+                        onDismiss: () {
+                          ref.read(authNotifierProvider.notifier).clearError();
+                        },
+                      ),
+                      const SizedBox(height: 16),
+                    ],
+
+                    // --- Email Field ---
+                    AppTextField(
+                      controller: _emailController,
+                      label: 'البريد الإلكتروني',
+                      hint: 'name@example.com',
+                      prefixIcon: Icons.alternate_email_rounded,
+                      keyboardType: TextInputType.emailAddress,
+                      textInputAction: TextInputAction.next,
+                      enabled: !authState.isLoading,
+                      autofillHints: const [AutofillHints.email, AutofillHints.username],
+                      onChanged: (_) => _onFieldChanged(),
+                      onFieldSubmitted: (_) {
+                        FocusScope.of(context).requestFocus(_passwordFocusNode);
+                      },
+                      validator: (value) {
+                        if (value == null || value.trim().isEmpty) {
+                          return 'يرجى إدخال البريد الإلكتروني';
+                        }
+                        final emailRegex = RegExp(r'^[^@]+@[^@]+\.[^@]+');
+                        if (!emailRegex.hasMatch(value.trim())) {
+                          return 'صيغة البريد الإلكتروني غير صحيحة';
+                        }
+                        return null;
                       },
                     ),
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'يرجى إدخال كلمة المرور';
-                      }
-                      if (value.length < 6) {
-                        return 'كلمة المرور يجب ألا تقل عن 6 أحرف';
-                      }
-                      return null;
-                    },
-                  ),
 
-                  const SizedBox(height: 28),
+                    const SizedBox(height: 16),
 
-                  // Submit Button
-                  SizedBox(
-                    height: 52,
-                    child: ElevatedButton(
-                      onPressed: authState.isLoading ? null : _submitLogin,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.yemenRed,
-                        foregroundColor: Colors.white,
-                        disabledBackgroundColor: AppColors.yemenRed.withValues(alpha: 0.6),
-                        elevation: 0,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(14),
-                        ),
-                      ),
-                      child: authState.isLoading
-                          ? const SizedBox(
-                              width: 22,
-                              height: 22,
-                              child: CircularProgressIndicator(
-                                strokeWidth: 2.5,
-                                color: Colors.white,
-                              ),
-                            )
-                          : const Text(
-                              'تسجيل الدخول',
-                              style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.w700,
-                              ),
-                            ),
-                    ),
-                  ),
-
-                  const SizedBox(height: 24),
-
-                  // Register Navigation Link
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      const Text(
-                        'ليس لديك حساب؟',
-                        style: TextStyle(
-                          fontSize: 14,
+                    // --- Password Field ---
+                    AppTextField(
+                      controller: _passwordController,
+                      label: 'كلمة المرور',
+                      hint: '••••••••',
+                      prefixIcon: Icons.lock_outline_rounded,
+                      obscureText: _obscurePassword,
+                      textInputAction: TextInputAction.done,
+                      enabled: !authState.isLoading,
+                      autofillHints: const [AutofillHints.password],
+                      onChanged: (_) => _onFieldChanged(),
+                      onFieldSubmitted: (_) => _submitLogin(),
+                      suffixIcon: IconButton(
+                        icon: Icon(
+                          _obscurePassword
+                              ? Icons.visibility_off_outlined
+                              : Icons.visibility_outlined,
                           color: AppColors.textSecondary,
+                          size: 20,
                         ),
+                        tooltip: _obscurePassword ? 'إظهار كلمة المرور' : 'إخفاء كلمة المرور',
+                        onPressed: () {
+                          setState(() {
+                            _obscurePassword = !_obscurePassword;
+                          });
+                        },
                       ),
-                      TextButton(
-                        onPressed: authState.isLoading
-                            ? null
-                            : () => context.push('/register'),
-                        child: const Text(
-                          'إنشاء حساب جديد',
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'يرجى إدخال كلمة المرور';
+                        }
+                        if (value.length < 6) {
+                          return 'كلمة المرور يجب ألا تقل عن 6 أحرف';
+                        }
+                        return null;
+                      },
+                    ),
+
+                    const SizedBox(height: 24),
+
+                    // --- Submit CTA Button ---
+                    ListenableBuilder(
+                      listenable: Listenable.merge([_emailController, _passwordController]),
+                      builder: (context, _) {
+                        final isFormFilled = _emailController.text.trim().isNotEmpty &&
+                            _passwordController.text.isNotEmpty;
+
+                        return AppButton(
+                          text: 'تسجيل الدخول',
+                          onPressed: _submitLogin,
+                          isLoading: authState.isLoading,
+                          isDisabled: !isFormFilled,
+                          height: 52,
+                        );
+                      },
+                    ),
+
+                    const SizedBox(height: 20),
+
+                    // --- Register Link Footer ---
+                    Wrap(
+                      alignment: WrapAlignment.center,
+                      crossAxisAlignment: WrapCrossAlignment.center,
+                      children: [
+                        const Text(
+                          'ليس لديك حساب في بادر؟',
                           style: TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w700,
-                            color: AppColors.yemenRed,
+                            fontSize: 13.5,
+                            color: AppColors.textSecondary,
                           ),
                         ),
-                      ),
-                    ],
-                  ),
+                        const SizedBox(width: 4),
+                        TextButton(
+                          onPressed: authState.isLoading
+                              ? null
+                              : () => context.push('/register'),
+                          style: TextButton.styleFrom(
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                            minimumSize: Size.zero,
+                            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                          ),
+                          child: const Text(
+                            'إنشاء حساب جديد',
+                            style: TextStyle(
+                              fontSize: 13.5,
+                              fontWeight: FontWeight.w800,
+                              color: AppColors.yemenRed,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
 
-                  const SizedBox(height: 16),
-                ],
+                    const SizedBox(height: 12),
+                  ],
+                ),
               ),
             ),
           ),

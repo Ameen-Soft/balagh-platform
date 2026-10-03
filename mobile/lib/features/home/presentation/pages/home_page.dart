@@ -231,6 +231,16 @@ class HomePage extends ConsumerWidget {
               ),
               const SizedBox(height: 12),
 
+              if (user?.isFieldWorker == true) ...[
+                _buildServiceCard(
+                  icon: Icons.engineering_rounded,
+                  title: 'المهام الميدانية المسندة',
+                  color: AppColors.deepBlack,
+                  onTap: () => context.push('/tasks'),
+                ),
+                const SizedBox(height: 14),
+              ],
+
               Row(
                 children: [
                   Expanded(

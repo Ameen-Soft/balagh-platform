@@ -12,6 +12,7 @@ class AppColors {
   static const Color yemenRedTint = Color(0xFFFEE2E2);
 
   static const Color yemenBlack = Color(0xFF08080A);
+  static const Color deepBlack = Color(0xFF08080A);
   static const Color yemenBlackLight = Color(0xFF18181B);
   static const Color yemenBlackMuted = Color(0xFF27272A);
 

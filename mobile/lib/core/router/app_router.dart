@@ -10,6 +10,9 @@ import 'package:mobile/features/complaints/domain/entities/complaint_entity.dart
 import 'package:mobile/features/complaints/presentation/pages/complaint_details_page.dart';
 import 'package:mobile/features/complaints/presentation/pages/create_complaint_page.dart';
 import 'package:mobile/features/complaints/presentation/pages/my_complaints_page.dart';
+import 'package:mobile/features/field_work/presentation/pages/tasks_list_page.dart';
+import 'package:mobile/features/field_work/presentation/pages/task_details_page.dart';
+import 'package:mobile/features/field_work/presentation/pages/task_execution_page.dart';
 import 'package:mobile/features/home/presentation/pages/home_page.dart';
 import 'package:mobile/features/onboarding/application/onboarding_provider.dart';
 import 'package:mobile/features/onboarding/presentation/pages/onboarding_page.dart';
@@ -106,6 +109,29 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           );
         },
       ),
+      GoRoute(
+        path: '/tasks',
+        name: 'tasks',
+        builder: (context, state) => const TasksListPage(),
+      ),
+      GoRoute(
+        path: '/tasks/:id',
+        name: 'task-details',
+        builder: (context, state) {
+          final idParam = state.pathParameters['id'] ?? '';
+          final id = int.tryParse(idParam) ?? 0;
+          return TaskDetailsPage(assignmentId: id);
+        },
+      ),
+      GoRoute(
+        path: '/tasks/:id/execute',
+        name: 'task-execution',
+        builder: (context, state) {
+          final idParam = state.pathParameters['id'] ?? '';
+          final id = int.tryParse(idParam) ?? 0;
+          return TaskExecutionPage(assignmentId: id);
+        },
+      ),
     ],
     redirect: (BuildContext context, GoRouterState state) {
       final authState = ref.read(authNotifierProvider);
@@ -135,8 +161,22 @@ final appRouterProvider = Provider<GoRouter>((ref) {
 
       // 3. User is authenticated
       if (authState.isAuthenticated) {
-        if (isLogin || isRegister || isSplash) {
+        final user = authState.user;
+        final isFieldWorker = user?.isFieldWorker == true;
+        final isTasksRoute = state.matchedLocation.startsWith('/tasks');
+
+        // Citizen cannot access field worker routes
+        if (!isFieldWorker && isTasksRoute) {
           return '/home';
+        }
+
+        // Field worker visiting home is redirected to tasks
+        if (isFieldWorker && state.matchedLocation == '/home') {
+          return '/tasks';
+        }
+
+        if (isLogin || isRegister || isSplash) {
+          return isFieldWorker ? '/tasks' : '/home';
         }
         return null;
       }
