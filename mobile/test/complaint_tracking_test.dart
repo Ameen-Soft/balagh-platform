@@ -115,11 +115,11 @@ void main() {
       expect(MediaUrlResolver.resolve('   '), isNull);
     });
 
-    test('prepends server IP and port to relative storage paths', () {
+    test('prepends serverBaseUrl to relative storage paths', () {
       final resolved = MediaUrlResolver.resolve('/storage/complaints/pic.jpg');
       expect(
         resolved,
-        'http://${ApiEndpoints.serverIp}:${ApiEndpoints.serverPort}/storage/complaints/pic.jpg',
+        '${ApiEndpoints.serverBaseUrl}/storage/complaints/pic.jpg',
       );
 
       final resolvedNoSlash = MediaUrlResolver.resolve(
@@ -127,17 +127,17 @@ void main() {
       );
       expect(
         resolvedNoSlash,
-        'http://${ApiEndpoints.serverIp}:${ApiEndpoints.serverPort}/storage/complaints/pic2.jpg',
+        '${ApiEndpoints.serverBaseUrl}/storage/complaints/pic2.jpg',
       );
     });
 
-    test('replaces localhost:8000 and 127.0.0.1:8000 with real server IP on mobile', () {
+    test('replaces localhost:8000 and 127.0.0.1:8000 with real server URL on mobile', () {
       final resolvedLocalhost = MediaUrlResolver.resolve(
         'http://localhost:8000/storage/complaints/img.png',
       );
       expect(
         resolvedLocalhost,
-        'http://${ApiEndpoints.serverIp}:${ApiEndpoints.serverPort}/storage/complaints/img.png',
+        '${ApiEndpoints.serverBaseUrl}/storage/complaints/img.png',
       );
 
       final resolvedLoopback = MediaUrlResolver.resolve(
@@ -145,7 +145,7 @@ void main() {
       );
       expect(
         resolvedLoopback,
-        'http://${ApiEndpoints.serverIp}:${ApiEndpoints.serverPort}/storage/complaints/img.png',
+        '${ApiEndpoints.serverBaseUrl}/storage/complaints/img.png',
       );
     });
   });

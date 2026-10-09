@@ -1,10 +1,10 @@
-import 'package:flutter/foundation.dart';
-
 class ApiEndpoints {
   const ApiEndpoints._();
 
-  /// عنوان IP الخاص باللابتوب المتصل بنقطة اتصال الهاتف (Hotspot)
-  /// تم استخراجه من محول الـ Wi-Fi في اللابتوب: 192.168.43.172
+  /// الدومين الأساسي لسيرفر الإنتاج (Hostinger)
+  static const String serverBaseUrl = 'https://bader.ameen-dev.com';
+
+  /// عنوان IP والمنفذ للتطوير المحلي (Local Development Fallback)
   static const String serverIp = '192.168.43.172';
   static const String serverPort = '8000';
 
@@ -12,10 +12,7 @@ class ApiEndpoints {
     const customUrl = String.fromEnvironment('API_BASE_URL');
     if (customUrl.isNotEmpty) return customUrl;
 
-    if (kIsWeb) return 'http://127.0.0.1:$serverPort/api/v1';
-
-    // الاتصال بسيرفر Laravel على اللابتوب من الهاتف الحقيقي
-    return 'http://$serverIp:$serverPort/api/v1';
+    return '$serverBaseUrl/api/v1';
   }
 
   // --- Auth Endpoints ---
