@@ -14,7 +14,7 @@ class FilterProjectRequest extends BaseApiRequest
     public function rules(): array
     {
         return [
-            'status' => ['nullable', 'string', 'in:proposed,approved,in_progress,completed,cancelled'],
+            'status' => ['nullable', 'string', 'in:draft,published,active,completed,suspended,proposed,approved,in_progress,cancelled'],
             'category_id' => ['nullable', 'integer', 'exists:categories,id'],
             'ministry_id' => ['nullable', 'integer', 'exists:ministries,id'],
             'search' => ['nullable', 'string', 'max:255'],
