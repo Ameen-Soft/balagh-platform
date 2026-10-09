@@ -169,16 +169,11 @@ flutter run
 ```
 
 > [!IMPORTANT]
-> **الاختبار على الأجهزة الحقيقية (نقطة اتصال من الهاتف → اللابتوب):**  
-> عند الاختبار على هاتف حقيقي متصل بنقطة اتصال (Hotspot) مع اللابتوب، يجب تشغيل خادم Laravel ليستمع على جميع الواجهات:  
-> ```bash
-> php artisan serve --host=0.0.0.0 --port=8000
-> ```  
-> قم بتحديث `serverIp` في ملف `mobile/lib/core/network/api_endpoints.dart` ليطابق عنوان الـ IP الخاص باللابتوب (مثال: `192.168.43.172`).  
-> في نظام Windows، اسمح للمنفذ 8000 بالمرور عبر جدار الحماية (Firewall):
-> ```powershell
-> New-NetFirewallRule -DisplayName "Laravel Dev" -Direction Inbound -LocalPort 8000 -Protocol TCP -Action Allow
-> ```
+> **الاتصال وتجربة التطبيق (بيئة الإنتاج / Hostinger):**  
+> تم تهيئة تطبيق الهاتف المحمول (Flutter) حالياً للاتصال مباشرة بالخادم الحي المرفوع على استضافة Hostinger عبر الرابط `https://bader.ameen-dev.com/api/v1`. 
+> بناءً على ذلك، لست بحاجة إلى إعداد اتصال محلي (Localhost / Hotspot) لتجربة التطبيق على هاتف حقيقي.
+> 
+> *إذا كنت ترغب في تطوير الواجهة الخلفية محلياً واختبارها، يمكنك تغيير `baseUrl` في ملف `mobile/lib/core/network/api_endpoints.dart` ليعود إلى عنوان الـ IP المحلي الخاص بحاسوبك وتشغيل Laravel بـ `php artisan serve --host=0.0.0.0`.*
 
 ---
 
@@ -206,6 +201,7 @@ flutter run
 | :--- | :--- | :--- | :--- |
 | `POST` | `/api/v1/auth/register` | إنشاء حساب مواطن جديد وإصدار توكن Sanctum تلقائياً | متاح للجميع (Public) |
 | `POST` | `/api/v1/auth/login` | تسجيل الدخول للأنظمة والحصول على توكن الصلاحيات | متاح للجميع (Public) |
+| `POST` | `/api/v1/auth/google` | تسجيل الدخول السريع باستخدام حساب جوجل (Google ID Token) | متاح للجميع (Public) |
 | `GET` | `/api/v1/auth/me` | استعراض بيانات الملف الشخصي والأدوار والصلاحيات للمستخدم الحالي | مصادقة (`auth:sanctum`) |
 | `POST` | `/api/v1/auth/logout` | إبطال التوكن الحالي وتسجيل الخروج بأمان | مصادقة (`auth:sanctum`) |
 | `GET` | `/api/v1/ministries` | استعراض قائمة الوزارات الحكومية النشطة وأقسامها | متاح للجميع (Public) |
@@ -256,7 +252,8 @@ flutter run
 - [x] طبقة البيانات والنماذج الأساسية لتطبيق الهاتف (Flutter Core Models & Data Layer - Phase 02): بناء الكيانات والـ Models وعقود الـ Repositories ومصادر البيانات البعيدة لخصائص البلاغات (Complaints)، المشاريع التنموية (Projects)، والإشعارات (Notifications)، مع مطابقة عقود الـ JSON بنسبة 100% والتحقق باختبارات آلية شاملة (19 اختباراً ناجحاً بنسبة 100%).
 - [x] تتبع الشكاوى والخط الزمني والمرفقات (Flutter Complaint Tracking - Phase 04): بناء واجهات استعراض "شكاواي" مع الترقيم التلقائي (Pagination) والسحب للتحديث (Pull-to-refresh) والتصفية بحسب الحالة، شاشة تفاصيل البلاغ الشاملة، عارض المرفقات البصرية الذكي بالصور المخزنة مؤقتاً (CachedNetworkImage) والتكبير التفاعلي (InteractiveViewer)، الخط الزمني التدقيقي لمسار البلاغ المعتمد على 10 أحداث رسمية، وتحديث الشاشة الرئيسية للربط مع البلاغات بنجاح 45 اختباراً آلياً بنسبة 100%.
 - [x] المهام الميدانية والتنفيذ مع التحقق الجغرافي الصارم (Flutter Field Worker - Phase 05): بناء نظام متكامل لمهام الموظف الميداني وفق Clean Architecture، يشمل استعراض المهام مع الفلترة التفاعلية، تفاصيل المهمة والبلاغ والمرفقات، قبول المهمة (`accept`)، التحقق الجغرافي اللحظي لموقع العامل عبر الـ GPS ومطابقته مع السيرفر لنطاق 500 متر (`verify-location`)، منع بدء التنفيذ لغير المتواجدين بالنطاق، بدء التنفيذ (`start`)، التقاط صور إثبات الإنجاز المباشرة بالكاميرا حصراً (`after`)، تقرير الإنجاز الميداني، إتمام المهمة وحل البلاغ ذرياً (`complete`) مع تحديث حالة الشكوى في النظام، وحراسة التوجيه بحسب الدور (Role-based Routing) بنجاح 68 اختباراً آلياً بنسبة 100%.
-- [ ] المرحلة القادمة (Phase 06): استعراض المشاريع التنموية والمساهمة المجتمعية (Developmental Projects & Community Contribution).
+- [x] استعراض المشاريع التنموية والمساهمة المجتمعية (Flutter Projects - Phase 06): بناء قسم المشاريع التنموية وفق Clean Architecture ونظام تصميم بادر، ويشمل دليل المشاريع المصنف مع البحث وشرائح الفلترة بحسب الحالة، شاشة تفاصيل المشروع الشاملة التي توضح الخط الزمني لمراحل التنفيذ ومؤشرات التقدم المالي، نافذة منبثقة تفاعلية للمساهمة المجتمعية الافتراضية مع التحقق من صحة المدخلات والتحديث اللحظي للحالة، متكاملة مع GoRouter ومدعومة باختبارات آلية ناجحة بنسبة 100%.
+- [x] التكامل مع تسجيل الدخول بحساب جوجل (Google Sign-In Integration - Phase 07): دعم تسجيل الدخول الآمن والسريع للمواطنين باستخدام حسابات جوجل عبر إضافة المصادقة الاجتماعية (Laravel Socialite) في الواجهة الخلفية، واستخدام حزمة `google_sign_in` في تطبيق الهاتف، مع تحديث واجهات الاستخدام (UI)، وتطوير وحدة الاختبارات لتجاوز بيئة المحاكاة، وضمان موثوقية العمليات والرفع الفعلي في بيئة الإنتاج على استضافة (Hostinger).
 
 ---
 ---
@@ -432,16 +429,11 @@ flutter run
 ```
 
 > [!IMPORTANT]
-> **Physical Device Testing (Phone Hotspot → Laptop):**  
-> When testing on a real phone connected via mobile hotspot, the Laravel server must listen on all interfaces:  
-> ```bash
-> php artisan serve --host=0.0.0.0 --port=8000
-> ```  
-> Update `serverIp` in `mobile/lib/core/network/api_endpoints.dart` to your laptop's Wi-Fi IP (e.g. `192.168.43.172`).  
-> On Windows, allow port 8000 through the firewall:
-> ```powershell
-> New-NetFirewallRule -DisplayName "Laravel Dev" -Direction Inbound -LocalPort 8000 -Protocol TCP -Action Allow
-> ```
+> **Connectivity & Testing (Production Environment / Hostinger):**  
+> The mobile application is currently configured to connect directly to the live production server deployed on Hostinger at `https://bader.ameen-dev.com/api/v1`. 
+> Consequently, you no longer need to set up local networking (Localhost / Hotspot firewall rules) to test the app on a physical device.
+> 
+> *If you need to develop and test backend changes locally, you can easily revert the `baseUrl` inside `mobile/lib/core/network/api_endpoints.dart` to your machine's local IP address and run Laravel using `php artisan serve --host=0.0.0.0`.*
 
 ---
 
@@ -469,6 +461,7 @@ All platform endpoints are versioned under `/api/v1` and protected via Sanctum p
 | :--- | :--- | :--- | :--- |
 | `POST` | `/api/v1/auth/register` | Register a new citizen account and issue Sanctum token | Public |
 | `POST` | `/api/v1/auth/login` | Authenticate user credentials and return access token | Public |
+| `POST` | `/api/v1/auth/google` | Authenticate user seamlessly via Google ID Token | Public |
 | `GET` | `/api/v1/auth/me` | Fetch authenticated user profile, roles, and permissions | Authenticated (`auth:sanctum`) |
 | `POST` | `/api/v1/auth/logout` | Revoke current access token and log out | Authenticated (`auth:sanctum`) |
 | `GET` | `/api/v1/ministries` | Browse active governmental ministries and departments | Public |
@@ -520,3 +513,4 @@ All platform endpoints are versioned under `/api/v1` and protected via Sanctum p
 - [x] Complaint Tracking, Timeline & Attachments (Flutter Complaint Tracking - Phase 04): Implemented citizen complaints directory with reactive pagination, pull-to-refresh, status filtering chips, comprehensive complaint details view, cached visual evidence viewer with interactive zoom (CachedNetworkImage + InteractiveViewer), full audit timeline supporting all 10 official event types, and seamless home page integration, backed by 45 automated tests passing 100%.
 - [x] Field Worker Operations & Geofenced Task Execution (Flutter Field Worker - Phase 05): Comprehensive field worker suite following Clean Architecture, featuring status-filtered tasks directory, task and complaint details view, task acceptance (`accept`), real-time GPS proximity verification enforced by the backend within 500m (`verify-location`), geofence-locked execution start (`start`), live camera capture for post-repair evidence (`after`), field completion report, atomic task resolution (`complete`) with automatic complaint state transition to `resolved`, and role-based route guards for field workers, backed by 68 automated tests passing 100%.
 - [x] Developmental Projects Discovery & Community Contributions (Flutter Projects - Phase 06): Implemented developmental projects showcase adhering to Clean Architecture and Balagh Design System, featuring categorized projects directory with search and status filtering chips, comprehensive project details view with execution phases timeline and financial progress indicators, simulated community contributions dialog with validation and instant state synchronization, integrated with GoRouter and backed by automated unit tests passing 100%.
+- [x] Google Sign-In Integration (Phase 07): Seamless and secure citizen authentication via Google accounts, utilizing Laravel Socialite on the backend and the `google_sign_in` package on the mobile app. Includes UI updates, robust test environment handling, and production-ready configuration & deployment on Hostinger.
