@@ -77,7 +77,10 @@ class ProjectRemoteDataSourceImpl implements ProjectRemoteDataSource {
   }) async {
     final response = await apiClient.post(
       ApiEndpoints.contributeProject(projectId),
-      data: {'amount': amount},
+      data: {
+        'amount': amount,
+        'payment_method': 'simulated',
+      },
     );
 
     final data = response.data;

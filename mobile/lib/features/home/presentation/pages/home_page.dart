@@ -194,6 +194,7 @@ class _HomePageState extends ConsumerState<HomePage> {
                           icon: Icons.construction_rounded,
                           title: 'المشاريع المجتمعية',
                           color: AppColors.yemenGold,
+                          onTap: () => context.push('/projects'),
                         ),
                       ),
                       const SizedBox(width: 14),

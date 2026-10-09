@@ -17,6 +17,9 @@ import 'package:mobile/features/field_work/presentation/pages/task_execution_pag
 import 'package:mobile/features/home/presentation/pages/home_page.dart';
 import 'package:mobile/features/onboarding/application/onboarding_provider.dart';
 import 'package:mobile/features/onboarding/presentation/pages/onboarding_page.dart';
+import 'package:mobile/features/projects/domain/entities/project_entity.dart';
+import 'package:mobile/features/projects/presentation/pages/project_details_page.dart';
+import 'package:mobile/features/projects/presentation/pages/projects_list_page.dart';
 
 class OnboardingStatusNotifier extends Notifier<bool> {
   @override
@@ -106,6 +109,26 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           return ComplaintDetailsPage(
             complaintId: id,
             initialComplaint: initialComplaint,
+          );
+        },
+      ),
+      GoRoute(
+        path: '/projects',
+        name: 'projects',
+        builder: (context, state) => const ProjectsListPage(),
+      ),
+      GoRoute(
+        path: '/projects/:id',
+        name: 'project-details',
+        builder: (context, state) {
+          final idParam = state.pathParameters['id'] ?? '';
+          final id = int.tryParse(idParam) ?? 0;
+          final extra = state.extra;
+          final initialProject = extra is ProjectEntity ? extra : null;
+
+          return ProjectDetailsPage(
+            projectId: id,
+            initialProject: initialProject,
           );
         },
       ),

@@ -58,6 +58,15 @@ class ProjectApiTest extends TestCase
                     '*' => ['id', 'title', 'target_amount', 'current_amount', 'progress_percentage', 'status'],
                 ],
             ]);
+    public function test_can_filter_projects_by_status(): void
+    {
+        $responseActive = $this->getJson('/api/v1/projects?status=active');
+        $responseActive->assertStatus(200)
+            ->assertJsonPath('success', true);
+
+        $responsePublished = $this->getJson('/api/v1/projects?status=published');
+        $responsePublished->assertStatus(200)
+            ->assertJsonPath('success', true);
     }
 
     public function test_anyone_can_view_project_details(): void
