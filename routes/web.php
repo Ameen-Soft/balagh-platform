@@ -20,11 +20,18 @@ use Illuminate\Support\Facades\Route;
 */
 Route::get('/', [PublicController::class, 'welcome'])->name('home');
 
-Route::prefix('public')->name('public.')->group(function () {
+Route::name('public.')->group(function () {
     Route::get('/complaints', [PublicController::class, 'complaintsIndex'])->name('complaints.index');
     Route::get('/complaints/{complaint}', [PublicController::class, 'complaintShow'])->name('complaints.show');
     Route::get('/projects', [PublicController::class, 'projectsIndex'])->name('projects.index');
     Route::get('/projects/{project}', [PublicController::class, 'projectShow'])->name('projects.show');
+});
+
+Route::prefix('public')->group(function () {
+    Route::get('/complaints', [PublicController::class, 'complaintsIndex']);
+    Route::get('/complaints/{complaint}', [PublicController::class, 'complaintShow']);
+    Route::get('/projects', [PublicController::class, 'projectsIndex']);
+    Route::get('/projects/{project}', [PublicController::class, 'projectShow']);
 });
 
 /*
