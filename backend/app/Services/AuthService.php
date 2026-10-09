@@ -5,6 +5,9 @@ namespace App\Services;
 use App\Models\Role;
 use App\Models\User;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 
 class AuthService
@@ -86,5 +89,99 @@ class AuthService
     public function me(User $user): User
     {
         return $user->load(['roles.permissions', 'department.ministry']);
+    }
+
+    /**
+     * Authenticate or register a user using Google ID Token.
+     *
+     * @return array{user: User, token: string}
+     *
+     * @throws ValidationException
+     */
+    public function loginWithGoogle(string $idToken, ?string $deviceName = null): array
+    {
+        try {
+            $response = Http::timeout(10)->get('https://oauth2.googleapis.com/tokeninfo', [
+                'id_token' => $idToken,
+            ]);
+        } catch (\Throwable $e) {
+            Log::error('Google token verification connection failed: ' . $e->getMessage());
+            throw ValidationException::withMessages([
+                'id_token' => ['تعذر الاتصال بخوادم Google للتحقق من الحساب، يرجى المحاولة لاحقاً.'],
+            ]);
+        }
+
+        if (! $response->successful()) {
+            throw ValidationException::withMessages([
+                'id_token' => ['رمز تسجيل الدخول من Google غير صالح أو منتهي الصلاحية.'],
+            ]);
+        }
+
+        $payload = $response->json();
+
+        $allowedClientIds = array_filter([
+            config('services.google.client_id'),
+            config('services.google.android_client_id'),
+        ]);
+
+        $tokenAud = $payload['aud'] ?? null;
+        $tokenAzp = $payload['azp'] ?? null;
+
+        $isValidAudience = empty($allowedClientIds) ||
+            in_array($tokenAud, $allowedClientIds, true) ||
+            in_array($tokenAzp, $allowedClientIds, true);
+
+        if (! $isValidAudience) {
+            throw ValidationException::withMessages([
+                'id_token' => ['رمز المصادقة غير مخصص لهذا التطبيق.'],
+            ]);
+        }
+
+        $email = $payload['email'] ?? null;
+        $googleId = $payload['sub'] ?? null;
+
+        if (! $email) {
+            throw ValidationException::withMessages([
+                'id_token' => ['لم يتم العثور على بريد إلكتروني صالح مرتبط بحساب Google.'],
+            ]);
+        }
+
+        $user = User::where('google_id', $googleId)
+            ->orWhere('email', $email)
+            ->first();
+
+        if ($user) {
+            if (empty($user->google_id)) {
+                $user->update(['google_id' => $googleId]);
+            }
+
+            if (! $user->is_active) {
+                throw ValidationException::withMessages([
+                    'email' => ['تم تعطيل هذا الحساب. يرجى التواصل مع إدارة المنصة.'],
+                ]);
+            }
+        } else {
+            $name = $payload['name'] ?? explode('@', $email)[0];
+            $user = User::create([
+                'name' => $name,
+                'email' => $email,
+                'google_id' => $googleId,
+                'password' => Hash::make(Str::random(32)),
+                'is_active' => true,
+            ]);
+
+            $citizenRole = Role::where('name', 'Citizen')->first();
+            if ($citizenRole) {
+                $user->roles()->attach($citizenRole->id);
+            }
+        }
+
+        $tokenName = $deviceName ?? 'google_auth_token';
+        $token = $user->createToken($tokenName)->plainTextToken;
+
+        return [
+            'user' => $user->load(['roles', 'department.ministry']),
+            'token' => $token,
+        ];
     }
 }

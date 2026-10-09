@@ -23,6 +23,8 @@ abstract class AuthRemoteDataSource {
   Future<void> logout();
 
   Future<UserModel> me();
+
+  Future<AuthDataModel> loginWithGoogle(String idToken);
 }
 
 class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
@@ -55,6 +57,23 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
     }
 
     throw const ServerException('استجابة غير صالحة من الخادم أثناء تسجيل الدخول.');
+  }
+
+  @override
+  Future<AuthDataModel> loginWithGoogle(String idToken) async {
+    final response = await apiClient.post(
+      ApiEndpoints.googleLogin,
+      data: {
+        'id_token': idToken,
+      },
+    );
+
+    final data = response.data;
+    if (data is Map<String, dynamic> && data['data'] is Map<String, dynamic>) {
+      return AuthDataModel.fromJson(data['data'] as Map<String, dynamic>);
+    }
+
+    throw const ServerException('استجابة غير صالحة من الخادم أثناء تسجيل الدخول باستخدام جوجل.');
   }
 
   @override

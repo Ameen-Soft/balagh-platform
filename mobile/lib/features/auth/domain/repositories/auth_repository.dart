@@ -16,6 +16,8 @@ abstract class AuthRepository {
     String? nationalId,
   });
 
+  Future<UserEntity> loginWithGoogle(String idToken);
+
   Future<void> logout();
 
   Future<UserEntity> getCurrentUser();

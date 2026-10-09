@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 import 'package:mobile/core/constants/app_colors.dart';
 import 'package:mobile/core/widgets/app_button.dart';
 import 'package:mobile/core/widgets/app_error_banner.dart';
@@ -78,6 +79,40 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
               ? null
               : _nationalIdController.text.trim(),
         );
+  }
+
+  Future<void> _submitGoogleLogin() async {
+    FocusScope.of(context).unfocus();
+    try {
+      await GoogleSignIn.instance.initialize(
+        serverClientId: '897056716364-qciejua1mroqo991l1gpp30l1jabno8g.apps.googleusercontent.com',
+      );
+      
+      final GoogleSignInAccount account = await GoogleSignIn.instance.authenticate(
+        scopeHint: ['email', 'profile'],
+      );
+
+      final GoogleSignInAuthentication googleAuth = account.authentication;
+      final String? idToken = googleAuth.idToken;
+
+      if (idToken != null) {
+        if (mounted) {
+          await ref.read(authNotifierProvider.notifier).loginWithGoogle(idToken);
+        }
+      } else {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('فشل الحصول على مصادقة جوجل.')),
+          );
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('حدث خطأ أثناء تسجيل الدخول: $e')),
+        );
+      }
+    }
   }
 
   void _onFieldChanged() {
@@ -482,6 +517,44 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
                           height: 52,
                         );
                       },
+                    ),
+
+                    const SizedBox(height: 16),
+                    Row(
+                      children: [
+                        Expanded(child: Divider(color: AppColors.borderSubtle)),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 16),
+                          child: Text('أو', style: TextStyle(color: AppColors.textSecondary, fontSize: 13)),
+                        ),
+                        Expanded(child: Divider(color: AppColors.borderSubtle)),
+                      ],
+                    ),
+                    const SizedBox(height: 16),
+
+                    // --- Google Sign-In Button ---
+                    OutlinedButton.icon(
+                      onPressed: authState.isLoading ? null : _submitGoogleLogin,
+                      icon: const Icon(
+                        Icons.g_mobiledata_rounded,
+                        size: 28,
+                        color: AppColors.yemenRed,
+                      ),
+                      label: const Text(
+                        'إنشاء حساب باستخدام جوجل',
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w700,
+                          color: AppColors.yemenBlack,
+                        ),
+                      ),
+                      style: OutlinedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        side: BorderSide(color: AppColors.borderSubtle),
+                      ),
                     ),
 
                     const SizedBox(height: 18),

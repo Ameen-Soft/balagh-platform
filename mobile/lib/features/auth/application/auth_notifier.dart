@@ -59,6 +59,28 @@ class AuthNotifier extends Notifier<AuthState> {
     }
   }
 
+  /// Authenticate user with Google
+  Future<bool> loginWithGoogle(String idToken) async {
+    state = AuthState.loading();
+    try {
+      final user = await _repository.loginWithGoogle(idToken);
+      state = AuthState.authenticated(user);
+      return true;
+    } on ValidationException catch (e) {
+      state = AuthState.error(
+        e.firstErrorMessage,
+        validationErrors: e.errors,
+      );
+      return false;
+    } on ApiException catch (e) {
+      state = AuthState.error(e.message);
+      return false;
+    } catch (e) {
+      state = AuthState.error('حدث خطأ غير متوقع أثناء تسجيل الدخول باستخدام جوجل.');
+      return false;
+    }
+  }
+
   /// Register new citizen account
   Future<bool> register({
     required String name,

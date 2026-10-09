@@ -30,6 +30,12 @@ class MockAuthRepository implements AuthRepository {
   }
 
   @override
+  Future<UserEntity> loginWithGoogle(String idToken) async {
+    if (shouldThrow) throw const UnauthorizedException('بيانات الاعتماد غير صحيحة');
+    return const UserEntity(id: 1, name: 'مواطن تجريبي جوجل', email: 'google@example.com');
+  }
+
+  @override
   Future<UserEntity> register({
     required String name,
     required String email,

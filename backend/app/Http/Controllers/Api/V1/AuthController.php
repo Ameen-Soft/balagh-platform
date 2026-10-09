@@ -68,4 +68,27 @@ class AuthController extends Controller
 
         return $this->successResponse(new UserResource($user), 'بيانات الملف الشخصي للمستخدم الحالي.');
     }
+
+    /**
+     * Authenticate or register user via Google OAuth ID token.
+     */
+    public function googleLogin(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'id_token' => ['required', 'string'],
+            'device_name' => ['nullable', 'string', 'max:255'],
+        ], [
+            'id_token.required' => 'رمز مصادقة Google مطلوب.',
+        ]);
+
+        $result = $this->authService->loginWithGoogle(
+            $validated['id_token'],
+            $validated['device_name'] ?? null
+        );
+
+        return $this->successResponse([
+            'user' => new UserResource($result['user']),
+            'token' => $result['token'],
+        ], 'تم تسجيل الدخول بواسطة Google بنجاح.');
+    }
 }
