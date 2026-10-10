@@ -197,6 +197,19 @@ class _HomePageState extends ConsumerState<HomePage> {
                           onTap: () => context.push('/projects'),
                         ),
                       ),
+                    ],
+                  ),
+                  const SizedBox(height: 14),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: _buildServiceCard(
+                          icon: Icons.map_rounded,
+                          title: 'الخريطة التفاعلية',
+                          color: AppColors.yemenBlackMuted,
+                          onTap: () => context.push('/map'),
+                        ),
+                      ),
                       const SizedBox(width: 14),
                       Expanded(
                         child: _buildServiceCard(

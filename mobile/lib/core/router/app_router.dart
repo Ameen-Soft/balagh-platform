@@ -20,7 +20,7 @@ import 'package:mobile/features/onboarding/presentation/pages/onboarding_page.da
 import 'package:mobile/features/projects/domain/entities/project_entity.dart';
 import 'package:mobile/features/projects/presentation/pages/project_details_page.dart';
 import 'package:mobile/features/projects/presentation/pages/projects_list_page.dart';
-
+import 'package:mobile/features/map/presentation/pages/map_page.dart';
 class OnboardingStatusNotifier extends Notifier<bool> {
   @override
   bool build() => false;
@@ -168,6 +168,11 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             initialAssignment: initialAssignment,
           );
         },
+      ),
+      GoRoute(
+        path: '/map',
+        name: 'map',
+        builder: (context, state) => const MapPage(),
       ),
     ],
     redirect: (BuildContext context, GoRouterState state) {

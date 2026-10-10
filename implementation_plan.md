@@ -89,9 +89,9 @@
 | **عرض شكاوى المواطن** (My Complaints List) | FR-09 | ❌ غير موجود |
 | **تفاصيل الشكوى والخط الزمني** | FR-09 | ❌ غير موجود |
 | **الإشعارات** (Notifications) | FR-14 | ❌ غير موجود |
-| **الخريطة التفاعلية** | FR-15 | ❌ غير موجود |
-| **عرض المشاريع التنموية** | FR-16, FR-17 | ❌ غير موجود |
-| **تسجيل مساهمة** | FR-18 | ❌ غير موجود |
+| **الخريطة التفاعلية** | FR-15 | ✅ مكتمل (مع وجود فجوة في الـ Backend للشكاوى العامة) |
+| **عرض المشاريع التنموية** | FR-16, FR-17 | ✅ مكتمل |
+| **تسجيل مساهمة** | FR-18 | ✅ مكتمل |
 | **المهام الميدانية** (Field Worker Tasks) | FR-10, FR-11, FR-12 | ❌ غير موجود |
 | **تنفيذ المهمة مع التحقق الجغرافي** | FR-11, FR-12 | ❌ غير موجود |
 | **الملف الشخصي** (Profile) | UC: Manage Profile | ❌ غير موجود |
@@ -133,9 +133,9 @@
 | FR-12 | Verify Location | ✅ GeoLocationService | ❌ **مفقود** |
 | FR-13 | Close Complaint | ✅ `PATCH /complaints/{id}/status` | N/A (Web only) |
 | FR-14 | Notifications | ⚠️ DB records only (no Push) | ❌ **مفقود** |
-| FR-15 | Map View | ⚠️ No dedicated `/complaints/map` endpoint | ❌ **مفقود** |
-| FR-16 | View Projects | ✅ `GET /projects`, `GET /projects/{id}` | ❌ **مفقود** |
-| FR-17 | Track Progress | ✅ Project phases in response | ❌ **مفقود** |
+| FR-15 | Map View | ❌ لا يوجد `GET /api/v1/public/complaints` للشفافية العامة | ⚠️ **مكتمل جزئياً** (تم الربط مع شكاواي والمشاريع) |
+| FR-16 | View Projects | ✅ `GET /projects`, `GET /projects/{id}` | ✅ مكتمل |
+| FR-17 | Track Progress | ✅ Project phases in response | ✅ مكتمل |
 | FR-18 | Contribute to Project | ✅ `POST /projects/{id}/contribute` | ❌ **مفقود** |
 | FR-19 | Manage Ministries | ✅ Web admin routes | N/A (Web only) |
 | FR-20 | Manage Users | ✅ Web admin routes | N/A (Web only) |
@@ -350,11 +350,15 @@
 **Dependencies:** `google_maps_flutter` أو `flutter_map` + `latlong2`
 
 **Acceptance Criteria:**
-- [ ] عرض خريطة مع دبابيس ملونة (أحمر=جديد، أصفر=قيد التنفيذ، أخضر=مغلق)
-- [ ] فلترة حسب الحالة أو التصنيف
-- [ ] الضغط على دبوس يعرض ملخص الشكوى
+- [x] عرض خريطة مع دبابيس ملونة (أحمر=جديد، أصفر=قيد التنفيذ، أخضر=مغلق)
+- [x] فلترة حسب الحالة أو التصنيف
+- [x] الضغط على دبوس يعرض ملخص الشكوى أو المشروع
 
-**التحقق:** وجود شكاوى بحالات مختلفة → ظهورها بألوان صحيحة على الخريطة
+**ملاحظة هامة حول التنفيذ:**
+تم التنفيذ باستخدام `flutter_map` و `latlong2`. تم ربط بيانات المشاريع عبر `projectsNotifierProvider`. نظراً لعدم وجود API عام للشكاوى (Public Complaints) في الـ Backend، تم مؤقتاً عرض شكاوى المستخدم الحالي عبر `recentComplaintsProvider`. 
+**الفجوة:** لتفعيل ميزة الشفافية العامة (FR-15)، يجب إضافة مسار عام في الـ Backend (مثلاً: `GET /api/v1/public/complaints`) يعيد مواقع الشكاوى مع إخفاء هوية المواطن.
+
+**التحقق:** تم عرض الخريطة بنجاح وإضافة أيقونة التنقل في الشاشة الرئيسية.
 
 ---
 
