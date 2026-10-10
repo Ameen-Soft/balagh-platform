@@ -79,10 +79,16 @@
 * شريط تقدم مرئي وحي يتحدث تلقائياً مع كل عملية دعم أو مساهمة افتراضية من قبل المواطنين أو المنظمات والشركات.
 
 ### 4. وحدة الخرائط الجغرافية التفاعلية (GIS & Mapping Module)
-* تكامل مع أنظمة الخرائط الجغرافية لعرض مواقع البلاغات بدبابيس تفاعلية ملونة تدل على الحالة:
-  * اللون الأحمر: بلاغ جديد.
-  * اللون الأصفر: قيد المعالجة الميدانية.
-  * اللون الأخضر: تم الإنجاز والمعالجة.
+* خريطة تفاعلية شاملة مبنية بمحرك Flutter Map ومدعومة بخوادم CARTO السحابية (CARTO Basemaps CDN) بنمطي "النمط الأبيض الناصع (Positron)" و "صور الأقمار الصناعية (Satellite)".
+* قائمة تحكم دائرية منبثقة بأنيميشن سلس (Animated Pop-out Menu) للتبديل الفوري بين أنماط الخرائط متوافقة تماماً مع الاتجاه من اليمين لليسار (RTL).
+* تمييز مكاني بدبابيس مخصصة (Custom Teardrop Pins) مع ترميز لوني ذكي ودلالات بصرية واضحة:
+  * اللون الأحمر: بلاغ جديد أو عاجل.
+  * اللون الأصفر: قيد المعالجة الميدانية والتنفيذ.
+  * اللون الأخضر: تم الإنجاز والمعالجة وإغلاق البلاغ.
+  * اللون الأسود: مشاريع تنموية وحيوية جارية ومخطط لها.
+* كروت معاينة سفلية تفاعلية (Bottom Preview Cards) تنبثق عند لمس أي دبوس لعرض ملخص سريع ونسب الإنجاز مع انتقال مباشر لشاشة التفاصيل.
+* شريط فلترة زجاجي علوي متجاوب للتنقل بين (الكل، البلاغات فقط، المشاريع فقط) مع قائمة منسدلة لتصفية البلاغات بحسب الحالة التشغيلية.
+* أدوات تحكم جغرافية عائمة تشمل التحديد اللحظي لموقع المستخدم (Live GPS Location)، التوسيط وضبط الإطار لكافة المواقع (Fit Bounds)، وأزرار التكبير والتصغير.
 
 ---
 
@@ -123,7 +129,7 @@
   * **التوجيه (Routing):** مكتبة GoRouter مرتبطة بـ Riverpod عبر `refreshListenable` لإدارة حراس التوجيه التفاعلية المعتمدة على المصادقة واستعادة الجلسة بسلاسة وبدون وميض (zero-flicker).
   * **البنية المعمارية (Architecture):** معمارية نظيفة (Clean Architecture) مقسمة حسب الميزة (`domain/entities`, `domain/repositories`, `data/models`, `data/datasources`, `data/repositories`, `application/`, `presentation/`).
 * **خدمات نظم المعلومات الجغرافية (GIS):**
-  * مكتبة Leaflet وواجهة Google Maps API لعرض وإدارة الخرائط والتثبيت الجغرافي والتحقق المحيطي (Geofencing).
+  * محرك Flutter Map (`flutter_map 7.x`) وحزم `latlong2` و `geolocator`، مع دمج خوادم CARTO السحابية (CARTO Basemaps CDN) بمفتاح API مخصص لتقديم خرائط عالية السرعة والدقة بنمطي Positron والأقمار الصناعية دون علامات مائية.
 
 ---
 
@@ -253,7 +259,8 @@ flutter run
 - [x] تتبع الشكاوى والخط الزمني والمرفقات (Flutter Complaint Tracking - Phase 04): بناء واجهات استعراض "شكاواي" مع الترقيم التلقائي (Pagination) والسحب للتحديث (Pull-to-refresh) والتصفية بحسب الحالة، شاشة تفاصيل البلاغ الشاملة، عارض المرفقات البصرية الذكي بالصور المخزنة مؤقتاً (CachedNetworkImage) والتكبير التفاعلي (InteractiveViewer)، الخط الزمني التدقيقي لمسار البلاغ المعتمد على 10 أحداث رسمية، وتحديث الشاشة الرئيسية للربط مع البلاغات بنجاح 45 اختباراً آلياً بنسبة 100%.
 - [x] المهام الميدانية والتنفيذ مع التحقق الجغرافي الصارم (Flutter Field Worker - Phase 05): بناء نظام متكامل لمهام الموظف الميداني وفق Clean Architecture، يشمل استعراض المهام مع الفلترة التفاعلية، تفاصيل المهمة والبلاغ والمرفقات، قبول المهمة (`accept`)، التحقق الجغرافي اللحظي لموقع العامل عبر الـ GPS ومطابقته مع السيرفر لنطاق 500 متر (`verify-location`)، منع بدء التنفيذ لغير المتواجدين بالنطاق، بدء التنفيذ (`start`)، التقاط صور إثبات الإنجاز المباشرة بالكاميرا حصراً (`after`)، تقرير الإنجاز الميداني، إتمام المهمة وحل البلاغ ذرياً (`complete`) مع تحديث حالة الشكوى في النظام، وحراسة التوجيه بحسب الدور (Role-based Routing) بنجاح 68 اختباراً آلياً بنسبة 100%.
 - [x] استعراض المشاريع التنموية والمساهمة المجتمعية (Flutter Projects - Phase 06): بناء قسم المشاريع التنموية وفق Clean Architecture ونظام تصميم بادر، ويشمل دليل المشاريع المصنف مع البحث وشرائح الفلترة بحسب الحالة، شاشة تفاصيل المشروع الشاملة التي توضح الخط الزمني لمراحل التنفيذ ومؤشرات التقدم المالي، نافذة منبثقة تفاعلية للمساهمة المجتمعية الافتراضية مع التحقق من صحة المدخلات والتحديث اللحظي للحالة، متكاملة مع GoRouter ومدعومة باختبارات آلية ناجحة بنسبة 100%.
-- [x] التكامل مع تسجيل الدخول بحساب جوجل (Google Sign-In Integration - Phase 07): دعم تسجيل الدخول الآمن والسريع للمواطنين باستخدام حسابات جوجل عبر إضافة المصادقة الاجتماعية (Laravel Socialite) في الواجهة الخلفية، واستخدام حزمة `google_sign_in` في تطبيق الهاتف، مع تحديث واجهات الاستخدام (UI)، وتطوير وحدة الاختبارات لتجاوز بيئة المحاكاة، وضمان موثوقية العمليات والرفع الفعلي في بيئة الإنتاج على استضافة (Hostinger).
+- [x] التكامل مع تسجيل الدخول بحساب جوجل (Google Sign-In Integration): دعم تسجيل الدخول الآمن والسريع للمواطنين باستخدام حسابات جوجل عبر إضافة المصادقة الاجتماعية (Laravel Socialite) في الواجهة الخلفية، واستخدام حزمة `google_sign_in` في تطبيق الهاتف، مع تحديث واجهات الاستخدام (UI)، وتطوير وحدة الاختبارات لتجاوز بيئة المحاكاة، وضمان موثوقية العمليات والرفع الفعلي في بيئة الإنتاج على استضافة (Hostinger).
+- [x] الخريطة التفاعلية الشاملة وتتبع المواقع جغرافياً (Flutter Interactive Map - Phase 07): بناء شاشة خريطة تفاعلية متكاملة بالاعتماد على محرك Flutter Map وخوادم CARTO السحابية (CARTO Basemaps CDN) بنمطي "النمط الأبيض الناصع (Positron)" و "صور الأقمار الصناعية (Satellite)"، مع قائمة أنماط دائرية منبثقة بتأثيرات حركية (Animated Pop-out Menu) متوافقة مع اتجاه RTL، دبابيس جغرافية مخصصة ومصنفة لونياً للبلاغات والمشاريع التنموية، كروت معاينة سفلية ذكية (Interactive Bottom Preview Cards)، شريط فلترة علوي زجاجي للحالات والتصنيفات، وتحديد الموقع المباشر للمستخدم عبر الـ GPS وضبط الإطار التلقائي لجميع النقاط (Fit Bounds).
 
 ---
 ---
@@ -339,10 +346,16 @@ The platform enforces a granular, hierarchical Role-Based Access Control archite
 * Dynamic, real-time progress indicators reflecting collective public and corporate simulated pledges.
 
 ### 4. GIS & Interactive Mapping Module
-* Integration with geographic mapping systems to project regional issue distribution using color-coded status pins:
-  * Red: Newly registered incident.
-  * Yellow: Field intervention currently in progress.
-  * Green: Issue resolved and formally closed.
+* Comprehensive interactive map built with Flutter Map and powered by high-performance CARTO Basemaps CDN featuring dual themes: "Clean White (Positron)" and "Satellite Imagery".
+* Animated circular pop-out layer control menu for seamless switching between map styles, engineered with full RTL layout alignment.
+* Geographic markers with custom teardrop pins and intuitive status-based color coding:
+  * Crimson Red: New or urgent incident report.
+  * Amber Gold: Field intervention and repair currently in progress.
+  * Emerald Green: Issue successfully resolved and verified.
+  * Obsidian Black: Ongoing or planned developmental infrastructure projects.
+* Interactive bottom preview cards popping up upon pin selection with issue/project summary, progress metrics, and direct navigation to detailed views.
+* Frosted-glass top filter bar supporting type filters (All, Complaints only, Projects only) and a dropdown for filtering complaints by operational status.
+* Floating geospatial utility controls: High-accuracy live GPS user tracking, automatic viewport bounds fitting (Fit Bounds), and RTL-friendly zoom controllers.
 
 ---
 
@@ -383,7 +396,7 @@ The platform provides dedicated, role-specific web interfaces built with **Larav
   * **Routing:** GoRouter with Riverpod-driven `refreshListenable` for reactive auth-aware route guards and zero-flicker session restoration.
   * **Architecture:** Clean Architecture per feature (`domain/entities`, `domain/repositories`, `data/models`, `data/datasources`, `data/repositories`, `application/`, `presentation/`).
 * **Geospatial & Mapping Integration:**
-  * Leaflet library and Google Maps API for coordinate plotting, geofencing, and map visualization.
+  * Flutter Map engine (`flutter_map 7.x`), `latlong2`, and `geolocator` integrated with authenticated CARTO Basemaps CDN for high-speed tile rendering across Positron and high-resolution Satellite layers without watermarks.
 
 ---
 
@@ -513,4 +526,5 @@ All platform endpoints are versioned under `/api/v1` and protected via Sanctum p
 - [x] Complaint Tracking, Timeline & Attachments (Flutter Complaint Tracking - Phase 04): Implemented citizen complaints directory with reactive pagination, pull-to-refresh, status filtering chips, comprehensive complaint details view, cached visual evidence viewer with interactive zoom (CachedNetworkImage + InteractiveViewer), full audit timeline supporting all 10 official event types, and seamless home page integration, backed by 45 automated tests passing 100%.
 - [x] Field Worker Operations & Geofenced Task Execution (Flutter Field Worker - Phase 05): Comprehensive field worker suite following Clean Architecture, featuring status-filtered tasks directory, task and complaint details view, task acceptance (`accept`), real-time GPS proximity verification enforced by the backend within 500m (`verify-location`), geofence-locked execution start (`start`), live camera capture for post-repair evidence (`after`), field completion report, atomic task resolution (`complete`) with automatic complaint state transition to `resolved`, and role-based route guards for field workers, backed by 68 automated tests passing 100%.
 - [x] Developmental Projects Discovery & Community Contributions (Flutter Projects - Phase 06): Implemented developmental projects showcase adhering to Clean Architecture and Balagh Design System, featuring categorized projects directory with search and status filtering chips, comprehensive project details view with execution phases timeline and financial progress indicators, simulated community contributions dialog with validation and instant state synchronization, integrated with GoRouter and backed by automated unit tests passing 100%.
-- [x] Google Sign-In Integration (Phase 07): Seamless and secure citizen authentication via Google accounts, utilizing Laravel Socialite on the backend and the `google_sign_in` package on the mobile app. Includes UI updates, robust test environment handling, and production-ready configuration & deployment on Hostinger.
+- [x] Google Sign-In Integration: Seamless and secure citizen authentication via Google accounts, utilizing Laravel Socialite on the backend and the `google_sign_in` package on the mobile app. Includes UI updates, robust test environment handling, and production-ready configuration & deployment on Hostinger.
+- [x] Interactive GIS Mapping & Spatial Exploration (Flutter Interactive Map - Phase 07): Implemented a comprehensive interactive geographic map utilizing Flutter Map and authenticated CARTO Basemaps CDN supporting dual Positron and Satellite styles, an animated pop-out circular layers menu with RTL layout alignment, custom status-coded teardrop pins for complaints and development projects, interactive bottom preview cards with direct routing, a frosted-glass top filter bar (by type and status), live GPS location tracking, and camera viewport bounding (Fit Bounds).
