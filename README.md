@@ -90,6 +90,14 @@
 * شريط فلترة زجاجي علوي متجاوب للتنقل بين (الكل، البلاغات فقط، المشاريع فقط) مع قائمة منسدلة لتصفية البلاغات بحسب الحالة التشغيلية.
 * أدوات تحكم جغرافية عائمة تشمل التحديد اللحظي لموقع المستخدم (Live GPS Location)، التوسيط وضبط الإطار لكافة المواقع (Fit Bounds)، وأزرار التكبير والتصغير.
 
+### 5. وحدة الإشعارات والتنبيهات الذكية (Smart In-App Notifications Module)
+* **مركز إشعارات متكامل:** واجهة مخصصة لعرض إشعارات المستخدم بتصميم عصري وأنيق يتبع نظام تصميم بادر (Balagh Design System) مع دعم فرز الإشعارات (الكل، غير المقروءة).
+* **بطاقات إشعارات تفاعلية:** تمييز لوني وبصري فوري بين الحالات المقروءة وغير المقروءة، ودعم الترقيم التلقائي مع السحب للتحديث (Pull-to-Refresh).
+* **أيقونات حركية مصنفة:** دلالات بصرية ملونة بحسب طبيعة الحدث (تسجيل البلاغ، تغيير الحالة، التحويل بين الوزارات، الإنجاز الميداني، إسناد المهام، والمساهمة بالمشاريع).
+* **التوجيه العميق الذكي (Deep Linking):** انتقال سلس ومباشر بمجرد لمس الإشعار إلى شاشة تفاصيل البلاغ أو المشروع التنموي أو المهمة الميدانية المرتبطة به.
+* **إدارة القراءة الآمنة:** إمكانية تأشير إشعار محدد كمقروء وتأشير جميع الإشعارات كمقروءة دفعة واحدة مع نافذة تأكيد آمنة.
+* **أيقونة جرس حية في الرئيسية:** جرس تنبيهات مزود بعداد رقمي متفاعل (Badge) لعدد الإشعارات غير المقروءة في شريط التطبيق العلوي (AppBar) للشاشة الرئيسية.
+
 ---
 
 ## بوابات الويب ولوحات التحكم الرقابية والشفافية العامة
@@ -261,6 +269,7 @@ flutter run
 - [x] استعراض المشاريع التنموية والمساهمة المجتمعية (Flutter Projects - Phase 06): بناء قسم المشاريع التنموية وفق Clean Architecture ونظام تصميم بادر، ويشمل دليل المشاريع المصنف مع البحث وشرائح الفلترة بحسب الحالة، شاشة تفاصيل المشروع الشاملة التي توضح الخط الزمني لمراحل التنفيذ ومؤشرات التقدم المالي، نافذة منبثقة تفاعلية للمساهمة المجتمعية الافتراضية مع التحقق من صحة المدخلات والتحديث اللحظي للحالة، متكاملة مع GoRouter ومدعومة باختبارات آلية ناجحة بنسبة 100%.
 - [x] التكامل مع تسجيل الدخول بحساب جوجل (Google Sign-In Integration): دعم تسجيل الدخول الآمن والسريع للمواطنين باستخدام حسابات جوجل عبر إضافة المصادقة الاجتماعية (Laravel Socialite) في الواجهة الخلفية، واستخدام حزمة `google_sign_in` في تطبيق الهاتف، مع تحديث واجهات الاستخدام (UI)، وتطوير وحدة الاختبارات لتجاوز بيئة المحاكاة، وضمان موثوقية العمليات والرفع الفعلي في بيئة الإنتاج على استضافة (Hostinger).
 - [x] الخريطة التفاعلية الشاملة وتتبع المواقع جغرافياً (Flutter Interactive Map - Phase 07): بناء شاشة خريطة تفاعلية متكاملة بالاعتماد على محرك Flutter Map وخوادم CARTO السحابية (CARTO Basemaps CDN) بنمطي "النمط الأبيض الناصع (Positron)" و "صور الأقمار الصناعية (Satellite)"، مع قائمة أنماط دائرية منبثقة بتأثيرات حركية (Animated Pop-out Menu) متوافقة مع اتجاه RTL، دبابيس جغرافية مخصصة ومصنفة لونياً للبلاغات والمشاريع التنموية، كروت معاينة سفلية ذكية (Interactive Bottom Preview Cards)، شريط فلترة علوي زجاجي للحالات والتصنيفات، وتحديد الموقع المباشر للمستخدم عبر الـ GPS وضبط الإطار التلقائي لجميع النقاط (Fit Bounds).
+- [x] مركز الإشعارات والتنبيهات اللحظية (Flutter Notifications - Phase 08): بناء نظام إشعارات متكامل وفق معمارية Clean Architecture ونظام تصميم بادر الداكن، يشمل شاشة مخصصة لمركز الإشعارات مع الترقيم التلقائي والفلترة بين جميع الإشعارات وغير المقروءة، بطاقات إشعارات تفاعلية تميز بصرياً بين المقروء وغير المقروء مع أيقونات ديناميكية بحسب نوع الإشعار، إمكانية تأشير إشعار معين كمقروء وتأشير جميع الإشعارات كمقروءة دفعة واحدة، توجيه ذكي وسلس عند الضغط على الإشعار مباشرة إلى تفاصيل البلاغ أو المشروع أو المهمة الميدانية، أيقونة جرس الإشعارات مع عداد حي للوارد غير المقروء في شريط التطبيق الرئيسي (AppBar)، وتحديث تلقائي لحظي عند السحب للتحديث.
 
 ---
 ---
@@ -356,6 +365,14 @@ The platform enforces a granular, hierarchical Role-Based Access Control archite
 * Interactive bottom preview cards popping up upon pin selection with issue/project summary, progress metrics, and direct navigation to detailed views.
 * Frosted-glass top filter bar supporting type filters (All, Complaints only, Projects only) and a dropdown for filtering complaints by operational status.
 * Floating geospatial utility controls: High-accuracy live GPS user tracking, automatic viewport bounds fitting (Fit Bounds), and RTL-friendly zoom controllers.
+
+### 5. Smart In-App Notifications Module
+* **Dedicated Notification Center:** A dedicated, polished notifications screen built in accordance with the Balagh Design System, featuring intuitive state-based tabs (All vs. Unread).
+* **Interactive Notification Cards:** Immediate visual differentiation between read and unread records, infinite scrolling pagination, and pull-to-refresh synchronization.
+* **Context-Aware Visual Badging:** Type-driven color-coded iconography representing complaint submission, status changes, inter-agency transfers, field completion, worker assignments, and project pledges.
+* **Smart Deep-Link Navigation:** One-tap contextual navigation directly guiding the user to the relevant complaint details, developmental project, or field assignment page.
+* **Secure Read State Management:** Individual read status updates upon opening and atomic bulk "Mark all as read" execution backed by safety confirmation dialogs.
+* **Live Reactive AppBar Bell:** Prominent notification bell icon on the home screen featuring a real-time reactive counter badge indicating unread incoming alerts.
 
 ---
 
@@ -528,3 +545,4 @@ All platform endpoints are versioned under `/api/v1` and protected via Sanctum p
 - [x] Developmental Projects Discovery & Community Contributions (Flutter Projects - Phase 06): Implemented developmental projects showcase adhering to Clean Architecture and Balagh Design System, featuring categorized projects directory with search and status filtering chips, comprehensive project details view with execution phases timeline and financial progress indicators, simulated community contributions dialog with validation and instant state synchronization, integrated with GoRouter and backed by automated unit tests passing 100%.
 - [x] Google Sign-In Integration: Seamless and secure citizen authentication via Google accounts, utilizing Laravel Socialite on the backend and the `google_sign_in` package on the mobile app. Includes UI updates, robust test environment handling, and production-ready configuration & deployment on Hostinger.
 - [x] Interactive GIS Mapping & Spatial Exploration (Flutter Interactive Map - Phase 07): Implemented a comprehensive interactive geographic map utilizing Flutter Map and authenticated CARTO Basemaps CDN supporting dual Positron and Satellite styles, an animated pop-out circular layers menu with RTL layout alignment, custom status-coded teardrop pins for complaints and development projects, interactive bottom preview cards with direct routing, a frosted-glass top filter bar (by type and status), live GPS location tracking, and camera viewport bounding (Fit Bounds).
+- [x] In-App Notification Center & Real-Time Alerts (Flutter Notifications - Phase 08): Implemented a complete notifications system adhering to Clean Architecture and the Balagh Design System, featuring a dedicated notifications center with reactive pagination and filtering (All vs. Unread), interactive notification cards visually distinguishing read and unread states with dynamic type-based iconography, single and batch "Mark all as read" capabilities, intelligent deep-link navigation to complaints, developmental projects, or field tasks, and an AppBar notification bell with a live reactive unread count badge and pull-to-refresh synchronization.

@@ -8,6 +8,7 @@ import 'package:mobile/features/complaints/application/complaints_providers.dart
 import 'package:mobile/features/complaints/presentation/widgets/complaint_card.dart';
 import 'package:mobile/features/field_work/application/providers/field_work_providers.dart';
 import 'package:mobile/features/field_work/presentation/widgets/task_card.dart';
+import 'package:mobile/features/notifications/application/notification_providers.dart';
 
 class HomePage extends ConsumerStatefulWidget {
   const HomePage({super.key});
@@ -114,6 +115,53 @@ class _HomePageState extends ConsumerState<HomePage> {
                   color: AppColors.yemenBlack),
               onPressed: () => context.push('/tasks'),
             ),
+          // Notifications Bell with dynamic unread badge
+          Stack(
+            alignment: Alignment.center,
+            children: [
+              IconButton(
+                tooltip: 'الإشعارات',
+                icon: const Icon(
+                  Icons.notifications_none_rounded,
+                  color: AppColors.yemenBlack,
+                  size: 24,
+                ),
+                onPressed: () => context.push('/notifications'),
+              ),
+              Consumer(
+                builder: (context, ref, _) {
+                  final unreadCount =
+                      ref.watch(unreadNotificationsCountProvider);
+                  if (unreadCount <= 0) return const SizedBox.shrink();
+                  return Positioned(
+                    top: 8,
+                    right: 8,
+                    child: Container(
+                      padding: const EdgeInsets.all(4),
+                      decoration: const BoxDecoration(
+                        color: AppColors.yemenRed,
+                        shape: BoxShape.circle,
+                      ),
+                      constraints: const BoxConstraints(
+                        minWidth: 16,
+                        minHeight: 16,
+                      ),
+                      child: Text(
+                        unreadCount > 99 ? '99+' : unreadCount.toString(),
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 9,
+                          fontWeight: FontWeight.bold,
+                          height: 1,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
+                  );
+                },
+              ),
+            ],
+          ),
           IconButton(
             tooltip: 'تسجيل الخروج',
             icon: const Icon(Icons.logout_rounded, color: AppColors.yemenRed),
@@ -136,6 +184,7 @@ class _HomePageState extends ConsumerState<HomePage> {
                 await ref.read(recentComplaintsProvider.future);
               } catch (_) {}
             }
+            ref.read(notificationsNotifierProvider.notifier).refresh();
           },
           child: SingleChildScrollView(
             physics: const AlwaysScrollableScrollPhysics(),

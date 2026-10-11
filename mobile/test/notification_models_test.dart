@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mobile/features/notifications/data/models/notification_model.dart';
+import 'package:mobile/features/notifications/domain/entities/notification_entity.dart';
 
 void main() {
   group('Notifications Feature Models & Entities Tests', () {
@@ -67,6 +68,34 @@ void main() {
       expect(entity.id, 15);
       expect(entity.isRead, true);
       expect(entity.complaintId, isNull);
+      expect(entity.projectId, isNull);
+      expect(entity.assignmentId, isNull);
+    });
+
+    test('NotificationEntity copyWith, projectId and assignmentId work properly', () {
+      final entity = NotificationEntity(
+        id: 1,
+        title: 'مهمة جديدة ومساهمة',
+        body: 'تفاصيل الإشعار',
+        type: 'task_assigned',
+        isRead: false,
+        data: {
+          'complaint_id': 20,
+          'project_id': 35,
+          'assignment_id': 42,
+        },
+      );
+
+      expect(entity.complaintId, 20);
+      expect(entity.projectId, 35);
+      expect(entity.assignmentId, 42);
+
+      final updated = entity.copyWith(isRead: true);
+      expect(updated.isRead, true);
+      expect(updated.id, 1);
+      expect(updated.title, 'مهمة جديدة ومساهمة');
+      expect(updated.complaintId, 20);
     });
   });
 }
+
