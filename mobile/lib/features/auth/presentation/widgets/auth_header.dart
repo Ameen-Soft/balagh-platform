@@ -77,10 +77,7 @@ class LoginAuthHeader extends StatelessWidget {
 class RegisterAuthHeader extends StatelessWidget {
   final VoidCallback onBack;
 
-  const RegisterAuthHeader({
-    super.key,
-    required this.onBack,
-  });
+  const RegisterAuthHeader({super.key, required this.onBack});
 
   @override
   Widget build(BuildContext context) {
@@ -96,7 +93,7 @@ class RegisterAuthHeader extends StatelessWidget {
           alignment: Alignment.center,
           children: [
             Align(
-              alignment: Alignment.centerLeft,
+              alignment: Alignment.centerRight,
               child: IconButton(
                 icon: const Icon(
                   Icons.arrow_back_ios_new_rounded,

@@ -92,10 +92,40 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
           );
         }
       }
+    } on GoogleSignInException catch (e) {
+      // Gracefully ignore user cancellation or dismissed reauth
+      if (e.code == GoogleSignInExceptionCode.canceled ||
+          e.description?.contains('Cancelled') == true ||
+          e.description?.contains('canceled') == true) {
+        return;
+      }
+
+      if (mounted) {
+        final message = e.description?.contains('Account reauth failed') == true
+            ? 'تعذر التحقق من حساب Google، يرجى المحاولة مرة أخرى أو اختيار حساب آخر.'
+            : 'تعذر إتمام إنشاء الحساب عبر Google، يرجى المحاولة لاحقاً.';
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              message,
+              textAlign: TextAlign.right,
+              style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13),
+            ),
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('حدث خطأ أثناء تسجيل الدخول: $e')),
+          const SnackBar(
+            content: Text(
+              'حدث خطأ غير متوقع أثناء إنشاء الحساب، يرجى المحاولة لاحقاً.',
+              textAlign: TextAlign.right,
+              style: TextStyle(fontWeight: FontWeight.w600, fontSize: 13),
+            ),
+            behavior: SnackBarBehavior.floating,
+          ),
         );
       }
     }
@@ -140,11 +170,11 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
       backgroundColor: AppColors.background,
       body: Stack(
         children: [
-          // Decorative Yemen Flag Corner Ribbon at bottom-left
-          const Positioned(
-            bottom: 0,
+          // Decorative Yemen Flag Corner Ribbon pinned to the true screen bottom
+          Positioned(
+            bottom: -MediaQuery.of(context).viewInsets.bottom,
             left: 0,
-            child: AuthCornerDecoration(),
+            child: const AuthCornerDecoration(),
           ),
 
           // Main Scrollable Content

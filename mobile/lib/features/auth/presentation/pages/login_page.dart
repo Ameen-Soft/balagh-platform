@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/widgets/app_error_banner.dart';
 import '../../application/providers.dart';
@@ -46,7 +47,9 @@ class _LoginPageState extends ConsumerState<LoginPage> {
 
     FocusScope.of(context).unfocus();
 
-    await ref.read(authNotifierProvider.notifier).login(
+    await ref
+        .read(authNotifierProvider.notifier)
+        .login(
           email: _emailController.text.trim(),
           password: _passwordController.text,
         );
@@ -58,17 +61,18 @@ class _LoginPageState extends ConsumerState<LoginPage> {
       await GoogleSignIn.instance.initialize(
         serverClientId: '897056716364-qciejua1mroqo991l1gpp30l1jabno8g.apps.googleusercontent.com',
       );
-      
-      final GoogleSignInAccount account = await GoogleSignIn.instance.authenticate(
-        scopeHint: ['email', 'profile'],
-      );
+
+      final GoogleSignInAccount account = await GoogleSignIn.instance
+          .authenticate(scopeHint: ['email', 'profile']);
 
       final GoogleSignInAuthentication googleAuth = account.authentication;
       final String? idToken = googleAuth.idToken;
 
       if (idToken != null) {
         if (mounted) {
-          await ref.read(authNotifierProvider.notifier).loginWithGoogle(idToken);
+          await ref
+              .read(authNotifierProvider.notifier)
+              .loginWithGoogle(idToken);
         }
       } else {
         if (mounted) {
@@ -77,10 +81,40 @@ class _LoginPageState extends ConsumerState<LoginPage> {
           );
         }
       }
+    } on GoogleSignInException catch (e) {
+      // Gracefully ignore user cancellation or dismissed reauth
+      if (e.code == GoogleSignInExceptionCode.canceled ||
+          e.description?.contains('Cancelled') == true ||
+          e.description?.contains('canceled') == true) {
+        return;
+      }
+
+      if (mounted) {
+        final message = e.description?.contains('Account reauth failed') == true
+            ? 'تعذر التحقق من حساب Google، يرجى المحاولة مرة أخرى أو اختيار حساب آخر.'
+            : 'تعذر إتمام تسجيل الدخول عبر Google، يرجى المحاولة لاحقاً.';
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              message,
+              textAlign: TextAlign.right,
+              style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13),
+            ),
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('حدث خطأ أثناء تسجيل الدخول: $e')),
+          const SnackBar(
+            content: Text(
+              'حدث خطأ غير متوقع أثناء تسجيل الدخول، يرجى المحاولة لاحقاً.',
+              textAlign: TextAlign.right,
+              style: TextStyle(fontWeight: FontWeight.w600, fontSize: 13),
+            ),
+            behavior: SnackBarBehavior.floating,
+          ),
         );
       }
     }
@@ -95,7 +129,9 @@ class _LoginPageState extends ConsumerState<LoginPage> {
     final authState = ref.watch(authNotifierProvider);
 
     ref.listen(authNotifierProvider, (previous, next) {
-      if (next.isError && next.errorMessage != null && previous?.errorMessage != next.errorMessage) {
+      if (next.isError &&
+          next.errorMessage != null &&
+          previous?.errorMessage != next.errorMessage) {
         ScaffoldMessenger.of(context).hideCurrentSnackBar();
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -106,7 +142,9 @@ class _LoginPageState extends ConsumerState<LoginPage> {
             ),
             backgroundColor: AppColors.yemenRed,
             behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(10),
+            ),
             margin: const EdgeInsets.all(16),
           ),
         );
@@ -117,11 +155,11 @@ class _LoginPageState extends ConsumerState<LoginPage> {
       backgroundColor: AppColors.background,
       body: Stack(
         children: [
-          // Decorative Yemen Flag Corner Ribbon at bottom-left
-          const Positioned(
-            bottom: 0,
+          // Decorative Yemen Flag Corner Ribbon pinned to the true screen bottom
+          Positioned(
+            bottom: -MediaQuery.of(context).viewInsets.bottom,
             left: 0,
-            child: AuthCornerDecoration(),
+            child: const AuthCornerDecoration(),
           ),
 
           // Main Form Content
@@ -129,8 +167,12 @@ class _LoginPageState extends ConsumerState<LoginPage> {
             child: Center(
               child: SingleChildScrollView(
                 physics: const ClampingScrollPhysics(),
-                keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
-                padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
+                keyboardDismissBehavior:
+                    ScrollViewKeyboardDismissBehavior.onDrag,
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 24.0,
+                  vertical: 16.0,
+                ),
                 child: ConstrainedBox(
                   constraints: const BoxConstraints(maxWidth: 420),
                   child: Form(
@@ -145,11 +187,14 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                         const SizedBox(height: 22),
 
                         // Error Banner if in error state
-                        if (authState.isError && authState.errorMessage != null) ...[
+                        if (authState.isError &&
+                            authState.errorMessage != null) ...[
                           AppErrorBanner(
                             message: authState.errorMessage!,
                             onDismiss: () {
-                              ref.read(authNotifierProvider.notifier).clearError();
+                              ref
+                                  .read(authNotifierProvider.notifier)
+                                  .clearError();
                             },
                           ),
                           const SizedBox(height: 14),
@@ -164,10 +209,14 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                           keyboardType: TextInputType.emailAddress,
                           textInputAction: TextInputAction.next,
                           enabled: !authState.isLoading,
-                          autofillHints: const [AutofillHints.email, AutofillHints.username],
+                          autofillHints: const [
+                            AutofillHints.email,
+                            AutofillHints.username,
+                          ],
                           onChanged: (_) => _onFieldChanged(),
                           onFieldSubmitted: (_) {
-                            FocusScope.of(context).requestFocus(_passwordFocusNode);
+                            FocusScope.of(context)
+                                .requestFocus(_passwordFocusNode);
                           },
                           validator: (value) {
                             if (value == null || value.trim().isEmpty) {
@@ -224,7 +273,10 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                               );
                             },
                             style: TextButton.styleFrom(
-                              padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 4,
+                                vertical: 4,
+                              ),
                               minimumSize: Size.zero,
                               tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                             ),
