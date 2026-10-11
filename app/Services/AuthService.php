@@ -92,6 +92,24 @@ class AuthService
     }
 
     /**
+     * Update authenticated user profile details.
+     *
+     * @param  User  $user
+     * @param  array<string, mixed>  $data
+     * @return User
+     */
+    public function updateProfile(User $user, array $data): User
+    {
+        $user->update([
+            'name' => $data['name'],
+            'phone' => $data['phone'] ?? null,
+            'national_id' => $data['national_id'] ?? null,
+        ]);
+
+        return $this->me($user->fresh());
+    }
+
+    /**
      * Authenticate or register a user using Google ID Token.
      *
      * @return array{user: User, token: string}

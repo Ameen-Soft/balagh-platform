@@ -113,4 +113,115 @@ class AuthApiTest extends TestCase
 
         $this->assertCount(0, $user->fresh()->tokens);
     }
+
+    public function test_authenticated_user_can_update_profile_successfully(): void
+    {
+        $user = User::factory()->create([
+            'name' => 'الاسم القديم',
+            'phone' => '770000000',
+            'national_id' => '1112223334',
+        ]);
+
+        $response = $this->actingAs($user, 'sanctum')->putJson('/api/v1/auth/me', [
+            'name' => 'الاسم المحدث',
+            'phone' => '771234567',
+            'national_id' => '9998887776',
+        ]);
+
+        $response->assertStatus(200)
+            ->assertJsonPath('success', true)
+            ->assertJsonPath('data.name', 'الاسم المحدث')
+            ->assertJsonPath('data.phone', '771234567')
+            ->assertJsonPath('data.national_id', '9998887776');
+
+        $this->assertDatabaseHas('users', [
+            'id' => $user->id,
+            'name' => 'الاسم المحدث',
+            'phone' => '771234567',
+            'national_id' => '9998887776',
+        ]);
+    }
+
+    public function test_update_profile_fails_when_name_is_missing(): void
+    {
+        $user = User::factory()->create();
+
+        $response = $this->actingAs($user, 'sanctum')->putJson('/api/v1/auth/me', [
+            'phone' => '771234567',
+        ]);
+
+        $response->assertStatus(422)
+            ->assertJsonPath('success', false)
+            ->assertJsonStructure(['errors' => ['name']]);
+    }
+
+    public function test_update_profile_rejects_duplicate_national_id_from_other_user(): void
+    {
+        User::factory()->create([
+            'national_id' => '1002003004',
+        ]);
+
+        $user = User::factory()->create([
+            'national_id' => '9999999999',
+        ]);
+
+        $response = $this->actingAs($user, 'sanctum')->putJson('/api/v1/auth/me', [
+            'name' => 'مستخدم يحاول تكرار الهوية',
+            'national_id' => '1002003004',
+        ]);
+
+        $response->assertStatus(422)
+            ->assertJsonPath('success', false)
+            ->assertJsonStructure(['errors' => ['national_id']]);
+    }
+
+    public function test_update_profile_allows_keeping_same_national_id(): void
+    {
+        $user = User::factory()->create([
+            'name' => 'الاسم الأول',
+            'national_id' => '1002003004',
+        ]);
+
+        $response = $this->actingAs($user, 'sanctum')->putJson('/api/v1/auth/me', [
+            'name' => 'الاسم الجديد',
+            'national_id' => '1002003004',
+        ]);
+
+        $response->assertStatus(200)
+            ->assertJsonPath('success', true)
+            ->assertJsonPath('data.name', 'الاسم الجديد')
+            ->assertJsonPath('data.national_id', '1002003004');
+    }
+
+    public function test_update_profile_does_not_allow_modifying_roles_or_email(): void
+    {
+        $user = User::factory()->create([
+            'email' => 'original@balagh.gov.ye',
+        ]);
+        $originalEmail = $user->email;
+
+        $response = $this->actingAs($user, 'sanctum')->putJson('/api/v1/auth/me', [
+            'name' => 'اسم معدل',
+            'email' => 'hacked@balagh.gov.ye',
+            'roles' => ['Admin', 'Super Admin'],
+            'is_active' => false,
+        ]);
+
+        $response->assertStatus(200)
+            ->assertJsonPath('data.email', $originalEmail);
+
+        $fresh = $user->fresh();
+        $this->assertEquals($originalEmail, $fresh->email);
+        $this->assertFalse($fresh->hasRole('Admin'));
+        $this->assertFalse($fresh->hasRole('Super Admin'));
+    }
+
+    public function test_unauthenticated_user_cannot_update_profile(): void
+    {
+        $response = $this->putJson('/api/v1/auth/me', [
+            'name' => 'اسم بدون توكن',
+        ]);
+
+        $response->assertStatus(401);
+    }
 }
