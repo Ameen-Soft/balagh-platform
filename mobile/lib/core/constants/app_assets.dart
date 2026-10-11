@@ -12,4 +12,8 @@ class AppAssets {
   static const String logoOnly = 'assets/images/logo/Logo only.png';
   static const String logoVertical = 'assets/images/logo/The Vertical Logo.png';
   static const String logoMonochrome = 'assets/images/logo/The monochrome logo.png';
+
+  // --- Auth Assets ---
+  static const String authIllustration = 'assets/images/Login_Signup_photo.jpg';
+  static const String googleIcon = 'assets/images/icons/google.png';
 }

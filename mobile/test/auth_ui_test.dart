@@ -2,13 +2,15 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mobile/core/network/api_exceptions.dart';
-import 'package:mobile/core/widgets/app_button.dart';
 import 'package:mobile/core/widgets/app_error_banner.dart';
 import 'package:mobile/features/auth/application/providers.dart';
 import 'package:mobile/features/auth/domain/entities/user_entity.dart';
 import 'package:mobile/features/auth/domain/repositories/auth_repository.dart';
 import 'package:mobile/features/auth/presentation/pages/login_page.dart';
 import 'package:mobile/features/auth/presentation/pages/register_page.dart';
+import 'package:mobile/features/auth/presentation/widgets/auth_corner_decoration.dart';
+import 'package:mobile/features/auth/presentation/widgets/auth_google_button.dart';
+import 'package:mobile/features/auth/presentation/widgets/auth_primary_button.dart';
 
 class MockAuthRepository implements AuthRepository {
   bool shouldThrow = false;
@@ -86,25 +88,33 @@ void main() {
   }
 
   group('LoginPage UI & UX Tests', () {
-    testWidgets('renders brand identity, title, fields, and submit CTA button', (tester) async {
+    testWidgets('renders header, title, fields, and action buttons', (tester) async {
       await tester.pumpWidget(createTestWidget(const LoginPage()));
       await tester.pumpAndSettle();
 
-      // Brand Identity
-      expect(find.text('بــــادر'), findsOneWidget);
-      expect(find.text('المنصة الوطنية للمشاريع والشكاوى'), findsOneWidget);
+      // Header Title & Subtitle
+      expect(find.text('مرحباً بك في بادر'), findsOneWidget);
+      expect(find.text('معاً نحو مجتمع أكثر أماناً وازدهاراً'), findsOneWidget);
 
-      // Title & Subtitle
-      expect(find.text('تسجيل الدخول'), findsWidgets);
-      expect(find.textContaining('أهلاً بك مجدداً'), findsOneWidget);
-
-      // Text fields
+      // Form Text fields
       expect(find.text('البريد الإلكتروني'), findsOneWidget);
       expect(find.text('كلمة المرور'), findsOneWidget);
 
-      // Button
-      expect(find.byType(AppButton), findsOneWidget);
+      // Forgot password
+      expect(find.text('نسيت كلمة المرور؟'), findsOneWidget);
+
+      // Primary and Google CTA Buttons
+      expect(find.byType(AuthPrimaryButton), findsOneWidget);
+      expect(find.text('تسجيل الدخول'), findsOneWidget);
+      expect(find.byType(AuthGoogleButton), findsOneWidget);
+      expect(find.text('تسجيل الدخول باستخدام Google'), findsOneWidget);
+
+      // Sign up link
+      expect(find.text('ليس لديك حساب في بادر؟'), findsOneWidget);
       expect(find.text('إنشاء حساب جديد'), findsOneWidget);
+
+      // Decorative corner wave
+      expect(find.byType(AuthCornerDecoration), findsOneWidget);
     });
 
     testWidgets('toggling password visibility changes icon and obscureText', (tester) async {
@@ -153,52 +163,45 @@ void main() {
   });
 
   group('RegisterPage UI & UX Tests', () {
-    testWidgets('renders all 3 logical sections with required/optional fields', (tester) async {
+    testWidgets('renders header, 4 fields only, and CTA buttons', (tester) async {
       await tester.pumpWidget(createTestWidget(const RegisterPage()));
       await tester.pumpAndSettle();
 
-      // Section titles
-      expect(find.text('المعلومات الشخصية'), findsOneWidget);
-      expect(find.text('بيانات التحقق والتواصل'), findsOneWidget);
-      expect(find.text('أمان الحساب'), findsOneWidget);
-      expect(find.text('اختياري'), findsOneWidget);
+      // Header titles
+      expect(find.text('إنشاء حساب جديد'), findsOneWidget);
+      expect(find.text('انضم إلى منصة بادر وكن جزءاً من التغيير'), findsOneWidget);
 
-      // Required fields
+      // 4 Form fields matching mockup
       expect(find.text('الاسم الكامل'), findsOneWidget);
       expect(find.text('البريد الإلكتروني'), findsOneWidget);
-      expect(find.text('رقم الهاتف'), findsOneWidget);
-      expect(find.text('رقم الهوية الوطنية'), findsOneWidget);
       expect(find.text('كلمة المرور'), findsOneWidget);
       expect(find.text('تأكيد كلمة المرور'), findsOneWidget);
 
-      // CTA Button
-      expect(find.text('إنشاء الحساب'), findsOneWidget);
+      // Buttons
+      expect(find.byType(AuthPrimaryButton), findsOneWidget);
+      expect(find.text('إنشاء حساب'), findsOneWidget);
+      expect(find.byType(AuthGoogleButton), findsOneWidget);
+      expect(find.text('إنشاء حساب باستخدام Google'), findsOneWidget);
+
+      // Terms disclaimer
+      expect(find.textContaining('شروط الاستخدام وسياسة الخصوصية'), findsOneWidget);
+
+      // Decorative corner wave
+      expect(find.byType(AuthCornerDecoration), findsOneWidget);
     });
 
-    testWidgets('shows password matching feedback when passwords match', (tester) async {
+    testWidgets('toggles visibility in register password fields', (tester) async {
       await tester.pumpWidget(createTestWidget(const RegisterPage()));
       await tester.pumpAndSettle();
 
-      // Enter matching passwords
-      final passwordFields = find.byType(TextFormField);
-      // Index 0: Name, 1: Email, 2: Phone, 3: NationalID, 4: Password, 5: ConfirmPassword
-      await tester.enterText(passwordFields.at(4), 'Secret1234');
-      await tester.enterText(passwordFields.at(5), 'Secret1234');
+      final visibilityIcons = find.byIcon(Icons.visibility_off_outlined);
+      // Both password & confirm password have visibility toggles
+      expect(visibilityIcons, findsNWidgets(2));
+
+      await tester.tap(visibilityIcons.first);
       await tester.pumpAndSettle();
 
-      expect(find.text('كلمتا المرور متطابقتان وجاهزتان'), findsOneWidget);
-    });
-
-    testWidgets('shows warning feedback when passwords do not match', (tester) async {
-      await tester.pumpWidget(createTestWidget(const RegisterPage()));
-      await tester.pumpAndSettle();
-
-      final passwordFields = find.byType(TextFormField);
-      await tester.enterText(passwordFields.at(4), 'Secret1234');
-      await tester.enterText(passwordFields.at(5), 'MismatchPassword');
-      await tester.pumpAndSettle();
-
-      expect(find.text('كلمتا المرور غير متطابقتين بعد'), findsOneWidget);
+      expect(find.byIcon(Icons.visibility_outlined), findsOneWidget);
     });
   });
 }

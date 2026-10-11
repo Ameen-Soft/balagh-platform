@@ -6,11 +6,10 @@ import 'profile_providers.dart';
 import 'profile_state.dart';
 
 class ProfileNotifier extends Notifier<ProfileState> {
-  late final ProfileRepository _repository;
+  ProfileRepository get _repository => ref.read(profileRepositoryProvider);
 
   @override
   ProfileState build() {
-    _repository = ref.watch(profileRepositoryProvider);
     // Initialize with current authenticated user from auth state
     final authUser = ref.watch(authNotifierProvider).user;
     return ProfileState(
