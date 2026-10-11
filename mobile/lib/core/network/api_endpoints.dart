@@ -21,6 +21,7 @@ class ApiEndpoints {
   static const String register = '/auth/register';
   static const String logout = '/auth/logout';
   static const String me = '/auth/me';
+  static const String updateProfile = '/auth/me';
 
   // --- Reference Data Endpoints ---
   static const String ministries = '/ministries';

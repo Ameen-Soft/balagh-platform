@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/constants/app_colors.dart';
+import '../../../../core/widgets/app_empty_state.dart';
+import '../../../../core/widgets/app_error_state.dart';
 import '../../application/complaints_providers.dart';
 import '../../application/my_complaints_state.dart';
 import '../widgets/complaint_card.dart';
@@ -43,6 +45,28 @@ class _MyComplaintsPageState extends ConsumerState<MyComplaintsPage> {
   @override
   Widget build(BuildContext context) {
     final state = ref.watch(myComplaintsNotifierProvider);
+
+    ref.listen<MyComplaintsState>(myComplaintsNotifierProvider, (previous, next) {
+      if (next.errorMessage != null &&
+          next.complaints.isNotEmpty &&
+          previous?.errorMessage == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              next.errorMessage!.contains('اتصال') ||
+                      next.errorMessage!.contains('SocketException')
+                  ? 'تعذر الاتصال بالخادم، تم الاحتفاظ بالبيانات السابقة.'
+                  : 'تعذر تحديث البيانات، تم الاحتفاظ بالبيانات السابقة.',
+            ),
+            backgroundColor: AppColors.deepBlack,
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(10),
+            ),
+          ),
+        );
+      }
+    });
 
     return Scaffold(
       backgroundColor: AppColors.backgroundSubtle,
@@ -176,53 +200,38 @@ class _MyComplaintsPageState extends ConsumerState<MyComplaintsPage> {
     }
 
     if (state.errorMessage != null && state.complaints.isEmpty) {
-      return Center(
-        child: Padding(
-          padding: const EdgeInsets.all(24.0),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              const Icon(Icons.error_outline_rounded,
-                  size: 48, color: AppColors.yemenRed),
-              const SizedBox(height: 16),
-              const Text(
-                'تعذر استرجاع قائمة البلاغات',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w700,
-                  color: AppColors.yemenBlack,
-                ),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                state.errorMessage!,
-                textAlign: TextAlign.center,
-                style: const TextStyle(
-                    fontSize: 12, color: AppColors.textSecondary),
-              ),
-              const SizedBox(height: 20),
-              ElevatedButton.icon(
-                onPressed: () => ref
-                    .read(myComplaintsNotifierProvider.notifier)
-                    .loadInitial(),
-                icon: const Icon(Icons.refresh_rounded, size: 18),
-                label: const Text('إعادة المحاولة'),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.yemenBlack,
-                  foregroundColor: Colors.white,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                ),
-              ),
-            ],
+      final isNetwork = state.errorMessage!.contains('اتصال') ||
+          state.errorMessage!.contains('الإنترنت') ||
+          state.errorMessage!.contains('شبكة');
+      return ListView(
+        physics: const AlwaysScrollableScrollPhysics(),
+        children: [
+          SizedBox(height: MediaQuery.of(context).size.height * 0.15),
+          AppErrorState(
+            message: state.errorMessage,
+            isNetworkError: isNetwork,
+            onRetry: () =>
+                ref.read(myComplaintsNotifierProvider.notifier).loadInitial(),
           ),
-        ),
+        ],
       );
     }
 
     if (state.complaints.isEmpty) {
-      return _buildEmptyState(context);
+      return ListView(
+        physics: const AlwaysScrollableScrollPhysics(),
+        children: [
+          SizedBox(height: MediaQuery.of(context).size.height * 0.15),
+          AppEmptyState(
+            icon: Icons.inbox_outlined,
+            title: 'لا توجد بلاغات مسجلة حتى الآن',
+            description:
+                'يمكنك تقديم بلاغ جديد والمساهمة في رصد ومعالجة المشكلات التنموية في مجتمعك.',
+            actionLabel: 'تقديم بلاغ جديد الآن',
+            onAction: () => context.push('/create-complaint'),
+          ),
+        ],
+      );
     }
 
     final totalItems = state.complaints.length + (state.isLoadingMore ? 1 : 0);
@@ -260,57 +269,4 @@ class _MyComplaintsPageState extends ConsumerState<MyComplaintsPage> {
     );
   }
 
-  Widget _buildEmptyState(BuildContext context) {
-    return ListView(
-      padding: const EdgeInsets.all(32),
-      children: [
-        const SizedBox(height: 40),
-        CircleAvatar(
-          radius: 44,
-          backgroundColor: AppColors.yemenRedLight,
-          child: const Icon(
-            Icons.inbox_rounded,
-            size: 44,
-            color: AppColors.yemenRed,
-          ),
-        ),
-        const SizedBox(height: 20),
-        const Text(
-          'لا توجد بلاغات مسجلة حتى الآن',
-          textAlign: TextAlign.center,
-          style: TextStyle(
-            fontSize: 18,
-            fontWeight: FontWeight.w800,
-            color: AppColors.yemenBlack,
-          ),
-        ),
-        const SizedBox(height: 8),
-        const Text(
-          'يمكنك تقديم بلاغ جديد والمساهمة في رصد ومعالجة المشكلات التنموية في مجتمعك.',
-          textAlign: TextAlign.center,
-          style: TextStyle(
-            fontSize: 13,
-            color: AppColors.textSecondary,
-            height: 1.5,
-          ),
-        ),
-        const SizedBox(height: 28),
-        Center(
-          child: ElevatedButton.icon(
-            onPressed: () => context.push('/create-complaint'),
-            icon: const Icon(Icons.add_circle_outline_rounded, size: 20),
-            label: const Text('تقديم بلاغ جديد الآن'),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.yemenRed,
-              foregroundColor: Colors.white,
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(14),
-              ),
-            ),
-          ),
-        ),
-      ],
-    );
-  }
 }

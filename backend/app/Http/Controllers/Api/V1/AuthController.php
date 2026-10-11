@@ -6,6 +6,7 @@ use App\Http\Controllers\Api\ApiResponseTrait;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\LoginRequest;
 use App\Http\Requests\Auth\RegisterRequest;
+use App\Http\Requests\Auth\UpdateProfileRequest;
 use App\Http\Resources\UserResource;
 use App\Services\AuthService;
 use Illuminate\Http\JsonResponse;
@@ -67,6 +68,22 @@ class AuthController extends Controller
         $user = $this->authService->me($request->user());
 
         return $this->successResponse(new UserResource($user), 'بيانات الملف الشخصي للمستخدم الحالي.');
+    }
+
+    /**
+     * Update authenticated user profile details.
+     */
+    public function updateProfile(UpdateProfileRequest $request): JsonResponse
+    {
+        $user = $this->authService->updateProfile(
+            $request->user(),
+            $request->validated()
+        );
+
+        return $this->successResponse(
+            new UserResource($user),
+            'تم تحديث بيانات الملف الشخصي بنجاح.'
+        );
     }
 
     /**

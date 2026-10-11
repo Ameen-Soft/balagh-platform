@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/constants/app_colors.dart';
+import '../../../../core/widgets/app_empty_state.dart';
+import '../../../../core/widgets/app_error_state.dart';
 import '../../application/projects_state.dart';
 import '../../application/providers/projects_providers.dart';
 import '../widgets/project_card.dart';
@@ -137,7 +139,24 @@ class _ProjectsListPageState extends ConsumerState<ProjectsListPage> {
               child: RefreshIndicator(
                 color: AppColors.yemenRed,
                 onRefresh: () async {
-                  await ref.read(projectsNotifierProvider.notifier).refresh();
+                  try {
+                    await ref.read(projectsNotifierProvider.notifier).refresh();
+                  } catch (e) {
+                    if (context.mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: const Text(
+                            'تعذر تحديث المشاريع، تم الاحتفاظ بالبيانات السابقة.',
+                          ),
+                          backgroundColor: AppColors.deepBlack,
+                          behavior: SnackBarBehavior.floating,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                        ),
+                      );
+                    }
+                  }
                 },
                 child: _buildBodyContent(state),
               ),
@@ -206,44 +225,18 @@ class _ProjectsListPageState extends ConsumerState<ProjectsListPage> {
     }
 
     if (state.isError) {
+      final isNetwork = state.errorMessage?.contains('اتصال') == true ||
+          state.errorMessage?.contains('الإنترنت') == true ||
+          state.errorMessage?.contains('شبكة') == true;
       return ListView(
         physics: const AlwaysScrollableScrollPhysics(),
         children: [
-          SizedBox(height: MediaQuery.of(context).size.height * 0.2),
-          Center(
-            child: Padding(
-              padding: const EdgeInsets.all(24.0),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  const Icon(Icons.error_outline_rounded,
-                      size: 48, color: AppColors.yemenRed),
-                  const SizedBox(height: 16),
-                  Text(
-                    state.errorMessage ?? 'حدث خطأ أثناء تحميل المشاريع التنموية.',
-                    textAlign: TextAlign.center,
-                    style: const TextStyle(
-                      fontSize: 14,
-                      color: AppColors.textSecondary,
-                    ),
-                  ),
-                  const SizedBox(height: 20),
-                  ElevatedButton.icon(
-                    onPressed: () =>
-                        ref.read(projectsNotifierProvider.notifier).refresh(),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.yemenRed,
-                      foregroundColor: Colors.white,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                    ),
-                    icon: const Icon(Icons.refresh_rounded, size: 18),
-                    label: const Text('إعادة المحاولة'),
-                  ),
-                ],
-              ),
-            ),
+          SizedBox(height: MediaQuery.of(context).size.height * 0.15),
+          AppErrorState(
+            message: state.errorMessage,
+            isNetworkError: isNetwork,
+            onRetry: () =>
+                ref.read(projectsNotifierProvider.notifier).refresh(),
           ),
         ],
       );
@@ -253,47 +246,12 @@ class _ProjectsListPageState extends ConsumerState<ProjectsListPage> {
       return ListView(
         physics: const AlwaysScrollableScrollPhysics(),
         children: [
-          SizedBox(height: MediaQuery.of(context).size.height * 0.2),
-          Center(
-            child: Padding(
-              padding: const EdgeInsets.all(24.0),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Container(
-                    width: 72,
-                    height: 72,
-                    decoration: BoxDecoration(
-                      color: AppColors.yemenBlack.withValues(alpha: 0.05),
-                      shape: BoxShape.circle,
-                    ),
-                    child: const Icon(
-                      Icons.construction_rounded,
-                      size: 36,
-                      color: AppColors.textMuted,
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  const Text(
-                    'لا توجد مشاريع تنموية مطابقة',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w700,
-                      color: AppColors.yemenBlack,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  const Text(
-                    'لم يتم العثور على مشاريع وفق معايير البحث أو الفلتر المحدد.',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      fontSize: 13,
-                      color: AppColors.textSecondary,
-                    ),
-                  ),
-                ],
-              ),
-            ),
+          SizedBox(height: MediaQuery.of(context).size.height * 0.15),
+          const AppEmptyState(
+            icon: Icons.construction_rounded,
+            title: 'لا توجد مشاريع تنموية مطابقة',
+            description:
+                'لم يتم العثور على مشاريع وفق معايير البحث أو الفلتر المحدد.',
           ),
         ],
       );

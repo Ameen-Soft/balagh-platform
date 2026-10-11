@@ -163,6 +163,15 @@ class _HomePageState extends ConsumerState<HomePage> {
             ],
           ),
           IconButton(
+            tooltip: 'الملف الشخصي',
+            icon: const Icon(
+              Icons.account_circle_outlined,
+              color: AppColors.yemenBlack,
+              size: 24,
+            ),
+            onPressed: () => context.push('/profile'),
+          ),
+          IconButton(
             tooltip: 'تسجيل الخروج',
             icon: const Icon(Icons.logout_rounded, color: AppColors.yemenRed),
             onPressed: () => _showLogoutDialog(context, ref),
@@ -193,7 +202,7 @@ class _HomePageState extends ConsumerState<HomePage> {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 // 1. Welcome Card (Personalized for Field Worker vs Citizen)
-                _buildWelcomeCard(user, isFieldWorker),
+                _buildWelcomeCard(context, user, isFieldWorker),
 
                 const SizedBox(height: 20),
 
@@ -278,7 +287,7 @@ class _HomePageState extends ConsumerState<HomePage> {
                 const SizedBox(height: 16),
 
                 // Account Details Card
-                _buildAccountInfoCard(user),
+                _buildAccountInfoCard(context, user),
 
                 const SizedBox(height: 24),
               ],
@@ -289,95 +298,130 @@ class _HomePageState extends ConsumerState<HomePage> {
     );
   }
 
-  Widget _buildWelcomeCard(UserEntity? user, bool isFieldWorker) {
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          colors: [
-            AppColors.yemenBlackLight,
-            AppColors.yemenBlack,
-          ],
-          begin: Alignment.topRight,
-          end: Alignment.bottomLeft,
-        ),
+  Widget _buildWelcomeCard(BuildContext context, UserEntity? user, bool isFieldWorker) {
+    return Material(
+      color: Colors.transparent,
+      borderRadius: BorderRadius.circular(20),
+      child: InkWell(
+        onTap: () => context.push('/profile'),
         borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.yemenBlack.withValues(alpha: 0.18),
-            blurRadius: 16,
-            offset: const Offset(0, 6),
+        child: Container(
+          padding: const EdgeInsets.all(20),
+          decoration: BoxDecoration(
+            gradient: const LinearGradient(
+              colors: [
+                AppColors.yemenBlackLight,
+                AppColors.yemenBlack,
+              ],
+              begin: Alignment.topRight,
+              end: Alignment.bottomLeft,
+            ),
+            borderRadius: BorderRadius.circular(20),
+            boxShadow: [
+              BoxShadow(
+                color: AppColors.yemenBlack.withValues(alpha: 0.18),
+                blurRadius: 16,
+                offset: const Offset(0, 6),
+              ),
+            ],
           ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                decoration: BoxDecoration(
-                  color: isFieldWorker ? AppColors.yemenGold : AppColors.yemenRed,
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(
-                      isFieldWorker
-                          ? Icons.engineering_rounded
-                          : Icons.person_rounded,
-                      size: 14,
-                      color: Colors.white,
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Container(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                    decoration: BoxDecoration(
+                      color: isFieldWorker ? AppColors.yemenGold : AppColors.yemenRed,
+                      borderRadius: BorderRadius.circular(20),
                     ),
-                    const SizedBox(width: 6),
-                    Text(
-                      isFieldWorker ? 'موظف صيانة ميدانية' : (user?.primaryRoleName ?? 'مواطن'),
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 12,
-                        fontWeight: FontWeight.bold,
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          isFieldWorker
+                              ? Icons.engineering_rounded
+                              : Icons.person_rounded,
+                          size: 14,
+                          color: Colors.white,
+                        ),
+                        const SizedBox(width: 6),
+                        Text(
+                          isFieldWorker ? 'موظف صيانة ميدانية' : (user?.primaryRoleName ?? 'مواطن'),
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 12,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withValues(alpha: 0.12),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: const Row(
+                          children: [
+                            Text(
+                              'الملف الشخصي',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 11,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            SizedBox(width: 4),
+                            Icon(Icons.arrow_forward_ios_rounded,
+                                size: 10, color: Colors.white),
+                          ],
+                        ),
                       ),
-                    ),
-                  ],
+                      const SizedBox(width: 8),
+                      CircleAvatar(
+                        radius: 20,
+                        backgroundColor: Colors.white.withValues(alpha: 0.15),
+                        child: Icon(
+                          isFieldWorker
+                              ? Icons.handyman_rounded
+                              : Icons.person_rounded,
+                          color: Colors.white,
+                          size: 22,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
+              Text(
+                'أهلاً بك، ${user?.name ?? "مستخدم بادر"}',
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 20,
+                  fontWeight: FontWeight.w800,
                 ),
               ),
-              CircleAvatar(
-                radius: 22,
-                backgroundColor: Colors.white.withValues(alpha: 0.15),
-                child: Icon(
-                  isFieldWorker
-                      ? Icons.handyman_rounded
-                      : Icons.person_rounded,
-                  color: Colors.white,
-                  size: 24,
+              const SizedBox(height: 4),
+              Text(
+                user?.department != null
+                    ? 'الجهة: ${user!.department!.name}'
+                    : (user?.email ?? ''),
+                style: TextStyle(
+                  color: Colors.white.withValues(alpha: 0.8),
+                  fontSize: 13,
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 16),
-          Text(
-            'أهلاً بك، ${user?.name ?? "مستخدم بادر"}',
-            style: const TextStyle(
-              color: Colors.white,
-              fontSize: 20,
-              fontWeight: FontWeight.w800,
-            ),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            user?.department != null
-                ? 'الجهة: ${user!.department!.name}'
-                : (user?.email ?? ''),
-            style: TextStyle(
-              color: Colors.white.withValues(alpha: 0.8),
-              fontSize: 13,
-            ),
-          ),
-        ],
+        ),
       ),
     );
   }
@@ -666,7 +710,7 @@ class _HomePageState extends ConsumerState<HomePage> {
     );
   }
 
-  Widget _buildAccountInfoCard(UserEntity? user) {
+  Widget _buildAccountInfoCard(BuildContext context, UserEntity? user) {
     return Container(
       padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
@@ -677,13 +721,41 @@ class _HomePageState extends ConsumerState<HomePage> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
-            'بيانات الحساب',
-            style: TextStyle(
-              fontSize: 15,
-              fontWeight: FontWeight.w700,
-              color: AppColors.yemenBlack,
-            ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Text(
+                'بيانات الحساب',
+                style: TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.yemenBlack,
+                ),
+              ),
+              InkWell(
+                onTap: () => context.push('/profile'),
+                borderRadius: BorderRadius.circular(8),
+                child: Padding(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  child: Row(
+                    children: const [
+                      Text(
+                        'عرض وتعديل',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: AppColors.yemenRed,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      SizedBox(width: 4),
+                      Icon(Icons.arrow_forward_ios_rounded,
+                          size: 11, color: AppColors.yemenRed),
+                    ],
+                  ),
+                ),
+              ),
+            ],
           ),
           const Divider(height: 20),
           _buildInfoRow(

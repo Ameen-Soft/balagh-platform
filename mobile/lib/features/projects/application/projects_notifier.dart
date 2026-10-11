@@ -17,12 +17,16 @@ class ProjectsNotifier extends Notifier<ProjectsState> {
   Future<void> loadProjects({bool refresh = false}) async {
     if (state.isLoading && !refresh) return;
 
-    state = state.copyWith(
-      status: ProjectsStatus.loading,
-      currentPage: 1,
-      hasReachedMax: false,
-      errorMessage: null,
-    );
+    final existingProjects = state.projects;
+
+    if (!refresh || existingProjects.isEmpty) {
+      state = state.copyWith(
+        status: ProjectsStatus.loading,
+        currentPage: 1,
+        hasReachedMax: false,
+        errorMessage: null,
+      );
+    }
 
     try {
       final projects = await _repository.getProjects(
@@ -39,6 +43,13 @@ class ProjectsNotifier extends Notifier<ProjectsState> {
         errorMessage: null,
       );
     } catch (e) {
+      if (refresh && existingProjects.isNotEmpty) {
+        state = state.copyWith(
+          status: ProjectsStatus.loaded,
+          projects: existingProjects,
+        );
+        rethrow;
+      }
       state = state.copyWith(
         status: ProjectsStatus.error,
         errorMessage: e.toString().replaceFirst('Exception: ', ''),

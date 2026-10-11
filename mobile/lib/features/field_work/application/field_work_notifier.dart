@@ -14,8 +14,11 @@ class FieldWorkNotifier extends Notifier<FieldWorkState> {
       ref.read(fieldAssignmentRepositoryProvider);
 
   /// Load all field assignments for the current worker.
-  Future<void> loadAssignments({String? status}) async {
-    state = state.copyWith(status: FieldWorkStatus.loading);
+  Future<void> loadAssignments({String? status, bool isRefresh = false}) async {
+    final existingAssignments = state.assignments;
+    if (!isRefresh || existingAssignments.isEmpty) {
+      state = state.copyWith(status: FieldWorkStatus.loading);
+    }
     try {
       final assignments = await _repository.getAssignments(status: status);
       state = state.copyWith(
@@ -23,11 +26,25 @@ class FieldWorkNotifier extends Notifier<FieldWorkState> {
         assignments: assignments,
       );
     } on ApiException catch (e) {
+      if (isRefresh && existingAssignments.isNotEmpty) {
+        state = state.copyWith(
+          status: FieldWorkStatus.loaded,
+          assignments: existingAssignments,
+        );
+        rethrow;
+      }
       state = state.copyWith(
         status: FieldWorkStatus.error,
         errorMessage: e.message,
       );
     } catch (e) {
+      if (isRefresh && existingAssignments.isNotEmpty) {
+        state = state.copyWith(
+          status: FieldWorkStatus.loaded,
+          assignments: existingAssignments,
+        );
+        rethrow;
+      }
       state = state.copyWith(
         status: FieldWorkStatus.error,
         errorMessage: 'حدث خطأ غير متوقع أثناء تحميل المهام: ${e.toString()}',

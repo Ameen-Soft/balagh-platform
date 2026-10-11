@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mobile/core/network/api_exceptions.dart';
+import '../domain/entities/user_entity.dart';
 import '../domain/repositories/auth_repository.dart';
 import 'auth_state.dart';
 import 'providers.dart';
@@ -131,6 +132,13 @@ class AuthNotifier extends Notifier<AuthState> {
   void clearError() {
     if (state.isError) {
       state = AuthState.unauthenticated();
+    }
+  }
+
+  /// Update the current authenticated user in memory
+  void updateCurrentUser(UserEntity updatedUser) {
+    if (state.isAuthenticated) {
+      state = AuthState.authenticated(updatedUser);
     }
   }
 }

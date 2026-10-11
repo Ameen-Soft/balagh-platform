@@ -47,6 +47,30 @@ class UserEntity {
     this.createdAt,
   });
 
+  UserEntity copyWith({
+    int? id,
+    String? name,
+    String? email,
+    String? phone,
+    String? nationalId,
+    bool? isActive,
+    DepartmentEntity? department,
+    List<RoleEntity>? roles,
+    DateTime? createdAt,
+  }) {
+    return UserEntity(
+      id: id ?? this.id,
+      name: name ?? this.name,
+      email: email ?? this.email,
+      phone: phone ?? this.phone,
+      nationalId: nationalId ?? this.nationalId,
+      isActive: isActive ?? this.isActive,
+      department: department ?? this.department,
+      roles: roles ?? this.roles,
+      createdAt: createdAt ?? this.createdAt,
+    );
+  }
+
   String get primaryRoleName {
     if (roles.isNotEmpty) {
       return roles.first.name;
@@ -57,7 +81,9 @@ class UserEntity {
   bool get isCitizen => roles.any((r) => r.name.toLowerCase() == 'citizen');
   bool get isAdmin => roles.any((r) => r.name.toLowerCase() == 'admin');
   bool get isFieldWorker =>
-      roles.any((r) => r.name.toLowerCase() == 'field worker');
+      roles.any((r) =>
+          r.name.toLowerCase() == 'field worker' ||
+          r.name.toLowerCase() == 'field_worker');
 
   List<String> get allPermissions {
     final permissions = <String>{};

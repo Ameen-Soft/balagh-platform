@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/constants/app_colors.dart';
+import '../../../../core/widgets/app_empty_state.dart';
+import '../../../../core/widgets/app_error_state.dart';
 import '../../application/notification_providers.dart';
 import '../../application/notifications_notifier.dart';
 import '../../application/notifications_state.dart';
@@ -88,6 +90,26 @@ class _NotificationsPageState extends ConsumerState<NotificationsPage> {
   Widget build(BuildContext context) {
     final state = ref.watch(notificationsNotifierProvider);
     final notifier = ref.read(notificationsNotifierProvider.notifier);
+
+    ref.listen<NotificationsState>(notificationsNotifierProvider, (previous, next) {
+      if (next.hasError &&
+          next.notifications.isNotEmpty &&
+          previous?.hasError != true) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              next.errorMessage ??
+                  'تعذر تحديث الإشعارات، تم الاحتفاظ بالبيانات السابقة.',
+            ),
+            backgroundColor: AppColors.deepBlack,
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(10),
+            ),
+          ),
+        );
+      }
+    });
 
     return Scaffold(
       backgroundColor: AppColors.backgroundSubtle,
@@ -225,109 +247,37 @@ class _NotificationsPageState extends ConsumerState<NotificationsPage> {
     }
 
     if (state.hasError && state.notifications.isEmpty) {
-      return Center(
-        child: Padding(
-          padding: const EdgeInsets.all(24.0),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Container(
-                width: 64,
-                height: 64,
-                decoration: BoxDecoration(
-                  color: AppColors.yemenRedLight,
-                  shape: BoxShape.circle,
-                ),
-                child: const Icon(
-                  Icons.wifi_off_rounded,
-                  color: AppColors.yemenRed,
-                  size: 32,
-                ),
-              ),
-              const SizedBox(height: 16),
-              const Text(
-                'تعذر تحميل الإشعارات',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                  color: AppColors.deepBlack,
-                ),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                state.errorMessage ?? 'حدث خطأ في الاتصال بالخادم، يرجى المحاولة مرة أخرى.',
-                textAlign: TextAlign.center,
-                style: const TextStyle(
-                  fontSize: 13,
-                  color: AppColors.textSecondary,
-                ),
-              ),
-              const SizedBox(height: 20),
-              ElevatedButton.icon(
-                onPressed: () => notifier.refresh(),
-                icon: const Icon(Icons.refresh_rounded, size: 18),
-                label: const Text('إعادة المحاولة'),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.deepBlack,
-                  foregroundColor: Colors.white,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-                ),
-              ),
-            ],
+      final isNetwork = state.errorMessage?.contains('اتصال') == true ||
+          state.errorMessage?.contains('الإنترنت') == true ||
+          state.errorMessage?.contains('شبكة') == true;
+      return ListView(
+        physics: const AlwaysScrollableScrollPhysics(),
+        children: [
+          SizedBox(height: MediaQuery.of(context).size.height * 0.15),
+          AppErrorState(
+            message: state.errorMessage,
+            isNetworkError: isNetwork,
+            onRetry: () => notifier.refresh(),
           ),
-        ),
+        ],
       );
     }
 
     if (state.notifications.isEmpty) {
-      return Center(
-        child: Padding(
-          padding: const EdgeInsets.all(32.0),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Container(
-                width: 76,
-                height: 76,
-                decoration: BoxDecoration(
-                  color: const Color(0xFFF3F4F6),
-                  shape: BoxShape.circle,
-                ),
-                child: const Icon(
-                  Icons.notifications_none_rounded,
-                  size: 38,
-                  color: AppColors.textMuted,
-                ),
-              ),
-              const SizedBox(height: 20),
-              Text(
-                state.filterUnreadOnly
-                    ? 'لا توجد إشعارات غير مقروءة'
-                    : 'لا توجد إشعارات حالياً',
-                style: const TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                  color: AppColors.deepBlack,
-                ),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                state.filterUnreadOnly
-                    ? 'لقد اطلعت على كافة الإشعارات والتحديثات الواردة.'
-                    : 'ستصلك هنا إشعارات فورية عن حالة بلاغاتك ومستجدات المنصة.',
-                textAlign: TextAlign.center,
-                style: const TextStyle(
-                  fontSize: 13,
-                  color: AppColors.textSecondary,
-                  height: 1.4,
-                ),
-              ),
-            ],
+      return ListView(
+        physics: const AlwaysScrollableScrollPhysics(),
+        children: [
+          SizedBox(height: MediaQuery.of(context).size.height * 0.15),
+          AppEmptyState(
+            icon: Icons.notifications_none_rounded,
+            title: state.filterUnreadOnly
+                ? 'لا توجد إشعارات غير مقروءة'
+                : 'لا توجد إشعارات حالياً',
+            description: state.filterUnreadOnly
+                ? 'لقد اطلعت على كافة الإشعارات والتحديثات الواردة.'
+                : 'ستصلك هنا إشعارات فورية عن حالة بلاغاتك ومستجدات المنصة.',
           ),
-        ),
+        ],
       );
     }
 

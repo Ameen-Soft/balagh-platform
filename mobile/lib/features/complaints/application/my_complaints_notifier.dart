@@ -99,7 +99,13 @@ class MyComplaintsNotifier extends Notifier<MyComplaintsState> {
         clearError: true,
       );
     } catch (e) {
-      state = state.copyWith(isRefreshing: false);
+      final message = e is ApiException
+          ? e.message
+          : 'تعذر تحديث البيانات. يرجى التحقق من الاتصال.';
+      state = state.copyWith(
+        isRefreshing: false,
+        errorMessage: message,
+      );
     }
   }
 

@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/constants/app_colors.dart';
+import '../../../../core/widgets/app_empty_state.dart';
+import '../../../../core/widgets/app_error_state.dart';
 import '../../../auth/application/providers.dart';
 import '../../application/field_work_state.dart';
 import '../../application/providers/field_work_providers.dart';
@@ -206,9 +208,26 @@ class _TasksListPageState extends ConsumerState<TasksListPage> {
               child: RefreshIndicator(
                 color: AppColors.yemenRed,
                 onRefresh: () async {
-                  await ref
-                      .read(fieldWorkNotifierProvider.notifier)
-                      .loadAssignments();
+                  try {
+                    await ref
+                        .read(fieldWorkNotifierProvider.notifier)
+                        .loadAssignments(isRefresh: true);
+                  } catch (e) {
+                    if (context.mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: const Text(
+                            'تعذر تحديث المهام الميدانية، تم الاحتفاظ بالبيانات السابقة.',
+                          ),
+                          backgroundColor: AppColors.deepBlack,
+                          behavior: SnackBarBehavior.floating,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                        ),
+                      );
+                    }
+                  }
                 },
                 child: _buildContent(state),
               ),
@@ -276,62 +295,23 @@ class _TasksListPageState extends ConsumerState<TasksListPage> {
     }
 
     if (state.isError && state.assignments.isEmpty) {
-      return Center(
-        child: Padding(
-          padding: const EdgeInsets.all(24),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Container(
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: Colors.red.withValues(alpha: 0.1),
-                  shape: BoxShape.circle,
-                ),
-                child: const Icon(
-                  Icons.error_outline_rounded,
-                  size: 48,
-                  color: AppColors.yemenRed,
-                ),
-              ),
-              const SizedBox(height: 16),
-              const Text(
-                'تعذر تحميل المهام الميدانية',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                  color: AppColors.textPrimary,
-                ),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                state.errorMessage ?? 'تأكد من الاتصال بالإنترنت ثم حاول مجدداً',
-                textAlign: TextAlign.center,
-                style: const TextStyle(
-                  fontSize: 13,
-                  color: AppColors.textSecondary,
-                ),
-              ),
-              const SizedBox(height: 20),
-              ElevatedButton.icon(
-                onPressed: () {
-                  ref
-                      .read(fieldWorkNotifierProvider.notifier)
-                      .loadAssignments();
-                },
-                icon: const Icon(Icons.refresh_rounded, size: 18),
-                label: const Text('إعادة المحاولة'),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.deepBlack,
-                  foregroundColor: Colors.white,
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                ),
-              ),
-            ],
+      final isNetwork = state.errorMessage?.contains('اتصال') == true ||
+          state.errorMessage?.contains('الإنترنت') == true ||
+          state.errorMessage?.contains('شبكة') == true;
+      return LayoutBuilder(
+        builder: (context, constraints) => SingleChildScrollView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          child: ConstrainedBox(
+            constraints: BoxConstraints(minHeight: constraints.maxHeight),
+            child: AppErrorState(
+              message: state.errorMessage,
+              isNetworkError: isNetwork,
+              onRetry: () {
+                ref
+                    .read(fieldWorkNotifierProvider.notifier)
+                    .loadAssignments();
+              },
+            ),
           ),
         ),
       );
@@ -345,71 +325,26 @@ class _TasksListPageState extends ConsumerState<TasksListPage> {
           physics: const AlwaysScrollableScrollPhysics(),
           child: ConstrainedBox(
             constraints: BoxConstraints(minHeight: constraints.maxHeight),
-            child: Center(
-              child: Padding(
-                padding: const EdgeInsets.all(32),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.all(20),
-                      decoration: BoxDecoration(
-                        color: Colors.black.withValues(alpha: 0.04),
-                        shape: BoxShape.circle,
-                      ),
-                      child: const Icon(
-                        Icons.assignment_turned_in_outlined,
-                        size: 56,
-                        color: AppColors.textMuted,
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                    const Text(
-                      'لا توجد مهام ضمن هذا التصنيف',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        color: AppColors.textPrimary,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    const Text(
-                      'يمكنك اختيار تصنيف آخر من الأعلى أو سحب الشاشة للأسفل لتحديث القائمة.',
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                        fontSize: 13,
-                        color: AppColors.textSecondary,
-                        height: 1.4,
-                      ),
-                    ),
-                    const SizedBox(height: 24),
-                    OutlinedButton.icon(
-                      onPressed: () {
-                        ref
-                            .read(fieldWorkNotifierProvider.notifier)
-                            .setFilter('all');
-                        ref
-                            .read(fieldWorkNotifierProvider.notifier)
-                            .loadAssignments();
-                      },
-                      icon: const Icon(Icons.refresh_rounded, size: 16),
-                      label: const Text('عرض جميع المهام'),
-                      style: OutlinedButton.styleFrom(
-                        foregroundColor: AppColors.deepBlack,
-                        side: const BorderSide(color: AppColors.borderSubtle),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
+            child: AppEmptyState(
+              icon: Icons.assignment_turned_in_outlined,
+              title: 'لا توجد مهام ضمن هذا التصنيف',
+              description:
+                  'يمكنك اختيار تصنيف آخر من الأعلى أو سحب الشاشة للأسفل لتحديث القائمة.',
+              actionLabel: 'عرض جميع المهام',
+              onAction: () {
+                ref
+                    .read(fieldWorkNotifierProvider.notifier)
+                    .setFilter('all');
+                ref
+                    .read(fieldWorkNotifierProvider.notifier)
+                    .loadAssignments();
+              },
             ),
           ),
         ),
       );
     }
+
 
     return ListView.separated(
       physics: const AlwaysScrollableScrollPhysics(),
