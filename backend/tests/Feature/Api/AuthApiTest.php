@@ -335,5 +335,16 @@ class AuthApiTest extends TestCase
 
         $this->assertTrue(\Illuminate\Support\Facades\Hash::check('NewPassword123!', $user->fresh()->password));
     }
+
+    public function test_reset_password_page_can_be_rendered(): void
+    {
+        $response = $this->get('/api/v1/auth/reset-password-page?token=sample-test-token&email=reset.user@balagh.gov.ye');
+
+        $response->assertStatus(200);
+        $response->assertSee('إعادة تعيين كلمة المرور');
+        $response->assertSee('sample-test-token');
+        $response->assertSee('reset.user@balagh.gov.ye');
+        $response->assertSee('bader://reset-password');
+    }
 }
 

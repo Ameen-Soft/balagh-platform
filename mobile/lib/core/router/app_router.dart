@@ -8,6 +8,7 @@ import 'package:mobile/features/auth/presentation/pages/register_page.dart';
 import 'package:mobile/features/auth/presentation/pages/splash_page.dart';
 import 'package:mobile/features/auth/presentation/pages/email_verification_page.dart';
 import 'package:mobile/features/auth/presentation/pages/forgot_password_page.dart';
+import 'package:mobile/features/auth/presentation/pages/reset_password_page.dart';
 import 'package:mobile/features/complaints/domain/entities/complaint_entity.dart';
 import 'package:mobile/features/complaints/presentation/pages/complaint_details_page.dart';
 import 'package:mobile/features/complaints/presentation/pages/create_complaint_page.dart';
@@ -92,6 +93,20 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         path: '/forgot-password',
         name: 'forgot-password',
         builder: (context, state) => const ForgotPasswordPage(),
+      ),
+      GoRoute(
+        path: '/reset-password',
+        name: 'reset-password',
+        builder: (context, state) {
+          final token = state.uri.queryParameters['token'] ??
+              (state.extra is Map ? (state.extra as Map)['token'] as String? : null);
+          final email = state.uri.queryParameters['email'] ??
+              (state.extra is Map ? (state.extra as Map)['email'] as String? : null);
+          return ResetPasswordPage(
+            initialToken: token,
+            initialEmail: email,
+          );
+        },
       ),
       GoRoute(
         path: '/verify-email',
@@ -222,6 +237,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       final isLogin = state.matchedLocation == '/login';
       final isRegister = state.matchedLocation == '/register';
       final isForgotPassword = state.matchedLocation == '/forgot-password';
+      final isResetPassword = state.matchedLocation == '/reset-password';
       final isVerifyEmail = state.matchedLocation == '/verify-email';
       final isOnboarding = state.matchedLocation == '/onboarding';
 
@@ -253,7 +269,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           return '/home';
         }
 
-        if (isLogin || isRegister || isSplash) {
+        if (isLogin || isRegister || isSplash || isResetPassword) {
           return '/home';
         }
         return null;
@@ -261,7 +277,11 @@ final appRouterProvider = Provider<GoRouter>((ref) {
 
       // 4. User is unauthenticated or has error
       if (authState.isUnauthenticated || authState.isError) {
-        if (!isLogin && !isRegister && !isForgotPassword && !isVerifyEmail) {
+        if (!isLogin &&
+            !isRegister &&
+            !isForgotPassword &&
+            !isResetPassword &&
+            !isVerifyEmail) {
           return '/login';
         }
         return null;

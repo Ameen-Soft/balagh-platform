@@ -168,24 +168,38 @@ class _ForgotPasswordPageState extends ConsumerState<ForgotPasswordPage> {
                                 color: AppColors.yemenEmerald.withValues(alpha: 0.3),
                               ),
                             ),
-                            child: Row(
-                              crossAxisAlignment: CrossAxisAlignment.start,
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.stretch,
                               children: [
-                                const Icon(
-                                  Icons.check_circle_rounded,
-                                  color: AppColors.yemenEmerald,
-                                  size: 20,
-                                ),
-                                const SizedBox(width: 10),
-                                Expanded(
-                                  child: Text(
-                                    _successMessage!,
-                                    style: const TextStyle(
-                                      fontSize: 12.5,
-                                      fontWeight: FontWeight.w600,
-                                      color: AppColors.yemenBlack,
-                                      height: 1.4,
+                                Row(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    const Icon(
+                                      Icons.check_circle_rounded,
+                                      color: AppColors.yemenEmerald,
+                                      size: 20,
                                     ),
+                                    const SizedBox(width: 10),
+                                    Expanded(
+                                      child: Text(
+                                        _successMessage!,
+                                        style: const TextStyle(
+                                          fontSize: 12.5,
+                                          fontWeight: FontWeight.w600,
+                                          color: AppColors.yemenBlack,
+                                          height: 1.4,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 10),
+                                const Text(
+                                  'تم إرسال رمز التحقق ورابط الاستعادة إلى بريدك الإلكتروني. اضغط على الزر أدناه لإدخال الرمز وكلمة المرور الجديدة:',
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    color: AppColors.textSecondary,
+                                    height: 1.4,
                                   ),
                                 ),
                               ],
@@ -219,14 +233,67 @@ class _ForgotPasswordPageState extends ConsumerState<ForgotPasswordPage> {
 
                         const SizedBox(height: 18),
 
-                        // Primary Red CTA Button
-                        AuthPrimaryButton(
-                          text: 'إرسال رابط إعادة تعيين كلمة المرور',
-                          onPressed: _isLoading ? null : _submitForgotPassword,
-                          isLoading: _isLoading,
-                        ),
+                        if (_isSuccess) ...[
+                          // Primary CTA to go directly to reset password page
+                          AuthPrimaryButton(
+                            text: 'إدخال رمز التحقق وتعيين كلمة المرور',
+                            onPressed: () {
+                              final email = _emailController.text.trim();
+                              context.push(
+                                '/reset-password?email=${Uri.encodeComponent(email)}',
+                              );
+                            },
+                          ),
+                          const SizedBox(height: 12),
+                          // Secondary option to resend if needed
+                          Center(
+                            child: TextButton.icon(
+                              onPressed: _isLoading ? null : _submitForgotPassword,
+                              icon: const Icon(
+                                Icons.refresh_rounded,
+                                size: 18,
+                                color: AppColors.textSecondary,
+                              ),
+                              label: const Text(
+                                'إعادة إرسال الرابط',
+                                style: TextStyle(
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w600,
+                                  color: AppColors.textSecondary,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ] else ...[
+                          // Primary Red CTA Button to request reset email
+                          AuthPrimaryButton(
+                            text: 'إرسال رابط إعادة تعيين كلمة المرور',
+                            onPressed: _isLoading ? null : _submitForgotPassword,
+                            isLoading: _isLoading,
+                          ),
+                          const SizedBox(height: 12),
+                          // Shortcut if the user already has a token
+                          Center(
+                            child: TextButton(
+                              onPressed: () {
+                                final email = _emailController.text.trim();
+                                context.push(
+                                  '/reset-password?email=${Uri.encodeComponent(email)}',
+                                );
+                              },
+                              child: const Text(
+                                'لديك رمز تحقق بالفعل؟ إعادة تعيين كلمة المرور',
+                                style: TextStyle(
+                                  fontSize: 12.5,
+                                  fontWeight: FontWeight.w600,
+                                  color: AppColors.yemenRed,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
 
-                        const SizedBox(height: 24),
+                        const SizedBox(height: 16),
 
                         // Return to Login Link
                         Center(
