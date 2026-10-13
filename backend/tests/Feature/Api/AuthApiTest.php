@@ -224,4 +224,116 @@ class AuthApiTest extends TestCase
 
         $response->assertStatus(401);
     }
+
+    public function test_can_request_email_verification_notification(): void
+    {
+        \Illuminate\Support\Facades\Notification::fake();
+
+        $user = User::factory()->create([
+            'email_verified_at' => null,
+        ]);
+
+        $response = $this->actingAs($user, 'sanctum')
+            ->postJson('/api/v1/auth/email/verification-notification');
+
+        $response->assertStatus(200)
+            ->assertJsonPath('success', true);
+
+        \Illuminate\Support\Facades\Notification::assertSentTo(
+            $user,
+            \App\Notifications\VerifyEmailNotification::class
+        );
+    }
+
+    public function test_user_can_verify_email_via_signed_url(): void
+    {
+        $user = User::factory()->create([
+            'email_verified_at' => null,
+        ]);
+
+        $verificationUrl = \Illuminate\Support\Facades\URL::temporarySignedRoute(
+            'verification.verify',
+            now()->addMinutes(60),
+            [
+                'id' => $user->id,
+                'hash' => sha1($user->getEmailForVerification()),
+            ]
+        );
+
+        $response = $this->getJson($verificationUrl);
+
+        $response->assertStatus(200)
+            ->assertJsonPath('success', true)
+            ->assertJsonPath('data.is_verified', true);
+
+        $this->assertNotNull($user->fresh()->email_verified_at);
+    }
+
+    public function test_cannot_verify_email_with_invalid_signature(): void
+    {
+        $user = User::factory()->create([
+            'email_verified_at' => null,
+        ]);
+
+        $response = $this->getJson("/api/v1/auth/email/verify/{$user->id}/invalidhash");
+
+        $response->assertStatus(403);
+        $this->assertNull($user->fresh()->email_verified_at);
+    }
+
+    public function test_forgot_password_returns_generic_success_without_leaking_user_existence(): void
+    {
+        \Illuminate\Support\Facades\Notification::fake();
+
+        $user = User::factory()->create([
+            'email' => 'citizen.exists@balagh.gov.ye',
+            'is_active' => true,
+        ]);
+
+        // Request for existing user
+        $response1 = $this->postJson('/api/v1/auth/forgot-password', [
+            'email' => 'citizen.exists@balagh.gov.ye',
+        ]);
+
+        $response1->assertStatus(200)
+            ->assertJsonPath('success', true);
+
+        \Illuminate\Support\Facades\Notification::assertSentTo(
+            $user,
+            \App\Notifications\ResetPasswordNotification::class
+        );
+
+        // Request for non-existing user
+        $response2 = $this->postJson('/api/v1/auth/forgot-password', [
+            'email' => 'unknown@balagh.gov.ye',
+        ]);
+
+        // Same exact response code and message structure
+        $response2->assertStatus(200)
+            ->assertJsonPath('success', true)
+            ->assertJsonPath('message', $response1->json('message'));
+    }
+
+    public function test_user_can_reset_password_with_valid_token(): void
+    {
+        $user = User::factory()->create([
+            'email' => 'reset.user@balagh.gov.ye',
+            'password' => bcrypt('OldPassword123!'),
+        ]);
+
+        $token = \Illuminate\Support\Facades\Password::broker()->createToken($user);
+
+        $response = $this->postJson('/api/v1/auth/reset-password', [
+            'token' => $token,
+            'email' => 'reset.user@balagh.gov.ye',
+            'password' => 'NewPassword123!',
+            'password_confirmation' => 'NewPassword123!',
+        ]);
+
+        $response->assertStatus(200)
+            ->assertJsonPath('success', true);
+
+        $this->assertTrue(\Illuminate\Support\Facades\Hash::check('NewPassword123!', $user->fresh()->password));
+    }
 }
+

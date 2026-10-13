@@ -78,4 +78,35 @@ class AuthRepositoryImpl implements AuthRepository {
   Future<bool> hasSavedToken() async {
     return await secureStorage.hasToken();
   }
+
+  @override
+  Future<void> sendEmailVerification({String? email}) async {
+    await remoteDataSource.sendEmailVerification(email: email);
+  }
+
+  @override
+  Future<bool> checkEmailVerificationStatus() async {
+    return await remoteDataSource.checkEmailVerificationStatus();
+  }
+
+  @override
+  Future<void> forgotPassword(String email) async {
+    await remoteDataSource.forgotPassword(email);
+  }
+
+  @override
+  Future<void> resetPassword({
+    required String email,
+    required String token,
+    required String password,
+    required String passwordConfirmation,
+  }) async {
+    await remoteDataSource.resetPassword(
+      email: email,
+      token: token,
+      password: password,
+      passwordConfirmation: passwordConfirmation,
+    );
+  }
 }
+

@@ -22,6 +22,11 @@ class ApiEndpoints {
   static const String logout = '/auth/logout';
   static const String me = '/auth/me';
   static const String updateProfile = '/auth/me';
+  static const String forgotPassword = '/auth/forgot-password';
+  static const String resetPassword = '/auth/reset-password';
+  static const String resendVerificationEmail = '/auth/email/resend';
+  static const String resendVerificationAuth = '/auth/email/verification-notification';
+  static const String emailVerificationStatus = '/auth/email/status';
 
   // --- Reference Data Endpoints ---
   static const String ministries = '/ministries';

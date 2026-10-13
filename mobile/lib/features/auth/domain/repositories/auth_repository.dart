@@ -23,4 +23,17 @@ abstract class AuthRepository {
   Future<UserEntity> getCurrentUser();
 
   Future<bool> hasSavedToken();
+
+  Future<void> sendEmailVerification({String? email});
+
+  Future<bool> checkEmailVerificationStatus();
+
+  Future<void> forgotPassword(String email);
+
+  Future<void> resetPassword({
+    required String email,
+    required String token,
+    required String password,
+    required String passwordConfirmation,
+  });
 }

@@ -159,3 +159,171 @@ class RegisterAuthHeader extends StatelessWidget {
     );
   }
 }
+
+/// Top header for the Email Verification screen matching the mockup:
+/// - Top bar with Back Button
+/// - Illustration (assets/images/Email-verify_photo.jpg)
+/// - Title: "التحقق من بريدك الإلكتروني"
+/// - Multi-line subtitle:
+///   "تم إرسال رابط التحقق من بريدك الإلكتروني"
+///   "الرجاء التحقق من بريدك الإلكتروني وإتباع التعليمات"
+///   "لإكمال عملية التسجيل"
+class EmailVerifyAuthHeader extends StatelessWidget {
+  final VoidCallback? onBack;
+
+  const EmailVerifyAuthHeader({super.key, this.onBack});
+
+  @override
+  Widget build(BuildContext context) {
+    final screenHeight = MediaQuery.of(context).size.height;
+    final imageWidth = (screenHeight * 0.23).clamp(140.0, 200.0);
+
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        if (onBack != null)
+          Align(
+            alignment: Alignment.centerLeft,
+            child: IconButton(
+              icon: const Icon(
+                Icons.arrow_back_rounded,
+                color: AppColors.yemenBlack,
+                size: 24,
+              ),
+              tooltip: 'رجوع',
+              onPressed: onBack,
+            ),
+          )
+        else
+          const SizedBox(height: 12),
+        const SizedBox(height: 4),
+        Center(
+          child: Image.asset(
+            AppAssets.emailVerifyIllustration,
+            height: imageWidth,
+            fit: BoxFit.contain,
+            errorBuilder: (context, error, stackTrace) => Container(
+              height: imageWidth,
+              width: imageWidth,
+              decoration: BoxDecoration(
+                color: const Color(0xFFF3F4F6),
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: const Icon(
+                Icons.mark_email_read_outlined,
+                color: AppColors.textMuted,
+                size: 48,
+              ),
+            ),
+          ),
+        ),
+        const SizedBox(height: 18),
+        const Text(
+          'التحقق من بريدك الإلكتروني',
+          textAlign: TextAlign.center,
+          style: TextStyle(
+            fontSize: 21,
+            fontWeight: FontWeight.w800,
+            color: AppColors.yemenBlack,
+            letterSpacing: -0.3,
+          ),
+        ),
+        const SizedBox(height: 8),
+        const Text(
+          'تم إرسال رابط التحقق من بريدك الإلكتروني\nالرجاء التحقق من بريدك الإلكتروني وإتباع التعليمات\nلإكمال عملية التسجيل',
+          textAlign: TextAlign.center,
+          style: TextStyle(
+            fontSize: 12.5,
+            height: 1.55,
+            fontWeight: FontWeight.normal,
+            color: AppColors.textSecondary,
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+/// Top header for the Forgot Password screen matching the mockup:
+/// - Top bar with Back Button
+/// - Illustration (assets/images/Reset-password_photo.jpg)
+/// - Title: "نسيت كلمة المرور؟"
+/// - Subtitle: "أدخل بريدك الإلكتروني وسنرسل لك رابط لإعادة تعيين كلمة المرور"
+class ForgotPasswordAuthHeader extends StatelessWidget {
+  final VoidCallback? onBack;
+
+  const ForgotPasswordAuthHeader({super.key, this.onBack});
+
+  @override
+  Widget build(BuildContext context) {
+    final screenHeight = MediaQuery.of(context).size.height;
+    final imageWidth = (screenHeight * 0.23).clamp(140.0, 200.0);
+
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        if (onBack != null)
+          Align(
+            alignment: Alignment.centerLeft,
+            child: IconButton(
+              icon: const Icon(
+                Icons.arrow_back_rounded,
+                color: AppColors.yemenBlack,
+                size: 24,
+              ),
+              tooltip: 'رجوع',
+              onPressed: onBack,
+            ),
+          )
+        else
+          const SizedBox(height: 12),
+        const SizedBox(height: 4),
+        Center(
+          child: Image.asset(
+            AppAssets.resetPasswordIllustration,
+            height: imageWidth,
+            fit: BoxFit.contain,
+            errorBuilder: (context, error, stackTrace) => Container(
+              height: imageWidth,
+              width: imageWidth,
+              decoration: BoxDecoration(
+                color: const Color(0xFFF3F4F6),
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: const Icon(
+                Icons.lock_reset_rounded,
+                color: AppColors.textMuted,
+                size: 48,
+              ),
+            ),
+          ),
+        ),
+        const SizedBox(height: 18),
+        const Text(
+          'نسيت كلمة المرور؟',
+          textAlign: TextAlign.center,
+          style: TextStyle(
+            fontSize: 21,
+            fontWeight: FontWeight.w800,
+            color: AppColors.yemenBlack,
+            letterSpacing: -0.3,
+          ),
+        ),
+        const SizedBox(height: 8),
+        const Text(
+          'أدخل بريدك الإلكتروني وسنرسل لك رابط لإعادة تعيين كلمة المرور',
+          textAlign: TextAlign.center,
+          style: TextStyle(
+            fontSize: 12.5,
+            height: 1.5,
+            fontWeight: FontWeight.normal,
+            color: AppColors.textSecondary,
+          ),
+        ),
+      ],
+    );
+  }
+}
+

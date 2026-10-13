@@ -6,6 +6,8 @@ import 'package:mobile/features/auth/application/providers.dart';
 import 'package:mobile/features/auth/presentation/pages/login_page.dart';
 import 'package:mobile/features/auth/presentation/pages/register_page.dart';
 import 'package:mobile/features/auth/presentation/pages/splash_page.dart';
+import 'package:mobile/features/auth/presentation/pages/email_verification_page.dart';
+import 'package:mobile/features/auth/presentation/pages/forgot_password_page.dart';
 import 'package:mobile/features/complaints/domain/entities/complaint_entity.dart';
 import 'package:mobile/features/complaints/presentation/pages/complaint_details_page.dart';
 import 'package:mobile/features/complaints/presentation/pages/create_complaint_page.dart';
@@ -85,6 +87,24 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         path: '/register',
         name: 'register',
         builder: (context, state) => const RegisterPage(),
+      ),
+      GoRoute(
+        path: '/forgot-password',
+        name: 'forgot-password',
+        builder: (context, state) => const ForgotPasswordPage(),
+      ),
+      GoRoute(
+        path: '/verify-email',
+        name: 'verify-email',
+        builder: (context, state) {
+          final email = state.uri.queryParameters['email'] ??
+              (state.extra is String ? state.extra as String : null);
+          final status = state.uri.queryParameters['status'];
+          return EmailVerificationPage(
+            email: email,
+            status: status,
+          );
+        },
       ),
       GoRoute(
         path: '/home',
@@ -201,6 +221,8 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       final isSplash = state.matchedLocation == '/splash';
       final isLogin = state.matchedLocation == '/login';
       final isRegister = state.matchedLocation == '/register';
+      final isForgotPassword = state.matchedLocation == '/forgot-password';
+      final isVerifyEmail = state.matchedLocation == '/verify-email';
       final isOnboarding = state.matchedLocation == '/onboarding';
 
       // 1. If onboarding is not completed, force /onboarding
@@ -239,7 +261,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
 
       // 4. User is unauthenticated or has error
       if (authState.isUnauthenticated || authState.isError) {
-        if (!isLogin && !isRegister) {
+        if (!isLogin && !isRegister && !isForgotPassword && !isVerifyEmail) {
           return '/login';
         }
         return null;

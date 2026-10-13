@@ -31,6 +31,7 @@ class UserEntity {
   final String? phone;
   final String? nationalId;
   final bool isActive;
+  final bool isEmailVerified;
   final DepartmentEntity? department;
   final List<RoleEntity> roles;
   final DateTime? createdAt;
@@ -42,6 +43,7 @@ class UserEntity {
     this.phone,
     this.nationalId,
     this.isActive = true,
+    this.isEmailVerified = false,
     this.department,
     this.roles = const [],
     this.createdAt,
@@ -54,6 +56,7 @@ class UserEntity {
     String? phone,
     String? nationalId,
     bool? isActive,
+    bool? isEmailVerified,
     DepartmentEntity? department,
     List<RoleEntity>? roles,
     DateTime? createdAt,
@@ -65,6 +68,7 @@ class UserEntity {
       phone: phone ?? this.phone,
       nationalId: nationalId ?? this.nationalId,
       isActive: isActive ?? this.isActive,
+      isEmailVerified: isEmailVerified ?? this.isEmailVerified,
       department: department ?? this.department,
       roles: roles ?? this.roles,
       createdAt: createdAt ?? this.createdAt,

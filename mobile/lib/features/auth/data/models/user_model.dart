@@ -121,6 +121,7 @@ class UserModel {
   final String? phone;
   final String? nationalId;
   final bool isActive;
+  final bool isEmailVerified;
   final DepartmentModel? department;
   final List<RoleModel> roles;
   final DateTime? createdAt;
@@ -132,6 +133,7 @@ class UserModel {
     this.phone,
     this.nationalId,
     this.isActive = true,
+    this.isEmailVerified = false,
     this.department,
     this.roles = const [],
     this.createdAt,
@@ -166,6 +168,9 @@ class UserModel {
       isActive: json['is_active'] is bool
           ? json['is_active']
           : (json['is_active'] == 1 || json['is_active'] == '1'),
+      isEmailVerified: json['is_email_verified'] is bool
+          ? json['is_email_verified']
+          : (json['email_verified_at'] != null),
       department: parsedDepartment,
       roles: parsedRoles,
       createdAt: parsedCreatedAt,
@@ -180,6 +185,7 @@ class UserModel {
       'phone': phone,
       'national_id': nationalId,
       'is_active': isActive,
+      'is_email_verified': isEmailVerified,
       'department': department?.toJson(),
       'roles': roles.map((r) => r.toJson()).toList(),
       'created_at': createdAt?.toIso8601String(),
@@ -194,9 +200,11 @@ class UserModel {
       phone: phone,
       nationalId: nationalId,
       isActive: isActive,
+      isEmailVerified: isEmailVerified,
       department: department?.toEntity(),
       roles: roles.map((r) => r.toEntity()).toList(),
       createdAt: createdAt,
     );
   }
 }
+

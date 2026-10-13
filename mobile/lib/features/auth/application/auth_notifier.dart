@@ -141,4 +141,49 @@ class AuthNotifier extends Notifier<AuthState> {
       state = AuthState.authenticated(updatedUser);
     }
   }
+
+  /// Refresh current user profile from server
+  Future<void> refreshCurrentUser() async {
+    try {
+      final user = await _repository.getCurrentUser();
+      state = AuthState.authenticated(user);
+    } catch (_) {}
+  }
+
+  /// Request resending the verification email
+  Future<void> sendEmailVerification({String? email}) async {
+    await _repository.sendEmailVerification(email: email);
+  }
+
+  /// Check server-side email verification status
+  Future<bool> checkEmailVerificationStatus() async {
+    final isVerified = await _repository.checkEmailVerificationStatus();
+    if (isVerified && state.isAuthenticated && state.user != null) {
+      state = AuthState.authenticated(
+        state.user!.copyWith(isEmailVerified: true),
+      );
+    }
+    return isVerified;
+  }
+
+  /// Send password reset email
+  Future<void> forgotPassword(String email) async {
+    await _repository.forgotPassword(email);
+  }
+
+  /// Reset password with token
+  Future<void> resetPassword({
+    required String email,
+    required String token,
+    required String password,
+    required String passwordConfirmation,
+  }) async {
+    await _repository.resetPassword(
+      email: email,
+      token: token,
+      password: password,
+      passwordConfirmation: passwordConfirmation,
+    );
+  }
 }
+

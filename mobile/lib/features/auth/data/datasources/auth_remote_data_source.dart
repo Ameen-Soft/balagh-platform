@@ -25,6 +25,19 @@ abstract class AuthRemoteDataSource {
   Future<UserModel> me();
 
   Future<AuthDataModel> loginWithGoogle(String idToken);
+
+  Future<void> sendEmailVerification({String? email});
+
+  Future<bool> checkEmailVerificationStatus();
+
+  Future<void> forgotPassword(String email);
+
+  Future<void> resetPassword({
+    required String email,
+    required String token,
+    required String password,
+    required String passwordConfirmation,
+  });
 }
 
 class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
@@ -128,4 +141,60 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
 
     throw const ServerException('استجابة غير متوقعة لبيانات المستخدم.');
   }
+
+  @override
+  Future<void> sendEmailVerification({String? email}) async {
+    if (email != null && email.trim().isNotEmpty) {
+      await apiClient.post(
+        ApiEndpoints.resendVerificationEmail,
+        data: {'email': email.trim()},
+      );
+    } else {
+      await apiClient.post(ApiEndpoints.resendVerificationAuth);
+    }
+  }
+
+  @override
+  Future<bool> checkEmailVerificationStatus() async {
+    try {
+      final response = await apiClient.get(ApiEndpoints.emailVerificationStatus);
+      final data = response.data;
+      if (data is Map<String, dynamic> && data['data'] is Map<String, dynamic>) {
+        final inner = data['data'] as Map<String, dynamic>;
+        return inner['is_verified'] == true;
+      }
+    } catch (_) {
+      // Fallback to me endpoint
+      final user = await me();
+      return user.isEmailVerified;
+    }
+    return false;
+  }
+
+  @override
+  Future<void> forgotPassword(String email) async {
+    await apiClient.post(
+      ApiEndpoints.forgotPassword,
+      data: {'email': email.trim()},
+    );
+  }
+
+  @override
+  Future<void> resetPassword({
+    required String email,
+    required String token,
+    required String password,
+    required String passwordConfirmation,
+  }) async {
+    await apiClient.post(
+      ApiEndpoints.resetPassword,
+      data: {
+        'email': email.trim(),
+        'token': token.trim(),
+        'password': password,
+        'password_confirmation': passwordConfirmation,
+      },
+    );
+  }
 }
+

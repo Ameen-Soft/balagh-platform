@@ -98,6 +98,14 @@
 * **إدارة القراءة الآمنة:** إمكانية تأشير إشعار محدد كمقروء وتأشير جميع الإشعارات كمقروءة دفعة واحدة مع نافذة تأكيد آمنة.
 * **أيقونة جرس حية في الرئيسية:** جرس تنبيهات مزود بعداد رقمي متفاعل (Badge) لعدد الإشعارات غير المقروءة في شريط التطبيق العلوي (AppBar) للشاشة الرئيسية.
 
+### 6. وحدة التحقق من البريد الإلكتروني واستعادة كلمة المرور (Email Verification & Password Recovery Module)
+* **واجهات مطابقة للهوية الوطنية:** تصميم واجهتي التحقق من البريد (`EmailVerificationPage`) واستعادة كلمة المرور (`ForgotPasswordPage`) متوافقتين مع الهوية البصرية لبادر وشريط العلم اليمني السفلي المخصص (`AuthCornerDecoration`).
+* **روابط التحقق المشفرة والموقعة (Signed URLs):** إرسال روابط تحقق مؤقتة ومشفرة عبر خوادم البريد الرسمية مع صفحة ويب تفاعلية تدعم إعادة التوجيه الفوري للتطبيق عبر الروابط العميقة (`bader://verify-email`).
+* **التوجيه العميق (Deep Linking):** دعم مخطط الروابط المخصصة `bader://` في تطبيق Flutter ونظام أندرويد لفتح التطبيق تلقائياً وتحديث حالة الحساب عند النقر على روابط البريد.
+* **الأمان ومنع كشف الحسابات (Anti-Enumeration Security):** إرسال رسائل نجاح موحدة وآمنة في استعادة كلمة المرور لا تكشف ما إذا كان البريد الإلكتروني مسجلاً مسبقاً في النظام لحماية خصوصية المستخدمين.
+* **تحديد معدل الطلبات (Rate Limiting & Cooldown):** حماية مسارات الـ API من الإساءة والرسائل المتكررة عبر Throttle، مع عداد تنازلي تفاعلي في واجهة المستخدم (60 ثانية) قبل السماح بإعادة الطلب.
+* **تكامل سلس مع تسجيل الدخول بواسطة Google:** اعتماد التحقق التلقائي للبريد الموثوق الوارد من مزود Google دون فرض خطوات تحقق إضافية غير ضرورية.
+
 ---
 
 ## بوابات الويب ولوحات التحكم الرقابية والشفافية العامة
@@ -497,6 +505,12 @@ All platform endpoints are versioned under `/api/v1` and protected via Sanctum p
 | `GET` | `/api/v1/auth/me` | Fetch authenticated user profile, roles, and permissions | Authenticated (`auth:sanctum`) |
 | `PUT` | `/api/v1/auth/me` | Update profile information (name, phone, national ID) with strict role immutability | Authenticated (`auth:sanctum`) |
 | `POST` | `/api/v1/auth/logout` | Revoke current access token and log out | Authenticated (`auth:sanctum`) |
+| `POST` | `/api/v1/auth/forgot-password` | Send password reset instructions link with zero-enumeration security | Public (Rate Limited) |
+| `POST` | `/api/v1/auth/reset-password` | Reset account password using token and credentials | Public (Rate Limited) |
+| `GET` | `/api/v1/auth/email/verify/{id}/{hash}` | Verify email via signed URL with automated deep linking to app | Public (Signed URL) |
+| `POST` | `/api/v1/auth/email/resend` | Resend verification email to specified unauthenticated address | Public (Rate Limited) |
+| `POST` | `/api/v1/auth/email/verification-notification` | Resend verification email for currently authenticated session | Authenticated (`auth:sanctum`) |
+| `GET` | `/api/v1/auth/email/status` | Retrieve current email verification status and timestamp | Authenticated (`auth:sanctum`) |
 | `GET` | `/api/v1/ministries` | Browse active governmental ministries and departments | Public |
 | `GET` | `/api/v1/ministries/{id}` | Retrieve specific ministry details and active departments | Public |
 | `GET` | `/api/v1/categories` | Cascading taxonomy categories with ministry/department/parent filtering | Public |
@@ -550,3 +564,4 @@ All platform endpoints are versioned under `/api/v1` and protected via Sanctum p
 - [x] Interactive GIS Mapping & Spatial Exploration (Flutter Interactive Map - Phase 07): Implemented a comprehensive interactive geographic map utilizing Flutter Map and authenticated CARTO Basemaps CDN supporting dual Positron and Satellite styles, an animated pop-out circular layers menu with RTL layout alignment, custom status-coded teardrop pins for complaints and development projects, interactive bottom preview cards with direct routing, a frosted-glass top filter bar (by type and status), live GPS location tracking, and camera viewport bounding (Fit Bounds).
 - [x] In-App Notification Center & Real-Time Alerts (Flutter Notifications - Phase 08): Implemented a complete notifications system adhering to Clean Architecture and the Balagh Design System, featuring a dedicated notifications center with reactive pagination and filtering (All vs. Unread), interactive notification cards visually distinguishing read and unread states with dynamic type-based iconography, single and batch "Mark all as read" capabilities, intelligent deep-link navigation to complaints, developmental projects, or field tasks, and an AppBar notification bell with a live reactive unread count badge and pull-to-refresh synchronization.
 - [x] User Profile Management & Platform Polish (Flutter Profile & Polish - Phase 09): Implemented a full-featured user profile management suite (viewing & updating authorized fields: name, phone number, national ID) adhering to Clean Architecture and the Balagh Obsidian theme; added dedicated Laravel `PUT /api/v1/auth/me` endpoint with strict validation and total immutability of user roles and permissions; instant state synchronization via Riverpod reflected dynamically across Home cards; polished RTL navigation and GoRouter route guards; unified error and empty states (`AppEmptyState` & `AppErrorState` with rigorous offline vs. server vs. validation error handling); resilient pull-to-refresh across all primary listing screens that preserves previously loaded data upon network dropouts and displays non-intrusive floating snackbars; backed by 100% passing automated suites (87 Backend tests and 74 Flutter tests with zero analysis issues).
+- [x] Email Verification & Password Recovery Suite (Flutter Auth - Phase 10): Implemented pixel-perfect Email Verification and Forgot Password screens adhering to Clean Architecture, Yemeni national branding, and custom bottom corner ribbon styling; fully connected to secure Laravel backend APIs featuring signed URLs, anti-enumeration security responses, rate limiting (Throttle), deep linking (`bader://verify-email` & `bader://reset-password`), 60s cooldown timer, live status polling, and Google Sign-in automatic verification; validated with 100% passing tests (16 Backend and 9 Flutter UI tests with zero analyzer warnings).

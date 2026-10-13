@@ -15,5 +15,7 @@ class AppAssets {
 
   // --- Auth Assets ---
   static const String authIllustration = 'assets/images/Login_Signup_photo.jpg';
+  static const String emailVerifyIllustration = 'assets/images/Email-verify_photo.jpg';
+  static const String resetPasswordIllustration = 'assets/images/Reset-password_photo.jpg';
   static const String googleIcon = 'assets/images/icons/google.png';
 }

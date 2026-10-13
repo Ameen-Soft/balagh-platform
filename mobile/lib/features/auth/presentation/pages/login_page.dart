@@ -261,17 +261,9 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                         Align(
                           alignment: Alignment.centerRight,
                           child: TextButton(
-                            onPressed: () {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                  content: Text(
-                                    'خدمة استعادة كلمة المرور ستتوفر قريباً عبر البريد الإلكتروني',
-                                    textAlign: TextAlign.right,
-                                  ),
-                                  behavior: SnackBarBehavior.floating,
-                                ),
-                              );
-                            },
+                            onPressed: authState.isLoading
+                                ? null
+                                : () => context.push('/forgot-password'),
                             style: TextButton.styleFrom(
                               padding: const EdgeInsets.symmetric(
                                 horizontal: 4,
