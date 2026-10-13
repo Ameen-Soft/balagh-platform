@@ -28,6 +28,14 @@ Route::prefix('v1')->group(function () {
         Route::post('/register', [AuthController::class, 'register']);
         Route::post('/login', [AuthController::class, 'login']);
         Route::post('/google', [AuthController::class, 'googleLogin']);
+
+        // Password Recovery
+        Route::post('/forgot-password', [AuthController::class, 'forgotPassword'])->middleware('throttle:5,1');
+        Route::post('/reset-password', [AuthController::class, 'resetPassword'])->middleware('throttle:5,1');
+
+        // Email Verification (Signed URL & Public Resend)
+        Route::get('/email/verify/{id}/{hash}', [AuthController::class, 'verifyEmail'])->name('verification.verify');
+        Route::post('/email/resend', [AuthController::class, 'resendVerification'])->middleware('throttle:6,1');
     });
 
     // Reference Data: Ministries & Cascading Categories
@@ -52,6 +60,10 @@ Route::prefix('v1')->group(function () {
             Route::get('/me', [AuthController::class, 'me']);
             Route::put('/me', [AuthController::class, 'updateProfile']);
             Route::post('/logout', [AuthController::class, 'logout']);
+
+            // Email Verification for Authenticated User
+            Route::post('/email/verification-notification', [AuthController::class, 'resendVerification'])->middleware('throttle:6,1');
+            Route::get('/email/status', [AuthController::class, 'getVerificationStatus']);
         });
 
         // User Notifications

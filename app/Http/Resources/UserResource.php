@@ -21,6 +21,8 @@ class UserResource extends JsonResource
             'phone' => $this->phone,
             'national_id' => $this->national_id,
             'is_active' => (bool) $this->is_active,
+            'is_email_verified' => ! is_null($this->email_verified_at),
+            'email_verified_at' => $this->email_verified_at?->toIso8601String(),
             'department' => $this->whenLoaded('department', function () {
                 return [
                     'id' => $this->department->id,

@@ -35,6 +35,13 @@ class AuthService
             $user->roles()->attach($citizenRole->id);
         }
 
+        // Send Email Verification Notification
+        try {
+            $user->sendEmailVerificationNotification();
+        } catch (\Throwable $e) {
+            Log::warning('Failed to send verification email upon registration: ' . $e->getMessage());
+        }
+
         $token = $user->createToken('auth_token')->plainTextToken;
 
         return [
@@ -169,8 +176,15 @@ class AuthService
             ->first();
 
         if ($user) {
+            $updates = [];
             if (empty($user->google_id)) {
-                $user->update(['google_id' => $googleId]);
+                $updates['google_id'] = $googleId;
+            }
+            if (empty($user->email_verified_at)) {
+                $updates['email_verified_at'] = now();
+            }
+            if (! empty($updates)) {
+                $user->update($updates);
             }
 
             if (! $user->is_active) {
@@ -184,6 +198,7 @@ class AuthService
                 'name' => $name,
                 'email' => $email,
                 'google_id' => $googleId,
+                'email_verified_at' => now(),
                 'password' => Hash::make(Str::random(32)),
                 'is_active' => true,
             ]);
@@ -202,4 +217,106 @@ class AuthService
             'token' => $token,
         ];
     }
+
+    /**
+     * Resend verification notification to the user.
+     *
+     * @throws ValidationException
+     */
+    public function resendVerificationEmail(User $user): void
+    {
+        if ($user->hasVerifiedEmail()) {
+            throw ValidationException::withMessages([
+                'email' => ['البريد الإلكتروني تم التحقق منه مسبقاً.'],
+            ]);
+        }
+
+        try {
+            $user->sendEmailVerificationNotification();
+        } catch (\Throwable $e) {
+            Log::error('Failed to resend verification email: ' . $e->getMessage());
+            throw ValidationException::withMessages([
+                'email' => ['تعذر إرسال رسالة التحقق حالياً، يرجى المحاولة بعد قليل.'],
+            ]);
+        }
+    }
+
+    /**
+     * Verify email via signed URL parameters.
+     *
+     * @return array{user: User, already_verified: bool}
+     *
+     * @throws ValidationException
+     */
+    public function verifyEmail(int $id, string $hash): array
+    {
+        $user = User::find($id);
+
+        if (! $user || ! hash_equals(sha1($user->getEmailForVerification()), (string) $hash)) {
+            throw ValidationException::withMessages([
+                'signature' => ['رابط التحقق غير صالح أو منتهي الصلاحية.'],
+            ]);
+        }
+
+        if ($user->hasVerifiedEmail()) {
+            return [
+                'user' => $user,
+                'already_verified' => true,
+            ];
+        }
+
+        $user->markEmailAsVerified();
+        event(new \Illuminate\Auth\Events\Verified($user));
+
+        return [
+            'user' => $user,
+            'already_verified' => false,
+        ];
+    }
+
+    /**
+     * Send password reset link to user email without revealing user existence.
+     */
+    public function sendPasswordResetLink(string $email): void
+    {
+        $user = User::where('email', $email)->first();
+
+        if ($user && $user->is_active) {
+            try {
+                $token = \Illuminate\Support\Facades\Password::broker()->createToken($user);
+                $user->sendPasswordResetNotification($token);
+            } catch (\Throwable $e) {
+                Log::error('Failed to send password reset email: ' . $e->getMessage());
+            }
+        }
+    }
+
+    /**
+     * Reset user password using token and credentials.
+     *
+     * @param  array<string, mixed>  $credentials
+     *
+     * @throws ValidationException
+     */
+    public function resetPassword(array $credentials): void
+    {
+        $status = \Illuminate\Support\Facades\Password::broker()->reset(
+            $credentials,
+            function (User $user, string $password) {
+                $user->forceFill([
+                    'password' => Hash::make($password),
+                    'remember_token' => Str::random(60),
+                ])->save();
+
+                event(new \Illuminate\Auth\Events\PasswordReset($user));
+            }
+        );
+
+        if ($status !== \Illuminate\Support\Facades\Password::PASSWORD_RESET) {
+            throw ValidationException::withMessages([
+                'email' => [__($status)],
+            ]);
+        }
+    }
 }
+
