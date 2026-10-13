@@ -32,6 +32,7 @@ Route::prefix('v1')->group(function () {
         // Password Recovery
         Route::post('/forgot-password', [AuthController::class, 'forgotPassword'])->middleware('throttle:5,1');
         Route::post('/reset-password', [AuthController::class, 'resetPassword'])->middleware('throttle:5,1');
+        Route::get('/reset-password-page', [AuthController::class, 'showResetPasswordPage'])->name('password.reset.page');
 
         // Email Verification (Signed URL & Public Resend)
         Route::get('/email/verify/{id}/{hash}', [AuthController::class, 'verifyEmail'])->name('verification.verify');
