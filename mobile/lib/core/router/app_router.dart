@@ -233,6 +233,31 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       final authState = ref.read(authNotifierProvider);
       final isOnboardingCompleted = ref.read(onboardingStatusProvider);
 
+      final uri = state.uri;
+      final isCustomScheme = uri.scheme == 'bader';
+
+      // 0. Handle custom scheme deep links (bader://)
+      // When Android receives bader://reset-password?token=...
+      // RFC 3986 sets uri.host = 'reset-password' and uri.path = ''.
+      // We normalize this to GoRouter's path '/reset-password'.
+      if (isCustomScheme) {
+        final isReset = uri.host == 'reset-password' ||
+            uri.path == '/reset-password' ||
+            uri.path.contains('reset-password');
+        if (isReset && state.matchedLocation != '/reset-password') {
+          final query = uri.query;
+          return query.isNotEmpty ? '/reset-password?$query' : '/reset-password';
+        }
+
+        final isVerify = uri.host == 'verify-email' ||
+            uri.path == '/verify-email' ||
+            uri.path.contains('verify-email');
+        if (isVerify && state.matchedLocation != '/verify-email') {
+          final query = uri.query;
+          return query.isNotEmpty ? '/verify-email?$query' : '/verify-email';
+        }
+      }
+
       final isSplash = state.matchedLocation == '/splash';
       final isLogin = state.matchedLocation == '/login';
       final isRegister = state.matchedLocation == '/register';
@@ -241,8 +266,11 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       final isVerifyEmail = state.matchedLocation == '/verify-email';
       final isOnboarding = state.matchedLocation == '/onboarding';
 
-      // 1. If onboarding is not completed, force /onboarding
+      // 1. If onboarding is not completed, force /onboarding EXCEPT for password reset and verify email
       if (!isOnboardingCompleted) {
+        if (isResetPassword || isVerifyEmail) {
+          return null;
+        }
         return isOnboarding ? null : '/onboarding';
       }
 
@@ -253,8 +281,12 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         return '/login';
       }
 
-      // 2. While checking auth session (initial state), stay on splash to avoid flicker
+      // 2. While checking auth session (initial state), stay on splash to avoid flicker,
+      // EXCEPT when the user is explicitly on reset-password, verify-email, forgot-password, login or register!
       if (authState.isInitial) {
+        if (isResetPassword || isVerifyEmail || isForgotPassword || isLogin || isRegister) {
+          return null;
+        }
         return isSplash ? null : '/splash';
       }
 
@@ -269,7 +301,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           return '/home';
         }
 
-        if (isLogin || isRegister || isSplash || isResetPassword) {
+        if (isLogin || isRegister || isSplash) {
           return '/home';
         }
         return null;

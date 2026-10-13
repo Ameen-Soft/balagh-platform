@@ -11,9 +11,12 @@ import 'package:mobile/features/auth/presentation/pages/register_page.dart';
 import 'package:mobile/features/auth/presentation/pages/email_verification_page.dart';
 import 'package:mobile/features/auth/presentation/pages/forgot_password_page.dart';
 import 'package:mobile/features/auth/presentation/pages/reset_password_page.dart';
+import 'package:mobile/core/router/app_router.dart';
 import 'package:mobile/features/auth/presentation/widgets/auth_corner_decoration.dart';
 import 'package:mobile/features/auth/presentation/widgets/auth_google_button.dart';
 import 'package:mobile/features/auth/presentation/widgets/auth_primary_button.dart';
+import 'package:mobile/features/onboarding/application/onboarding_provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class MockAuthRepository implements AuthRepository {
   bool shouldThrow = false;
@@ -505,6 +508,41 @@ void main() {
         find.text('رمز التحقق غير صالح أو منتهي الصلاحية'),
         findsNWidgets(2), // In error banner and floating snackbar
       );
+    });
+
+    testWidgets('router navigates to reset password without redirecting to login', (
+      tester,
+    ) async {
+      SharedPreferences.setMockInitialValues({'onboarding_completed': true});
+      final prefs = await SharedPreferences.getInstance();
+
+      final container = ProviderContainer(
+        overrides: [
+          sharedPreferencesProvider.overrideWithValue(prefs),
+          authRepositoryProvider.overrideWithValue(mockRepo),
+        ],
+      );
+      addTearDown(container.dispose);
+
+      final router = container.read(appRouterProvider);
+      await tester.pumpWidget(
+        UncontrolledProviderScope(
+          container: container,
+          child: MaterialApp.router(
+            routerConfig: router,
+            locale: const Locale('ar'),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      // Go to reset password with query params
+      router.go('/reset-password?token=MY-TOKEN&email=user@test.ye');
+      await tester.pumpAndSettle();
+
+      expect(find.text('إعادة تعيين كلمة المرور'), findsOneWidget);
+      expect(find.text('user@test.ye'), findsOneWidget);
+      expect(find.text('MY-TOKEN'), findsOneWidget);
     });
   });
 }

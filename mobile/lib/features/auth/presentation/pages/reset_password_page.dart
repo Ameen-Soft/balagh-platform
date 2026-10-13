@@ -59,6 +59,21 @@ class _ResetPasswordPageState extends ConsumerState<ResetPasswordPage> {
   }
 
   @override
+  void didUpdateWidget(covariant ResetPasswordPage oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.initialEmail != null &&
+        widget.initialEmail != oldWidget.initialEmail &&
+        _emailController.text.isEmpty) {
+      _emailController.text = widget.initialEmail!;
+    }
+    if (widget.initialToken != null &&
+        widget.initialToken != oldWidget.initialToken &&
+        _tokenController.text.isEmpty) {
+      _tokenController.text = widget.initialToken!;
+    }
+  }
+
+  @override
   void dispose() {
     _emailController.dispose();
     _tokenController.dispose();

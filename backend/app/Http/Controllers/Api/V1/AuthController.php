@@ -578,16 +578,6 @@ HTML;
     </div>
 
     <script>
-        (function() {
-            var deepLink = "{$deepLink}";
-            var isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
-            if (isMobile && "{$escapedToken}".length > 0) {
-                setTimeout(function() {
-                    window.location.href = deepLink;
-                }, 800);
-            }
-        })();
-
         async function handleReset(e) {
             e.preventDefault();
             var alertBox = document.getElementById('alertBox');
