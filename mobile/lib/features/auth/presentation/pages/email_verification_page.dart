@@ -249,11 +249,7 @@ class _EmailVerificationPageState
   }
 
   void _handleBack() {
-    if (context.canPop()) {
-      context.pop();
-    } else {
-      context.go('/login');
-    }
+    _handleLogoutOrBack();
   }
 
   Future<void> _handleLogoutOrBack() async {

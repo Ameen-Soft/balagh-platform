@@ -40,6 +40,7 @@ class MockAuthRepository implements AuthRepository {
       id: 1,
       name: 'مواطن تجريبي',
       email: 'test@example.com',
+      isEmailVerified: true,
     );
   }
 
@@ -52,6 +53,7 @@ class MockAuthRepository implements AuthRepository {
       id: 1,
       name: 'مواطن تجريبي جوجل',
       email: 'google@example.com',
+      isEmailVerified: true,
     );
   }
 
@@ -73,12 +75,18 @@ class MockAuthRepository implements AuthRepository {
       id: 2,
       name: 'مستخدم جديد',
       email: 'new@example.com',
+      isEmailVerified: false,
     );
   }
 
   @override
   Future<UserEntity> getCurrentUser() async {
-    return const UserEntity(id: 1, name: 'مواطن', email: 'user@example.com');
+    return const UserEntity(
+      id: 1,
+      name: 'مواطن',
+      email: 'user@example.com',
+      isEmailVerified: true,
+    );
   }
 
   @override
@@ -117,7 +125,6 @@ class MockAuthRepository implements AuthRepository {
     lastResetPasswordConfirmation = passwordConfirmation;
   }
 }
-
 
 void main() {
   late MockAuthRepository mockRepo;
@@ -319,10 +326,7 @@ void main() {
       // Form Field & Primary Button
       expect(find.text('البريد الإلكتروني'), findsOneWidget);
       expect(find.text('إرسال رابط إعادة تعيين كلمة المرور'), findsOneWidget);
-      expect(
-        find.text('تذكرت كلمة المرور؟ العودة لتسجيل الدخول'),
-        findsOneWidget,
-      );
+      expect(find.text('العودة لتسجيل الدخول'), findsOneWidget);
 
       // Decorative corner ribbon
       expect(find.byType(AuthCornerDecoration), findsOneWidget);
@@ -362,42 +366,37 @@ void main() {
 
       expect(
         find.textContaining('إذا كان هذا البريد مسجلاً لدينا'),
-        findsNWidgets(2),
-      );
-      expect(
-        find.text('إدخال رمز التحقق وتعيين كلمة المرور'),
         findsOneWidget,
       );
+      expect(find.text('إدخال رمز التحقق وتعيين كلمة المرور'), findsOneWidget);
     });
   });
 
   group('ResetPasswordPage UI & UX Tests', () {
-    testWidgets('renders all essential fields, labels and branding decorations', (
-      tester,
-    ) async {
-      await tester.pumpWidget(createTestWidget(const ResetPasswordPage()));
-      await tester.pumpAndSettle();
+    testWidgets(
+      'renders all essential fields, labels and branding decorations',
+      (tester) async {
+        await tester.pumpWidget(createTestWidget(const ResetPasswordPage()));
+        await tester.pumpAndSettle();
 
-      // Top title & subtitle
-      expect(find.text('إعادة تعيين كلمة المرور'), findsOneWidget);
-      expect(
-        find.textContaining('أدخل رمز التحقق'),
-        findsOneWidget,
-      );
+        // Top title & subtitle
+        expect(find.text('إعادة تعيين كلمة المرور'), findsOneWidget);
+        expect(find.textContaining('أدخل رمز التحقق'), findsOneWidget);
 
-      // Form fields
-      expect(find.text('البريد الإلكتروني'), findsOneWidget);
-      expect(find.text('رمز التحقق (Token)'), findsOneWidget);
-      expect(find.text('كلمة المرور الجديدة'), findsOneWidget);
-      expect(find.text('تأكيد كلمة المرور الجديدة'), findsOneWidget);
+        // Form fields
+        expect(find.text('البريد الإلكتروني'), findsOneWidget);
+        expect(find.text('رمز التحقق (Token)'), findsOneWidget);
+        expect(find.text('كلمة المرور الجديدة'), findsOneWidget);
+        expect(find.text('تأكيد كلمة المرور الجديدة'), findsOneWidget);
 
-      // Submit CTA & Back button
-      expect(find.text('حفظ كلمة المرور الجديدة'), findsOneWidget);
-      expect(find.text('العودة لتسجيل الدخول'), findsOneWidget);
+        // Submit CTA & Back button
+        expect(find.text('حفظ كلمة المرور الجديدة'), findsOneWidget);
+        expect(find.text('العودة لتسجيل الدخول'), findsOneWidget);
 
-      // Decorative corner ribbon
-      expect(find.byType(AuthCornerDecoration), findsOneWidget);
-    });
+        // Decorative corner ribbon
+        expect(find.byType(AuthCornerDecoration), findsOneWidget);
+      },
+    );
 
     testWidgets('pre-fills initialEmail and initialToken when provided', (
       tester,
@@ -433,7 +432,10 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('يرجى إدخال البريد الإلكتروني'), findsOneWidget);
-      expect(find.text('يرجى إدخال رمز التحقق المستلم بالبريد الإلكتروني'), findsOneWidget);
+      expect(
+        find.text('يرجى إدخال رمز التحقق المستلم بالبريد الإلكتروني'),
+        findsOneWidget,
+      );
       expect(find.text('يرجى إدخال كلمة المرور الجديدة'), findsOneWidget);
 
       // Enter mismatched passwords
@@ -450,9 +452,7 @@ void main() {
       expect(find.text('كلمة المرور غير متطابقة'), findsOneWidget);
     });
 
-    testWidgets('submits password reset successfully', (
-      tester,
-    ) async {
+    testWidgets('submits password reset successfully', (tester) async {
       tester.view.physicalSize = const Size(800, 1000);
       tester.view.devicePixelRatio = 1.0;
       addTearDown(() => tester.view.resetPhysicalSize());
@@ -506,43 +506,89 @@ void main() {
 
       expect(
         find.text('رمز التحقق غير صالح أو منتهي الصلاحية'),
-        findsNWidgets(2), // In error banner and floating snackbar
+        findsOneWidget, // In AppErrorBanner only
       );
     });
 
-    testWidgets('router navigates to reset password without redirecting to login', (
-      tester,
-    ) async {
-      SharedPreferences.setMockInitialValues({'onboarding_completed': true});
-      final prefs = await SharedPreferences.getInstance();
+    testWidgets(
+      'router navigates to reset password without redirecting to login',
+      (tester) async {
+        SharedPreferences.setMockInitialValues({'onboarding_completed': true});
+        final prefs = await SharedPreferences.getInstance();
 
-      final container = ProviderContainer(
-        overrides: [
-          sharedPreferencesProvider.overrideWithValue(prefs),
-          authRepositoryProvider.overrideWithValue(mockRepo),
-        ],
-      );
-      addTearDown(container.dispose);
+        final container = ProviderContainer(
+          overrides: [
+            sharedPreferencesProvider.overrideWithValue(prefs),
+            authRepositoryProvider.overrideWithValue(mockRepo),
+          ],
+        );
+        addTearDown(container.dispose);
 
-      final router = container.read(appRouterProvider);
-      await tester.pumpWidget(
-        UncontrolledProviderScope(
-          container: container,
-          child: MaterialApp.router(
-            routerConfig: router,
-            locale: const Locale('ar'),
+        final router = container.read(appRouterProvider);
+        await tester.pumpWidget(
+          UncontrolledProviderScope(
+            container: container,
+            child: MaterialApp.router(
+              routerConfig: router,
+              locale: const Locale('ar'),
+            ),
           ),
-        ),
-      );
-      await tester.pumpAndSettle();
+        );
+        await tester.pumpAndSettle();
 
-      // Go to reset password with query params
-      router.go('/reset-password?token=MY-TOKEN&email=user@test.ye');
-      await tester.pumpAndSettle();
+        // Go to reset password with query params
+        router.go('/reset-password?token=MY-TOKEN&email=user@test.ye');
+        await tester.pumpAndSettle();
 
-      expect(find.text('إعادة تعيين كلمة المرور'), findsOneWidget);
-      expect(find.text('user@test.ye'), findsOneWidget);
-      expect(find.text('MY-TOKEN'), findsOneWidget);
-    });
+        expect(find.text('إعادة تعيين كلمة المرور'), findsOneWidget);
+        expect(find.text('user@test.ye'), findsOneWidget);
+        expect(find.text('MY-TOKEN'), findsOneWidget);
+      },
+    );
+
+    testWidgets(
+      'router redirects unverified user to /verify-email and prevents direct entry to /home',
+      (tester) async {
+        SharedPreferences.setMockInitialValues({'onboarding_completed': true});
+        final prefs = await SharedPreferences.getInstance();
+
+        final container = ProviderContainer(
+          overrides: [
+            sharedPreferencesProvider.overrideWithValue(prefs),
+            authRepositoryProvider.overrideWithValue(mockRepo),
+          ],
+        );
+        addTearDown(container.dispose);
+        container.read(onboardingStatusProvider.notifier).setCompleted(true);
+
+        final router = container.read(appRouterProvider);
+        await tester.pumpWidget(
+          UncontrolledProviderScope(
+            container: container,
+            child: MaterialApp.router(
+              routerConfig: router,
+              locale: const Locale('ar'),
+            ),
+          ),
+        );
+        await tester.pump();
+
+        // Perform registration of unverified user
+        await container.read(authNotifierProvider.notifier).register(
+              name: 'مواطن جديد',
+              email: 'newcitizen@example.ye',
+              password: 'Password123!',
+              passwordConfirmation: 'Password123!',
+            );
+
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 300));
+
+        // Should NOT be on home, must be on email verification page!
+        expect(find.text('التحقق من بريدك الإلكتروني'), findsOneWidget);
+        expect(find.text('new@example.com'), findsOneWidget);
+        expect(find.text('تحديث حالة التحقق'), findsOneWidget);
+      },
+    );
   });
 }

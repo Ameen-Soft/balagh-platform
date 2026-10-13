@@ -66,25 +66,8 @@ class _ForgotPasswordPageState extends ConsumerState<ForgotPasswordPage> {
       setState(() {
         _isLoading = false;
         _isSuccess = true;
-        _successMessage =
-            'إذا كان هذا البريد مسجلاً لدينا، فستصلك رسالة تحتوي على تعليمات إعادة تعيين كلمة المرور.';
+        _successMessage = 'إذا كان هذا البريد مسجلاً لدينا، فستصلك رسالة تحتوي على تعليمات إعادة تعيين كلمة المرور.';
       });
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            _successMessage!,
-            textAlign: TextAlign.right,
-            style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13),
-          ),
-          backgroundColor: AppColors.yemenBlack,
-          behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(10),
-          ),
-          margin: const EdgeInsets.all(16),
-        ),
-      );
     } catch (e) {
       if (!mounted) return;
       setState(() {
@@ -165,7 +148,9 @@ class _ForgotPasswordPageState extends ConsumerState<ForgotPasswordPage> {
                               color: AppColors.yemenEmeraldLight,
                               borderRadius: BorderRadius.circular(10),
                               border: Border.all(
-                                color: AppColors.yemenEmerald.withValues(alpha: 0.3),
+                                color: AppColors.yemenEmerald.withValues(
+                                  alpha: 0.3,
+                                ),
                               ),
                             ),
                             child: Column(
@@ -248,7 +233,9 @@ class _ForgotPasswordPageState extends ConsumerState<ForgotPasswordPage> {
                           // Secondary option to resend if needed
                           Center(
                             child: TextButton.icon(
-                              onPressed: _isLoading ? null : _submitForgotPassword,
+                              onPressed: _isLoading
+                                  ? null
+                                  : _submitForgotPassword,
                               icon: const Icon(
                                 Icons.refresh_rounded,
                                 size: 18,
@@ -268,7 +255,9 @@ class _ForgotPasswordPageState extends ConsumerState<ForgotPasswordPage> {
                           // Primary Red CTA Button to request reset email
                           AuthPrimaryButton(
                             text: 'إرسال رابط إعادة تعيين كلمة المرور',
-                            onPressed: _isLoading ? null : _submitForgotPassword,
+                            onPressed: _isLoading
+                                ? null
+                                : _submitForgotPassword,
                             isLoading: _isLoading,
                           ),
                           const SizedBox(height: 12),
@@ -314,7 +303,7 @@ class _ForgotPasswordPageState extends ConsumerState<ForgotPasswordPage> {
                               ),
                             ),
                             child: const Text(
-                              'تذكرت كلمة المرور؟ العودة لتسجيل الدخول',
+                              'العودة لتسجيل الدخول',
                               style: TextStyle(
                                 fontSize: 13,
                                 fontWeight: FontWeight.w700,

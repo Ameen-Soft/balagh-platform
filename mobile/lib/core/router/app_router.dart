@@ -296,12 +296,24 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         final isFieldWorker = user?.isFieldWorker == true;
         final isTasksRoute = state.matchedLocation.startsWith('/tasks');
 
+        // Enforce email verification: unverified users must be directed to /verify-email
+        final isEmailVerified = user?.isEmailVerified ?? false;
+        if (!isEmailVerified) {
+          if (isVerifyEmail) {
+            return null;
+          }
+          final emailParam = user?.email != null
+              ? '?email=${Uri.encodeComponent(user!.email)}'
+              : '';
+          return '/verify-email$emailParam';
+        }
+
         // Citizen cannot access field worker routes
         if (!isFieldWorker && isTasksRoute) {
           return '/home';
         }
 
-        if (isLogin || isRegister || isSplash) {
+        if (isLogin || isRegister || isSplash || isVerifyEmail) {
           return '/home';
         }
         return null;

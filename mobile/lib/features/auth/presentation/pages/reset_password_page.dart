@@ -140,40 +140,19 @@ class _ResetPasswordPageState extends ConsumerState<ResetPasswordPage> {
         _isLoading = false;
         _errorMessage = e.firstErrorMessage;
       });
-      _showErrorSnackBar(_errorMessage!);
     } on ApiException catch (e) {
       if (!mounted) return;
       setState(() {
         _isLoading = false;
         _errorMessage = e.message;
       });
-      _showErrorSnackBar(_errorMessage!);
     } catch (e) {
       if (!mounted) return;
       setState(() {
         _isLoading = false;
         _errorMessage = 'حدث خطأ أثناء إعادة تعيين كلمة المرور. يرجى التحقق من صحة الرمز والمحاولة مجدداً.';
       });
-      _showErrorSnackBar(_errorMessage!);
     }
-  }
-
-  void _showErrorSnackBar(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(
-          message,
-          textAlign: TextAlign.right,
-          style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13),
-        ),
-        backgroundColor: AppColors.yemenRed,
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(10),
-        ),
-        margin: const EdgeInsets.all(16),
-      ),
-    );
   }
 
   void _handleBack() {
