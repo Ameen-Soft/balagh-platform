@@ -53,6 +53,8 @@ class ComplaintSeeder extends Seeder
             'priority' => 'high',
             'latitude' => 15.3524100,
             'longitude' => 44.2015200,
+            'is_public' => true,
+            'likes_count' => 12,
         ]);
         ComplaintTimeline::create([
             'complaint_id' => $c1->id,
@@ -73,6 +75,8 @@ class ComplaintSeeder extends Seeder
             'priority' => 'urgent',
             'latitude' => 15.3789000,
             'longitude' => 44.1834000,
+            'is_public' => true,
+            'likes_count' => 8,
         ]);
         ComplaintTimeline::create([
             'complaint_id' => $c2->id,
@@ -102,6 +106,8 @@ class ComplaintSeeder extends Seeder
             'priority' => 'medium',
             'latitude' => 15.3341000,
             'longitude' => 44.2087000,
+            'is_public' => true,
+            'likes_count' => 15,
         ]);
         FieldAssignment::create([
             'complaint_id' => $c3->id,
@@ -130,6 +136,8 @@ class ComplaintSeeder extends Seeder
             'priority' => 'urgent',
             'latitude' => 15.3123000,
             'longitude' => 44.2211000,
+            'is_public' => true,
+            'likes_count' => 24,
         ]);
         FieldAssignment::create([
             'complaint_id' => $c4->id,
@@ -168,6 +176,8 @@ class ComplaintSeeder extends Seeder
             'priority' => 'high',
             'latitude' => 15.3567000,
             'longitude' => 44.2156000,
+            'is_public' => true,
+            'likes_count' => 30,
         ]);
         FieldAssignment::create([
             'complaint_id' => $c5->id,
@@ -219,6 +229,8 @@ class ComplaintSeeder extends Seeder
             'priority' => 'urgent',
             'latitude' => 15.3411000,
             'longitude' => 44.1955000,
+            'is_public' => true,
+            'likes_count' => 5,
         ]);
         ComplaintTimeline::create([
             'complaint_id' => $c6->id,
@@ -263,6 +275,8 @@ class ComplaintSeeder extends Seeder
             'priority' => 'urgent',
             'latitude' => 15.3621000,
             'longitude' => 44.1912000,
+            'is_public' => true,
+            'likes_count' => 18,
         ]);
         ComplaintTimeline::create([
             'complaint_id' => $c8->id,
@@ -285,6 +299,8 @@ class ComplaintSeeder extends Seeder
             'priority' => 'medium',
             'latitude' => 15.3489000,
             'longitude' => 44.2033000,
+            'is_public' => true,
+            'likes_count' => 7,
         ]);
         ComplaintTransfer::create([
             'complaint_id' => $c9->id,
