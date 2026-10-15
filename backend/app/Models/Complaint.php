@@ -20,6 +20,9 @@ class Complaint extends Model
         'priority',
         'latitude',
         'longitude',
+        'is_public',
+        'likes_count',
+        'community_alerted_at',
     ];
 
     protected $appends = [
@@ -33,6 +36,9 @@ class Complaint extends Model
         return [
             'latitude' => 'decimal:7',
             'longitude' => 'decimal:7',
+            'is_public' => 'boolean',
+            'likes_count' => 'integer',
+            'community_alerted_at' => 'datetime',
         ];
     }
 
@@ -138,5 +144,23 @@ class Complaint extends Model
         return $this->hasOne(FieldAssignment::class, 'complaint_id')
             ->whereIn('status', ['pending', 'accepted', 'in_progress'])
             ->latestOfMany();
+    }
+
+    public function likes()
+    {
+        return $this->hasMany(ComplaintLike::class, 'complaint_id');
+    }
+
+    public function isLikedBy(?User $user): bool
+    {
+        if (! $user) {
+            return false;
+        }
+
+        if ($this->relationLoaded('likes')) {
+            return $this->likes->contains('user_id', $user->id);
+        }
+
+        return $this->likes()->where('user_id', $user->id)->exists();
     }
 }

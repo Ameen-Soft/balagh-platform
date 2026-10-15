@@ -61,6 +61,7 @@
 | Public Transparency | خريطة عامة، إحصائيات، تتبع شفاف |
 | Development Projects | عرض المشاريع التنموية ومراحلها |
 | Simulated Contributions | محاكاة الدعم المجتمعي للمشاريع |
+| Community Interaction | استعراض البلاغات العامة، التفاعل بالإعجاب، تصعيد الأولوية مجتمعياً |
 | RBAC | أدوار وصلاحيات هرمية (4 أدوار) |
 | Admin Dashboards | لوحات تحكم ويب للوزارات وSuper Admin |
 
@@ -73,8 +74,8 @@
 | Real SMS Gateway | تكلفة تشغيلية — نعتمد Push Notifications فقط |
 | Production AI/ML Training | كشف التكرار يعتمد على قواعد منطقية |
 | Multi-language Support | خارج نطاق المرحلة الأولى |
-| Real-time Chat | ليس من متطلبات النظام |
-| Citizen-to-Citizen Interaction | النظام أحادي الاتجاه (مواطن → حكومة) |
+| Real-time Chat & Direct Messaging | خارج النطاق — التفاعل محصور في الإعجاب/التأييد دون محادثات خاصة |
+| Unmoderated Citizen Publishing | البلاغات تخضع لمعايير النشر العام وحماية الخصوصية |
 
 ## 1.4 Complaint Lifecycle — دورة حياة الشكوى
 
@@ -172,7 +173,7 @@ stateDiagram-v2
 | FR-12 | Verify field worker location matches complaint location | System | Data Integrity NFR |
 | FR-13 | Close a complaint | System, Ministry Admin | Lifecycle completion |
 | FR-14 | Send notifications on key complaint and project events | System | Notification Module |
-| FR-15 | Display complaints on an interactive map with color-coded status | All | GIS Module |
+| FR-15 | Display public complaints and projects on an interactive map with bounds filtering, status, and community likes | All | GIS Module |
 | FR-16 | Create and manage development projects | Super Admin | Projects Module |
 | FR-17 | Track project phases and completion percentage | All | Progress tracking |
 | FR-18 | Record a simulated community contribution to a project | Citizen | Crowdfunding simulation |
@@ -180,6 +181,9 @@ stateDiagram-v2
 | FR-20 | Manage users, roles, and permissions | Super Admin | RBAC |
 | FR-21 | Manage complaint categories | Super Admin | Administration |
 | FR-22 | View statistics and reports | Super Admin, Ministry Admin | Reporting |
+| FR-23 | Browse and filter public complaints feed based on explicit citizen opt-in (default private) and allowed statuses while preserving privacy | Citizen, All | Community Engagement |
+| FR-24 | Like/upvote a public complaint by authenticated citizens with concurrency-safe duplicate prevention | Citizen | Community Engagement |
+| FR-25 | Track community engagement metrics, re-rank by community importance, and alert admins of trending issues without overriding official priority | System | Community Prioritization |
 
 ## 2.3 Non-Functional Requirements — المتطلبات غير الوظيفية
 
@@ -247,11 +251,12 @@ flowchart TD
     ROOT --> BF7["Transparency and\nStatistics"]
     ROOT --> BF8["Government\nAdministration"]
     ROOT --> BF9["Development\nProjects"]
+    ROOT --> BF10["Community\nInteraction"]
 ```
 
 **Figure 4.1 – Business Function Diagram (BFD)**
 
-يعرض هذا المخطط الوظائف الرئيسية التسع للنظام على مستوى الأعمال. التفصيل يأتي في مخططات حالات الاستخدام.
+يعرض هذا المخطط الوظائف الرئيسية العشر للنظام على مستوى الأعمال مع إضافة التفاعل المجتمعي مع البلاغات. التفصيل يأتي في مخططات حالات الاستخدام.
 
 ---
 ---
@@ -279,12 +284,14 @@ flowchart LR
         PKG8(["Statistics"])
         PKG9(["System Administration"])
         PKG10(["Project Management"])
+        PKG11(["Community Interaction"])
     end
 
     C --- PKG1
     C --- PKG2
     C --- PKG3
     C --- PKG4
+    C --- PKG11
     FW --- PKG5
     MA --- PKG6
     MA --- PKG7
@@ -504,25 +511,28 @@ flowchart LR
     SA["Super Admin"]
 
     subgraph system ["Map and Transparency"]
-        UC1(["View Complaints\non Map"])
-        UC2(["Filter by Status\nor Category"])
+        UC1(["View Public Complaints\non Map"])
+        UC2(["Filter by Status\nCategory or Priority"])
         UC3(["View Public\nComplaint Details"])
         UC4(["View Department\nStatistics"])
         UC5(["View Global\nStatistics"])
+        UC6(["Like Complaint\nfrom Map"])
     end
 
     C --- UC1
     C --- UC3
+    C --- UC6
     MA --- UC1
     MA --- UC4
     SA --- UC5
 
     UC1 -.->|"extend"| UC2
+    UC3 -.->|"extend"| UC6
 ```
 
 **Figure 5.8 – Use Case Diagram: Map and Transparency**
 
-عرض التفاصيل العامة للشكوى يُخفي بيانات المواطن الحساسة.
+عرض التفاصيل العامة للشكوى يُخفي بيانات المواطن الحساسة تلقائياً (حجب الاسم ورقم الهاتف والهوية)، ويتيح للمواطن التفاعل بالإعجاب المباشر من بطاقة المعاينة على الخريطة.
 
 ---
 
@@ -596,6 +606,42 @@ flowchart LR
 **Figure 5.10 – Use Case Diagram: Central Administration**
 
 إدارة الأقسام include مرتبطة بإدارة الوزارات لأن كل قسم تابع لوزارة.
+
+---
+
+## 5.11 UC Group 10: Community Interaction
+
+```mermaid
+flowchart LR
+    C["Citizen"]
+    SYS["System"]
+
+    subgraph system ["Community Interaction"]
+        UC1(["Browse Public\nComplaints Feed"])
+        UC2(["Filter by Most Liked\nor Status"])
+        UC3(["View Public\nComplaint Details"])
+        UC4(["Like Complaint\n(Authenticated)"])
+        UC5(["Unlike Complaint\n(Authenticated)"])
+        UC6(["Verify Unique Like\nPer Citizen"])
+        UC7(["Update Community\nEngagement Score"])
+        UC8(["Alert Admin to\nTrending Complaint"])
+    end
+
+    C --- UC1
+    C --- UC3
+    C --- UC4
+    C --- UC5
+
+    UC1 -.->|"extend"| UC2
+    UC4 -.->|"include"| UC6
+    UC4 -.->|"include"| UC7
+    UC5 -.->|"include"| UC7
+    UC7 -.->|"extend"| UC8
+```
+
+**Figure 5.11 – Use Case Diagram: Community Interaction**
+
+يتيح هذا النموذج للمواطنين استعراض البلاغات المصرح بنشرها عاماً بقرار صريح من أصحابها (خاصة افتراضياً)، والتفاعل معها بضغط زر الإعجاب أو إلغائه (للمستخدمين المسجلين فقط). يفصل النظام تماماً بين الأهمية المجتمعية والأولوية التشغيلية الرسمية، حيث يرتب البلاغات مجتمعياً وينبه المشرف الإداري عند تصاعد الاهتمام المجتمعي دون فرض تغيير آلي على درجة خطورة البلاغ الرسمية.
 
 ---
 ---
@@ -680,8 +726,17 @@ erDiagram
         string priority
         decimal latitude
         decimal longitude
+        boolean is_public "default false"
+        int unsigned likes_count "default 0 index"
         timestamp created_at
         timestamp updated_at
+    }
+
+    COMPLAINT_LIKES {
+        bigint id PK
+        bigint complaint_id FK
+        bigint user_id FK
+        timestamp created_at
     }
 
     COMPLAINT_ATTACHMENTS {
@@ -807,6 +862,8 @@ erDiagram
     COMPLAINTS ||--o{ COMPLAINT_TRANSFERS : "transferred_via"
     COMPLAINTS ||--o{ FIELD_ASSIGNMENTS : "assigned_through"
     COMPLAINTS ||--o{ COMPLAINTS : "duplicate_of"
+    COMPLAINTS ||--o{ COMPLAINT_LIKES : "receives_likes"
+    USERS ||--o{ COMPLAINT_LIKES : "submits_likes"
     USERS ||--o{ FIELD_ASSIGNMENTS : "works_on"
     USERS ||--o{ NOTIFICATIONS : "receives"
     USERS }o--o{ ROLES : "has_role"
@@ -819,7 +876,7 @@ erDiagram
 
 **Figure 6.1 – Entity Relationship Diagram (ERD)**
 
-يعرض هذا المخطط جميع جداول النظام (17 جدول) مع العلاقات والحقول الأساسية و Primary Keys و Foreign Keys و Cardinality.
+يعرض هذا المخطط جميع جداول النظام (18 جدول) مع العلاقات والحقول الأساسية و Primary Keys و Foreign Keys و Cardinality، بما يشمل جدول الإعجابات المجتمعية `complaint_likes`.
 
 ---
 
@@ -851,7 +908,8 @@ erDiagram
 
 | Table | Purpose | Key Relationships |
 |---|---|---|
-| `complaints` | الكيان المركزي للشكاوى | FK users categories departments self |
+| `complaints` | الكيان المركزي للشكاوى (يتضمن is_public و likes_count) | FK users categories departments self |
+| `complaint_likes` | إعجابات وتأييد المواطنين للبلاغات لمنع التكرار | M:1 complaints users, UK(complaint_id, user_id) |
 | `complaint_attachments` | الصور والمرفقات مع GPS metadata | M:1 complaints |
 | `complaint_timeline` | سجل أحداث الشكوى Event Log | M:1 complaints |
 | `complaint_transfers` | تاريخ التحويلات بين الجهات | M:1 complaints departments |
@@ -907,6 +965,7 @@ erDiagram
 | `assigned` | أُسندت لموظف ميداني |
 | `transferred` | حُوّلت إلى جهة أخرى |
 | `status_changed` | تغيّرت الحالة |
+| `community_trending_alert` | تنبيه الإدارة بشأن تزايد الاهتمام والتأييد المجتمعي للبلاغ |
 | `evidence_uploaded` | رُفع دليل بصري |
 | `resolved` | تم الحل |
 | `closed` | أُغلقت |
@@ -1010,13 +1069,24 @@ classDiagram
         -String priority
         -float latitude
         -float longitude
+        -boolean isPublic
+        -int likesCount
         +submit() void
         +updateStatus(status) void
         +markAsDuplicate(originalId) void
+        +isLikedBy(userId) bool
         +close() void
         +reopen() void
         +getTimeline() List
         +getAttachments() List
+        +getLikes() List
+    }
+
+    class ComplaintLike {
+        -int id
+        -int complaintId
+        -int userId
+        -DateTime createdAt
     }
 
     class Attachment {
@@ -1190,6 +1260,21 @@ classDiagram
         +recordContribution(projectId userId amount) Contribution
     }
 
+    class CommunityInteractionService {
+        <<service>>
+        +like(complaintId userId) Object
+        +unlike(complaintId userId) Object
+        +getPublicComplaints(filters) Paginator
+        +getMapComplaints(filters bbox) List
+    }
+
+    class CommunityEngagementService {
+        <<service>>
+        +checkEngagementThresholds(complaint) void
+        +alertAdminsIfTrending(complaint) void
+        +reconcileLikesCount(complaintId) int
+    }
+
     User "M" -- "M" Role : has
     Role "M" -- "M" Permission : grants
     Ministry "1" *-- "M" Department : contains
@@ -1202,6 +1287,8 @@ classDiagram
     Complaint "1" *-- "M" Attachment : has
     Complaint "1" *-- "M" Transfer : transferred_via
     Complaint "1" -- "M" FieldAssignment : assigned_through
+    Complaint "1" *-- "M" ComplaintLike : receives_likes
+    User "1" -- "M" ComplaintLike : likes
     User "1" -- "M" Notification : receives
     User "1" -- "M" FieldAssignment : works_on
     Department "1" -- "M" Project : owns
@@ -1217,13 +1304,15 @@ classDiagram
     FieldWorkService ..> NotificationService : uses
     ProjectService ..> NotificationService : uses
     ComplaintService ..> FileUploadService : uses
+    CommunityInteractionService ..> ComplaintPriorityService : uses
+    CommunityInteractionService ..> NotificationService : uses
 ```
 
 **Figure 7.1 – Class Diagram**
 
 يعرض هذا المخطط جميع كلاسات النظام مقسمة إلى نوعين:
-- **Model Classes** (12 كلاس): تمثل الكيانات ذات المسؤولية المنطقية المستقلة.
-- **Service Classes** (12 كلاس): تمثل منطق الأعمال ولا تقابل جداول في قاعدة البيانات.
+- **Model Classes** (13 كلاس): تمثل الكيانات ذات المسؤولية المنطقية المستقلة، بما يشمل كيان الإعجاب `ComplaintLike`.
+- **Service Classes** (14 كلاس): تمثل منطق الأعمال، بما يشمل خدمة التفاعل المجتمعي `CommunityInteractionService` وخدمة احتساب وتصعيد الأولوية `ComplaintPriorityService`.
 
 العلاقات: Association, Composition, Aggregation, و Dependency بين الخدمات.
 
@@ -1532,6 +1621,39 @@ flowchart TD
 **Figure 8.11 – Activity Diagram: Record Simulated Contribution (ACT-11)**
 
 هذه محاكاة أكاديمية — لا توجد مدفوعات مالية حقيقية.
+
+---
+
+## ACT-12: Like Complaint and Community Engagement — التفاعل المجتمعي وإدارة العداد
+
+```mermaid
+flowchart TD
+    S((Start)) --> A1["Citizen Views Public Complaint\n(Feed or Interactive Map)"]
+    A1 --> A2["Tap Like Button"]
+    A2 --> D1{"User\nAuthenticated?"}
+    D1 -->|"No"| R1["Prompt Citizen to Login"]
+    R1 --> E((End))
+    D1 -->|"Yes"| A3["Open DB Transaction\nLock Complaint Row (lockForUpdate)"]
+    A3 --> A4["Query complaint_likes\nby complaint_id and user_id"]
+    A4 --> D2{"Current State\nvs Desired Action"}
+    D2 -->|"Already Liked (Unlike)"| A5["DELETE FROM complaint_likes"]
+    A5 --> A6["UPDATE complaints\nSET likes_count = GREATEST(likes_count - 1, 0)"]
+    D2 -->|"Not Liked (Like)"| A7["INSERT INTO complaint_likes\nUNIQUE(complaint_id, user_id)"]
+    A7 --> A8["UPDATE complaints\nSET likes_count = likes_count + 1"]
+    A6 --> A9["CommunityEngagementService\nChecks Trending Threshold"]
+    A8 --> A9
+    A9 --> D3{"Trending Threshold\nReached & Not Alerted?"}
+    D3 -->|"Yes"| A10["Send Trending Notification to Dept Admin\nLog Timeline: community_trending_alert"]
+    D3 -->|"No"| A11["Commit Transaction"]
+    A10 --> A11
+    A11 --> A12["Return JSON with liked status & likes_count"]
+    A12 --> A13["Mobile UI Updates Optimistically\n(Heart Icon & Likes Badge)"]
+    A13 --> E
+```
+
+**Figure 8.12 – Activity Diagram: Like Complaint and Community Engagement (ACT-12)**
+
+يوضح هذا المخطط دورة التفاعل المجتمعي الآمنة عبر معاملة قاعدة بيانات ذرية مع قفل الصف لمنع تضارب التزامن، مع ضمان عدم نزول العداد تحت الصفر، وفصل الأهمية المجتمعية عن الأولوية التشغيلية الرسمية مع تنبيه الإدارة عند تزايد الاهتمام المجتمعي.
 
 ---
 ---
@@ -1963,12 +2085,13 @@ sequenceDiagram
     participant DB as Database
 
     U->>App: Open Map View
-    App->>API: GET /api/complaints/map\nwith filters
-    API->>DB: SELECT id lat lng status\nFROM complaints
-    DB-->>API: complaints list
-    API-->>App: GeoJSON data
-    App->>App: Render pins on map\nRed=new Yellow=in_progress Green=closed
-    App-->>U: Display Interactive Map
+    App->>API: GET /api/v1/complaints/map?bbox=minLat,minLng,maxLat,maxLng
+    API->>DB: SELECT id lat lng status priority likes_count\nFROM complaints\nWHERE is_public = true\nAND status IN ('under_review','assigned','in_progress','resolved','closed')\nAND latitude != 0 AND longitude != 0
+    DB-->>API: valid public complaints list
+    API->>API: Transform via PublicComplaintMapResource\n(Omit citizen PII, sanitize precision)
+    API-->>App: Lightweight JSON pins with likes_count and status
+    App->>App: Render interactive pins alongside projects\nColor = Status, Badge = Likes Count
+    App-->>U: Display Interactive Map with Public Pins
 ```
 
 **Figure 9.12 – Sequence Diagram: View Complaints on Map (Concise)**
@@ -1985,14 +2108,60 @@ sequenceDiagram
     participant DB as Database
 
     U->>App: Select Complaint
-    App->>API: GET /api/complaints/{id}
+    App->>API: GET /api/v1/complaints/{id}
     API->>DB: SELECT complaint with relations
-    DB-->>API: complaint + attachments + timeline + transfers
-    API-->>App: complaint details
-    App-->>U: Display Details + Timeline + Photos + Map
+    alt Public / Community Viewer
+        API->>API: Transform via PublicComplaintResource\n(Mask citizen PII, show likes_count & is_liked_by_me)
+    else Complaint Owner / Ministry Admin / Field Worker
+        API->>API: Transform via ComplaintResource\n(Preserve full citizen PII, transfers, and internal notes)
+    end
+    API-->>App: scoped complaint details
+    App-->>U: Display Scoped Details + Timeline + Photos + Like Button + Map
 ```
 
 **Figure 9.13 – Sequence Diagram: View Complaint Details (Concise)**
+
+---
+
+## SEQ-14: Like Complaint and Community Engagement — التفاعل بالإعجاب والتنبيه المجتمعي
+
+```mermaid
+sequenceDiagram
+    actor C as Citizen (Authenticated)
+    participant App as Mobile App
+    participant API as API Controller
+    participant CIS as CommunityInteractionService
+    participant CES as CommunityEngagementService
+    participant NS as NotificationService
+    participant DB as Database
+
+    C->>App: Tap Like / Upvote Button
+    App->>App: Optimistic UI toggle (instant heart animation & counter update)
+    App->>API: POST /api/v1/complaints/{id}/like (Bearer Token)
+    API->>CIS: toggleLike(complaintId, citizenId)
+    CIS->>DB: BEGIN TRANSACTION & lockForUpdate(complaint)
+    CIS->>DB: SELECT FROM complaint_likes WHERE complaint_id AND user_id
+    alt Already Liked (Unlike)
+        CIS->>DB: DELETE FROM complaint_likes
+        CIS->>DB: UPDATE complaints SET likes_count = GREATEST(likes_count - 1, 0)
+        CIS->>DB: COMMIT TRANSACTION
+        CIS-->>API: { liked: false, likes_count: N }
+    else First Time Like (Like)
+        CIS->>DB: INSERT INTO complaint_likes (complaint_id, user_id) [Unique Index Enforced]
+        CIS->>DB: UPDATE complaints SET likes_count = likes_count + 1
+        CIS->>CES: checkEngagementThresholds(complaint)
+        alt High Trending Threshold Reached (e.g. >= 15 likes) & Not Previously Alerted
+            CES->>DB: INSERT complaint_timeline (event = community_trending_alert)
+            CES->>NS: notifyDepartmentAdmin(complaint, community_trending)
+        end
+        CIS->>DB: COMMIT TRANSACTION
+        CIS-->>API: { liked: true, likes_count: N }
+    end
+    API-->>App: 200 OK (sync latest state)
+    App-->>C: Confirm State & Display Updated Likes Badge
+```
+
+**Figure 9.14 – Sequence Diagram: Like Complaint and Community Engagement (SEQ-14)**
 
 ---
 ---
@@ -2025,6 +2194,9 @@ sequenceDiagram
 | FR-20 | Government Admin | UC: Manage Users | — | — | User, Role | users, roles, role_user |
 | FR-21 | Government Admin | UC: Manage Categories | — | — | Category | categories |
 | FR-22 | Transparency | UC: View Statistics | — | — | ReportingService | complaints, projects |
+| FR-23 | Community Engagement | UC: Browse Public Complaints | — | SEQ-12, SEQ-13 | Complaint, CommunityInteractionService | complaints |
+| FR-24 | Community Engagement | UC: Like Complaint | ACT-12 | SEQ-14 | ComplaintLike, CommunityInteractionService | complaint_likes, complaints |
+| FR-25 | Community Prioritization | UC: Alert Trending Issue | ACT-12 | SEQ-14 | CommunityEngagementService | complaints, complaint_timeline |
 
 **`—`** = لا يحتاج مخطط مستقل لهذا النوع. العملية بسيطة أو مغطاة داخل مخطط آخر.
 
@@ -2042,7 +2214,13 @@ sequenceDiagram
 |---|---|---|---|
 | Duplicate Detection | `complaints.duplicate_of_id` self-referencing FK | Separate `complaint_relations` table with types (duplicate/related/merged) | Excessive complexity for current scope. Can be upgraded later if needed |
 | Transfer Status | Event in `complaint_transfers` + `complaint_timeline` | `transferred` as a lifecycle status in complaint status enum | Transfer is a momentary operation not a stable state |
-| Complaint Timeline | Comprehensive Event Log with 10 event types | Simple status change log (old_status to new_status only) | Event Log is more comprehensive and serves audit and transparency |
+| Complaint Timeline | Comprehensive Event Log with 11 event types (including `community_trending_alert`) | Simple status change log (old_status to new_status only) | Event Log is more comprehensive and serves audit and transparency |
+| Decoupling Community Likes from Official Priority | Likes reflect community engagement; admin is alerted without overriding official operational triage priority | Forcing operational priority to urgent automatically | Like campaigns should not distort official crisis/severity standards |
+| Privacy by Default | `is_public` defaults to `false`; requires explicit opt-in during complaint submission | Default public | Protects citizens from accidental public exposure of private details or photos |
+| Concurrency & Non-Negative Counter Integrity | Row-level locking (`lockForUpdate`) inside DB transaction, atomic `GREATEST(likes_count, 0)`, unique composite key | Blind toggle and unprotected increment | Prevents race conditions, negative counters, and desynchronization |
+| Dedicated Public API Resources | Dedicated `PublicComplaintResource` and `PublicComplaintMapResource` | Modifying shared `ComplaintResource` | Prevents regression across Admin/Worker/Owner screens and guarantees zero PII leaks |
+| Map Performance & Bounds Filtering | Bounding-box queries (`bbox`), pagination, coordinate validation, lightweight DTO | Sending all complaint details unpaginated | Guarantees fluid 60fps mobile map rendering and protects bandwidth |
+| Public Complaint Allowed Statuses | Only approved/active statuses (`under_review`, `assigned`, `in_progress`, `resolved`, `closed`) | Including all statuses or only closed | Excludes rejected, false, or unvetted private reports while allowing citizens to track progress |
 | Org Structure vs Taxonomy | Two separate hierarchies: `departments` (organizational) and `categories` (complaint classification) | Single merged hierarchy | Fundamentally different concepts. Ministry to Department is organizational. Category to Subcategory is topical classification |
 | Projects vs Complaints | Completely separate modules with no direct FK relationship | Linking projects to complaints | No functional relationship exists between them in the analysis |
 | Field Assignment Cardinality | 1:M (allows reassignment history) with business rule of one active assignment at a time | 1:1 strict | Preserves history of failed or reassigned tasks |
@@ -2056,6 +2234,7 @@ sequenceDiagram
 | Evidence is captured exclusively from the device camera, not selected from gallery | Ensures authentic GPS coordinates at the moment of documentation. Explicitly stated in the project analysis |
 | Contributions to projects are an academic simulation | The system does not process real financial transactions or integrate with payment gateways |
 | Duplicate detection relies on logical rules not AI/ML | Comparison of geographic proximity + category match + time window. No trained models |
+| Community likes are restricted to authenticated citizens | Prevents spam bot votes and maintains integrity of community priority escalation |
 | One active field assignment per complaint at a time | `field_assignments` stores history (1:M) but only one can be active (pending/accepted/in_progress) |
 | The system operates in a single language in the first phase | Multi-language support is out of scope |
 | External services are referenced generically | Mapping Service not Google Maps specifically. Push Notification Service not Firebase specifically. Decisions are deferred to implementation |
@@ -2064,15 +2243,15 @@ sequenceDiagram
 
 | Element | Convention | Example |
 |---|---|---|
-| Database Tables | snake_case plural | complaint_attachments |
-| Database Columns | snake_case | current_department_id |
-| Model Classes | PascalCase singular | FieldAssignment |
-| Service Classes | PascalCase + Service | DuplicateDetectionService |
-| API Endpoints | kebab-case | /api/field-assignments |
+| Database Tables | snake_case plural | complaint_attachments, complaint_likes |
+| Database Columns | snake_case | current_department_id, likes_count, is_public |
+| Model Classes | PascalCase singular | FieldAssignment, ComplaintLike |
+| Service Classes | PascalCase + Service | DuplicateDetectionService, CommunityInteractionService |
+| API Endpoints | kebab-case | /api/v1/complaints/public, /api/v1/complaints/{id}/like |
 | Enums | snake_case | under_review |
-| Use Cases | Title Case | Create Complaint |
-| Activity Diagrams | ACT-XX | ACT-07 |
-| Sequence Diagrams | SEQ-XX | SEQ-07 |
+| Use Cases | Title Case | Like Complaint |
+| Activity Diagrams | ACT-XX | ACT-12 |
+| Sequence Diagrams | SEQ-XX | SEQ-14 |
 
 ---
 ---
@@ -2084,15 +2263,15 @@ sequenceDiagram
 | Sections | 12 |
 | System Context Diagram | 1 |
 | State Diagrams | 2 |
-| Business Function Diagram | 1 |
-| Use Case Diagrams | 1 main + 9 detailed = 10 |
-| Entity Relationship Diagram | 1 (17 tables) |
-| Class Diagram | 1 (12 Model + 12 Service = 24 classes) |
-| Activity Diagrams | 11 |
-| Sequence Diagrams | 10 core + 3 concise = 13 |
-| Traceability Matrix | 1 (22 FRs) |
+| Business Function Diagram | 1 (10 functions) |
+| Use Case Diagrams | 1 main + 10 detailed = 11 |
+| Entity Relationship Diagram | 1 (18 tables) |
+| Class Diagram | 1 (13 Model + 14 Service = 27 classes) |
+| Activity Diagrams | 12 |
+| Sequence Diagrams | 11 core + 3 concise = 14 |
+| Traceability Matrix | 1 (25 FRs) |
 | Consistency Matrix | 1 |
-| **Total Diagrams** | **~40** |
+| **Total Diagrams** | **~42** |
 
 ---
 

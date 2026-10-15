@@ -57,4 +57,17 @@ return [
         'prefix' => env('BALAGH_TRACKING_PREFIX', 'BLG'),
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | Community Interaction & Engagement Configuration
+    |--------------------------------------------------------------------------
+    */
+    'community' => [
+        // Number of community likes required to trigger administrative trending alert
+        'trending_threshold' => (int) env('BALAGH_COMMUNITY_TRENDING_THRESHOLD', 15),
+
+        // Maximum pins returned in map endpoint to ensure fluid performance
+        'max_map_pins' => (int) env('BALAGH_COMMUNITY_MAX_MAP_PINS', 150),
+    ],
+
 ];

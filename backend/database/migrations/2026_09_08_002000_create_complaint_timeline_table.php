@@ -25,11 +25,12 @@ return new class extends Migration
                 'closed',
                 'reopened',
                 'rejected',
+                'community_trending_alert',
             ]);
             $table->text('description');
             $table->string('old_value')->nullable();
             $table->string('new_value')->nullable();
-            $table->foreignId('performed_by')->constrained('users')->restrictOnDelete();
+            $table->foreignId('performed_by')->nullable()->constrained('users')->nullOnDelete();
             $table->timestamp('created_at')->nullable();
 
             $table->index('event_type');

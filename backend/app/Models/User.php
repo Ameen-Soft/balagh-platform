@@ -131,6 +131,11 @@ class User extends Authenticatable implements MustVerifyEmail
         return $this->hasMany(ActivityLog::class, 'user_id');
     }
 
+    public function complaintLikes()
+    {
+        return $this->hasMany(ComplaintLike::class, 'user_id');
+    }
+
     /*
     |--------------------------------------------------------------------------
     | Role-Based Access Control (RBAC) Helpers

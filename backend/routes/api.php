@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Api\V1\AuthController;
 use App\Http\Controllers\Api\V1\CategoryController;
+use App\Http\Controllers\Api\V1\CommunityComplaintController;
 use App\Http\Controllers\Api\V1\ComplaintController;
 use App\Http\Controllers\Api\V1\FieldAssignmentController;
 use App\Http\Controllers\Api\V1\MinistryController;
@@ -49,6 +50,11 @@ Route::prefix('v1')->group(function () {
     Route::get('/projects', [ProjectController::class, 'index']);
     Route::get('/projects/{project}', [ProjectController::class, 'show']);
 
+    // Community Complaints Public Feed & Map Discovery
+    Route::get('/complaints/public', [CommunityComplaintController::class, 'index']);
+    Route::get('/complaints/public/{id}', [CommunityComplaintController::class, 'show']);
+    Route::get('/complaints/map', [CommunityComplaintController::class, 'map']);
+
     /*
     |--------------------------------------------------------------------------
     | Protected Routes (Requires Sanctum Token)
@@ -80,6 +86,10 @@ Route::prefix('v1')->group(function () {
             Route::post('/', [ComplaintController::class, 'store']);
             Route::get('/{complaint}', [ComplaintController::class, 'show']);
             Route::patch('/{complaint}/status', [ComplaintController::class, 'updateStatus']);
+
+            // Community Interaction (Like / Unlike)
+            Route::post('/{id}/like', [CommunityComplaintController::class, 'like']);
+            Route::delete('/{id}/like', [CommunityComplaintController::class, 'unlike']);
 
             // Complaint Inter-Department Transfers
             Route::post('/{complaint}/transfer', [TransferController::class, 'transfer']);
