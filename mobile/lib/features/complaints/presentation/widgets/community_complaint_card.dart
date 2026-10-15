@@ -53,51 +53,59 @@ class CommunityComplaintCard extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // 1. Top Bar: Ticket Reference & Official Status
+              // 1. Top Bar: Ticket Reference, Category & Official Status
               Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  Row(
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 8, vertical: 4),
-                        decoration: BoxDecoration(
-                          color: AppColors.backgroundSubtle,
-                          borderRadius: BorderRadius.circular(8),
-                          border: Border.all(color: AppColors.borderSubtle),
-                        ),
-                        child: Text(
-                          complaint.complaintNumber,
-                          style: const TextStyle(
-                            fontSize: 11,
-                            fontWeight: FontWeight.w800,
-                            color: AppColors.yemenBlack,
-                            letterSpacing: 0.5,
-                          ),
-                        ),
-                      ),
-                      if (complaint.category != null) ...[
-                        const SizedBox(width: 8),
+                  Expanded(
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
                         Container(
                           padding: const EdgeInsets.symmetric(
                               horizontal: 8, vertical: 4),
                           decoration: BoxDecoration(
-                            color: AppColors.deepBlack.withValues(alpha: 0.05),
+                            color: AppColors.backgroundSubtle,
                             borderRadius: BorderRadius.circular(8),
+                            border: Border.all(color: AppColors.borderSubtle),
                           ),
                           child: Text(
-                            complaint.category!.name,
+                            complaint.complaintNumber,
                             style: const TextStyle(
                               fontSize: 11,
-                              fontWeight: FontWeight.w600,
-                              color: AppColors.deepBlack,
+                              fontWeight: FontWeight.w800,
+                              color: AppColors.yemenBlack,
+                              letterSpacing: 0.5,
                             ),
                           ),
                         ),
+                        if (complaint.category != null) ...[
+                          const SizedBox(width: 8),
+                          Flexible(
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 8, vertical: 4),
+                              decoration: BoxDecoration(
+                                color: AppColors.deepBlack.withValues(alpha: 0.05),
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: Text(
+                                complaint.category!.name,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: const TextStyle(
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w600,
+                                  color: AppColors.deepBlack,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
                       ],
-                    ],
+                    ),
                   ),
+                  const SizedBox(width: 8),
                   StatusBadge(status: complaint.status),
                 ],
               ),
