@@ -56,6 +56,7 @@ class ComplaintService
                 'priority' => $data['priority'] ?? 'medium',
                 'latitude' => $data['latitude'],
                 'longitude' => $data['longitude'],
+                'is_public' => (bool) ($data['is_public'] ?? false),
             ]);
 
             // Save attachments if present

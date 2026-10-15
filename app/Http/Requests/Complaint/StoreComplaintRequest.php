@@ -20,6 +20,7 @@ class StoreComplaintRequest extends BaseApiRequest
             'latitude' => ['required', 'numeric', 'between:-90,90'],
             'longitude' => ['required', 'numeric', 'between:-180,180'],
             'priority' => ['nullable', 'string', 'in:low,medium,high,urgent'],
+            'is_public' => ['nullable', 'boolean'],
             'attachments' => ['nullable', 'array', 'max:5'],
             'attachments.*' => ['file', 'mimes:jpeg,png,jpg,pdf,mp4', 'max:10240'],
         ];
