@@ -15,14 +15,16 @@ class CommunityInteractionService
 {
     /**
      * Allowed statuses for public community visibility.
-     * Note: Excludes 'new' (until reviewed) and 'rejected'.
+     * Note: Excludes 'rejected' (unverified or invalid reports).
      */
     protected const ALLOWED_STATUSES = [
+        'new',
         'under_review',
         'assigned',
         'in_progress',
         'resolved',
         'closed',
+        'reopened',
     ];
 
     public function __construct(

@@ -479,77 +479,152 @@ class _MapPageState extends ConsumerState<MapPage>
     );
   }
 
+  String _getStatusLabel(String status) {
+    switch (status) {
+      case 'new':
+        return 'جديد وارد';
+      case 'under_review':
+        return 'قيد المراجعة';
+      case 'assigned':
+        return 'مسند للميدان';
+      case 'in_progress':
+        return 'قيد التنفيذ';
+      case 'resolved':
+        return 'تم الإنجاز';
+      case 'closed':
+        return 'مغلق';
+      case 'reopened':
+        return 'أُعيد فتحها';
+      default:
+        return status;
+    }
+  }
+
   Widget _buildStatusFilterMenu({required dynamic state, required dynamic notifier}) {
     final hasStatus = state.selectedStatus != null;
-    return PopupMenuButton<String?>(
-      initialValue: state.selectedStatus,
-      onSelected: (val) => notifier.setStatusFilter(val),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-      itemBuilder: (context) => [
-        const PopupMenuItem<String?>(
-          value: null,
-          child: Text('جميع الحالات (الكل)'),
-        ),
-        const PopupMenuDivider(),
-        const PopupMenuItem<String?>(
-          value: 'new',
-          child: Text('جديد وارد'),
-        ),
-        const PopupMenuItem<String?>(
-          value: 'in_progress',
-          child: Text('قيد التنفيذ'),
-        ),
-        const PopupMenuItem<String?>(
-          value: 'resolved',
-          child: Text('تم الحل'),
-        ),
-        const PopupMenuItem<String?>(
-          value: 'closed',
-          child: Text('مغلق'),
-        ),
-      ],
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-        decoration: BoxDecoration(
-          color: hasStatus ? AppColors.deepBlack : Colors.white,
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(
-            color: hasStatus ? AppColors.deepBlack : AppColors.borderSubtle,
-          ),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.05),
-              blurRadius: 8,
-              offset: const Offset(0, 2),
-            ),
-          ],
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(
-              Icons.tune_rounded,
-              size: 16,
-              color: hasStatus ? Colors.white : AppColors.deepBlack,
-            ),
-            const SizedBox(width: 6),
-            Text(
-              hasStatus ? 'حالة: ${state.selectedStatus}' : 'تصفية الحالة',
-              style: TextStyle(
-                fontSize: 12,
-                fontWeight: FontWeight.w700,
-                color: hasStatus ? Colors.white : AppColors.deepBlack,
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        PopupMenuButton<String>(
+          initialValue: state.selectedStatus ?? 'all',
+          onSelected: (val) {
+            final status = (val == 'all' || val.isEmpty) ? null : val;
+            notifier.setStatusFilter(status);
+          },
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+          itemBuilder: (context) => [
+            const PopupMenuItem<String>(
+              value: 'all',
+              child: Row(
+                children: [
+                  Icon(Icons.all_inclusive_rounded, size: 18, color: AppColors.textSecondary),
+                  SizedBox(width: 8),
+                  Text(
+                    'جميع الحالات (الكل)',
+                    style: TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                ],
               ),
             ),
-            const SizedBox(width: 4),
-            Icon(
-              Icons.arrow_drop_down,
-              size: 18,
-              color: hasStatus ? Colors.white : AppColors.deepBlack,
+            const PopupMenuDivider(),
+            const PopupMenuItem<String>(
+              value: 'new',
+              child: Text('جديد وارد'),
+            ),
+            const PopupMenuItem<String>(
+              value: 'under_review',
+              child: Text('قيد المراجعة'),
+            ),
+            const PopupMenuItem<String>(
+              value: 'assigned',
+              child: Text('مسند للميدان'),
+            ),
+            const PopupMenuItem<String>(
+              value: 'in_progress',
+              child: Text('قيد التنفيذ'),
+            ),
+            const PopupMenuItem<String>(
+              value: 'resolved',
+              child: Text('تم الإنجاز / الحل'),
+            ),
+            const PopupMenuItem<String>(
+              value: 'closed',
+              child: Text('مغلق'),
             ),
           ],
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            decoration: BoxDecoration(
+              color: hasStatus ? AppColors.deepBlack : Colors.white,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(
+                color: hasStatus ? AppColors.deepBlack : AppColors.borderSubtle,
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.05),
+                  blurRadius: 8,
+                  offset: const Offset(0, 2),
+                ),
+              ],
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(
+                  Icons.tune_rounded,
+                  size: 16,
+                  color: hasStatus ? Colors.white : AppColors.deepBlack,
+                ),
+                const SizedBox(width: 6),
+                Text(
+                  hasStatus
+                      ? 'الحالة: ${_getStatusLabel(state.selectedStatus!)}'
+                      : 'تصفية الحالة',
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w700,
+                    color: hasStatus ? Colors.white : AppColors.deepBlack,
+                  ),
+                ),
+                const SizedBox(width: 4),
+                Icon(
+                  Icons.arrow_drop_down,
+                  size: 18,
+                  color: hasStatus ? Colors.white : AppColors.deepBlack,
+                ),
+              ],
+            ),
+          ),
         ),
-      ),
+        if (hasStatus) ...[
+          const SizedBox(width: 6),
+          InkWell(
+            onTap: () => notifier.setStatusFilter(null),
+            borderRadius: BorderRadius.circular(16),
+            child: Container(
+              padding: const EdgeInsets.all(6),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                shape: BoxShape.circle,
+                border: Border.all(color: AppColors.borderSubtle),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.05),
+                    blurRadius: 6,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
+              ),
+              child: const Icon(
+                Icons.close_rounded,
+                size: 14,
+                color: AppColors.textSecondary,
+              ),
+            ),
+          ),
+        ],
+      ],
     );
   }
 
