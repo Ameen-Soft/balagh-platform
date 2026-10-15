@@ -23,6 +23,7 @@ class CreateComplaintState {
   final bool isGpsDisabled;
   final bool isLocationPermanentlyDenied;
   final bool isCameraPermanentlyDenied;
+  final bool isPublic;
   final ComplaintEntity? createdComplaint;
 
   const CreateComplaintState({
@@ -46,6 +47,7 @@ class CreateComplaintState {
     this.isGpsDisabled = false,
     this.isLocationPermanentlyDenied = false,
     this.isCameraPermanentlyDenied = false,
+    this.isPublic = false,
     this.createdComplaint,
   });
 
@@ -94,6 +96,7 @@ class CreateComplaintState {
     bool? isGpsDisabled,
     bool? isLocationPermanentlyDenied,
     bool? isCameraPermanentlyDenied,
+    bool? isPublic,
     ComplaintEntity? createdComplaint,
     bool clearCreatedComplaint = false,
   }) {
@@ -127,6 +130,7 @@ class CreateComplaintState {
           isLocationPermanentlyDenied ?? this.isLocationPermanentlyDenied,
       isCameraPermanentlyDenied:
           isCameraPermanentlyDenied ?? this.isCameraPermanentlyDenied,
+      isPublic: isPublic ?? this.isPublic,
       createdComplaint: clearCreatedComplaint
           ? null
           : (createdComplaint ?? this.createdComplaint),

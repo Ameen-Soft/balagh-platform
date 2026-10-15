@@ -22,6 +22,9 @@ class ComplaintEntity {
   final List<FieldAssignmentEntity> fieldAssignments;
   final DateTime? createdAt;
   final DateTime? updatedAt;
+  final int likesCount;
+  final bool isLikedByMe;
+  final bool isPublic;
 
   const ComplaintEntity({
     required this.id,
@@ -42,7 +45,58 @@ class ComplaintEntity {
     this.fieldAssignments = const [],
     this.createdAt,
     this.updatedAt,
+    this.likesCount = 0,
+    this.isLikedByMe = false,
+    this.isPublic = false,
   });
+
+  ComplaintEntity copyWith({
+    int? id,
+    String? title,
+    String? description,
+    String? status,
+    String? priority,
+    double? latitude,
+    double? longitude,
+    int? duplicateOfId,
+    String? citizenName,
+    String? citizenPhone,
+    CategoryEntity? category,
+    String? departmentName,
+    String? ministryName,
+    List<AttachmentEntity>? attachments,
+    List<TimelineEntity>? timeline,
+    List<FieldAssignmentEntity>? fieldAssignments,
+    DateTime? createdAt,
+    DateTime? updatedAt,
+    int? likesCount,
+    bool? isLikedByMe,
+    bool? isPublic,
+  }) {
+    return ComplaintEntity(
+      id: id ?? this.id,
+      title: title ?? this.title,
+      description: description ?? this.description,
+      status: status ?? this.status,
+      priority: priority ?? this.priority,
+      latitude: latitude ?? this.latitude,
+      longitude: longitude ?? this.longitude,
+      duplicateOfId: duplicateOfId ?? this.duplicateOfId,
+      citizenName: citizenName ?? this.citizenName,
+      citizenPhone: citizenPhone ?? this.citizenPhone,
+      category: category ?? this.category,
+      departmentName: departmentName ?? this.departmentName,
+      ministryName: ministryName ?? this.ministryName,
+      attachments: attachments ?? this.attachments,
+      timeline: timeline ?? this.timeline,
+      fieldAssignments: fieldAssignments ?? this.fieldAssignments,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+      likesCount: likesCount ?? this.likesCount,
+      isLikedByMe: isLikedByMe ?? this.isLikedByMe,
+      isPublic: isPublic ?? this.isPublic,
+    );
+  }
 
   String get complaintNumber => 'CMP-${id.toString().padLeft(6, '0')}';
 

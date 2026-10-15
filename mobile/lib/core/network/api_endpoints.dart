@@ -37,10 +37,14 @@ class ApiEndpoints {
 
   // --- Complaints Endpoints ---
   static const String complaints = '/complaints';
+  static const String publicComplaints = '/complaints/public';
+  static const String mapComplaints = '/complaints/map';
   static String complaintDetails(int id) => '/complaints/$id';
   static String updateComplaintStatus(int id) => '/complaints/$id/status';
   static String transferComplaint(int id) => '/complaints/$id/transfer';
   static String assignComplaint(int id) => '/complaints/$id/assign';
+  static String likeComplaint(int id) => '/complaints/$id/like';
+  static String unlikeComplaint(int id) => '/complaints/$id/like';
 
   // --- Field Assignments Endpoints ---
   static const String fieldAssignments = '/field-assignments';

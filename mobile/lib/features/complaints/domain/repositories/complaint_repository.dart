@@ -1,5 +1,6 @@
 import '../entities/category_entity.dart';
 import '../entities/complaint_entity.dart';
+import '../entities/complaint_like_result.dart';
 import '../entities/ministry_entity.dart';
 import '../entities/paginated_complaints_result.dart';
 
@@ -20,6 +21,25 @@ abstract class ComplaintRepository {
     String? search,
   });
 
+  Future<PaginatedComplaintsResult> getPublicComplaints({
+    int page = 1,
+    String? sortBy,
+    int? categoryId,
+    String? status,
+    String? search,
+  });
+
+  Future<List<ComplaintEntity>> getMapComplaints({
+    double? minLat,
+    double? minLng,
+    double? maxLat,
+    double? maxLng,
+  });
+
+  Future<ComplaintLikeResult> likeComplaint(int complaintId);
+
+  Future<ComplaintLikeResult> unlikeComplaint(int complaintId);
+
   Future<ComplaintEntity> getComplaintDetails(int id);
 
   Future<ComplaintEntity> createComplaint({
@@ -29,6 +49,7 @@ abstract class ComplaintRepository {
     required double latitude,
     required double longitude,
     String? priority,
+    bool? isPublic,
     List<String>? attachmentPaths,
   });
 

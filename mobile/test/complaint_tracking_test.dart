@@ -10,6 +10,7 @@ import 'package:mobile/features/complaints/data/models/paginated_complaints_mode
 import 'package:mobile/features/complaints/data/models/pagination_meta_model.dart';
 import 'package:mobile/features/complaints/domain/entities/category_entity.dart';
 import 'package:mobile/features/complaints/domain/entities/complaint_entity.dart';
+import 'package:mobile/features/complaints/domain/entities/complaint_like_result.dart';
 import 'package:mobile/features/complaints/domain/entities/ministry_entity.dart';
 import 'package:mobile/features/complaints/domain/entities/paginated_complaints_result.dart';
 import 'package:mobile/features/complaints/domain/entities/timeline_entity.dart';
@@ -79,6 +80,47 @@ class MockComplaintRepository implements ComplaintRepository {
   }
 
   @override
+  Future<PaginatedComplaintsResult> getPublicComplaints({
+    int page = 1,
+    String? sortBy,
+    int? categoryId,
+    String? status,
+    String? search,
+  }) async {
+    if (shouldThrow) throw Exception('Failed to fetch public complaints');
+    return PaginatedComplaintsResult(
+      complaints: complaintsToReturn,
+      currentPage: page,
+      lastPage: 1,
+      total: complaintsToReturn.length,
+      hasMore: false,
+    );
+  }
+
+  @override
+  Future<List<ComplaintEntity>> getMapComplaints({
+    double? minLat,
+    double? minLng,
+    double? maxLat,
+    double? maxLng,
+  }) async {
+    if (shouldThrow) throw Exception('Failed to fetch map complaints');
+    return complaintsToReturn;
+  }
+
+  @override
+  Future<ComplaintLikeResult> likeComplaint(int complaintId) async {
+    if (shouldThrow) throw Exception('Failed to like complaint');
+    return const ComplaintLikeResult(isLiked: true, likesCount: 1);
+  }
+
+  @override
+  Future<ComplaintLikeResult> unlikeComplaint(int complaintId) async {
+    if (shouldThrow) throw Exception('Failed to unlike complaint');
+    return const ComplaintLikeResult(isLiked: false, likesCount: 0);
+  }
+
+  @override
   Future<ComplaintEntity> createComplaint({
     required String title,
     required String description,
@@ -86,6 +128,7 @@ class MockComplaintRepository implements ComplaintRepository {
     required double latitude,
     required double longitude,
     String? priority,
+    bool? isPublic,
     List<String>? attachmentPaths,
   }) async {
     throw UnimplementedError();

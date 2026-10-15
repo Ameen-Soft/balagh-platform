@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../complaints/application/complaints_providers.dart';
+import '../../complaints/domain/entities/complaint_entity.dart';
 import '../../projects/application/providers/projects_providers.dart';
 import 'map_state.dart';
 
@@ -20,14 +21,12 @@ class MapNotifier extends Notifier<MapState> {
       await projectsNotifier.loadProjects(refresh: true);
       final projects = ref.read(projectsNotifierProvider).projects;
 
-      // Fetch complaints (For now using my complaints, gap documented)
-      // Since map requires location, we only keep items with lat/lng
-      var complaints = <dynamic>[];
+      // Fetch public complaints with geographic coordinates via getMapComplaints()
+      List<ComplaintEntity> complaints = [];
       try {
-        final complaintsFuture = ref.read(recentComplaintsProvider.future);
-        complaints = await complaintsFuture;
+        final complaintRepository = ref.read(complaintRepositoryProvider);
+        complaints = await complaintRepository.getMapComplaints();
       } catch (e) {
-        // User might not be authenticated, or other error. Ignore complaints for public map if not auth.
         complaints = [];
       }
 
@@ -44,6 +43,52 @@ class MapNotifier extends Notifier<MapState> {
         isLoading: false,
         error: e.toString(),
       );
+    }
+  }
+
+  Future<void> toggleLike(int complaintId) async {
+    final index = state.complaints.indexWhere((c) => c.id == complaintId);
+    if (index == -1) return;
+
+    final original = state.complaints[index];
+    final wasLiked = original.isLikedByMe;
+    final optimisticLiked = !wasLiked;
+    final optimisticCount = wasLiked
+        ? (original.likesCount > 0 ? original.likesCount - 1 : 0)
+        : original.likesCount + 1;
+
+    // Optimistic UI update
+    final updatedComplaints = List<ComplaintEntity>.from(state.complaints);
+    updatedComplaints[index] = original.copyWith(
+      isLikedByMe: optimisticLiked,
+      likesCount: optimisticCount,
+    );
+    state = state.copyWith(complaints: updatedComplaints);
+
+    try {
+      final repository = ref.read(complaintRepositoryProvider);
+      final result = optimisticLiked
+          ? await repository.likeComplaint(complaintId)
+          : await repository.unlikeComplaint(complaintId);
+
+      final confirmedIndex = state.complaints.indexWhere((c) => c.id == complaintId);
+      if (confirmedIndex != -1) {
+        final confirmedComplaints = List<ComplaintEntity>.from(state.complaints);
+        confirmedComplaints[confirmedIndex] = confirmedComplaints[confirmedIndex].copyWith(
+          isLikedByMe: result.isLiked,
+          likesCount: result.likesCount,
+        );
+        state = state.copyWith(complaints: confirmedComplaints);
+      }
+    } catch (e) {
+      // Automatic rollback on network error
+      final rollbackIndex = state.complaints.indexWhere((c) => c.id == complaintId);
+      if (rollbackIndex != -1) {
+        final rollbackComplaints = List<ComplaintEntity>.from(state.complaints);
+        rollbackComplaints[rollbackIndex] = original;
+        state = state.copyWith(complaints: rollbackComplaints);
+      }
+      rethrow;
     }
   }
 

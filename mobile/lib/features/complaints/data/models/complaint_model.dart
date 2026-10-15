@@ -23,6 +23,9 @@ class ComplaintModel {
   final List<FieldAssignmentModel> fieldAssignments;
   final DateTime? createdAt;
   final DateTime? updatedAt;
+  final int likesCount;
+  final bool isLikedByMe;
+  final bool isPublic;
 
   const ComplaintModel({
     required this.id,
@@ -43,12 +46,28 @@ class ComplaintModel {
     this.fieldAssignments = const [],
     this.createdAt,
     this.updatedAt,
+    this.likesCount = 0,
+    this.isLikedByMe = false,
+    this.isPublic = false,
   });
 
   factory ComplaintModel.fromJson(Map<String, dynamic> json) {
     double parseCoord(dynamic value) {
       if (value is num) return value.toDouble();
       return double.tryParse(value?.toString() ?? '0') ?? 0.0;
+    }
+
+    int parseLikesCount(dynamic value) {
+      if (value is int) return value;
+      if (value is num) return value.toInt();
+      return int.tryParse(value?.toString() ?? '0') ?? 0;
+    }
+
+    bool parseBool(dynamic value, {bool defaultValue = false}) {
+      if (value is bool) return value;
+      if (value is int) return value == 1;
+      if (value is String) return value == '1' || value.toLowerCase() == 'true';
+      return defaultValue;
     }
 
     String? parsedCitizenName;
@@ -128,6 +147,9 @@ class ComplaintModel {
       fieldAssignments: parsedAssignments,
       createdAt: parsedCreatedAt,
       updatedAt: parsedUpdatedAt,
+      likesCount: parseLikesCount(json['likes_count']),
+      isLikedByMe: parseBool(json['is_liked_by_me']),
+      isPublic: parseBool(json['is_public']),
     );
   }
 
@@ -152,6 +174,9 @@ class ComplaintModel {
       'field_assignments': fieldAssignments.map((f) => f.toJson()).toList(),
       'created_at': createdAt?.toIso8601String(),
       'updated_at': updatedAt?.toIso8601String(),
+      'likes_count': likesCount,
+      'is_liked_by_me': isLikedByMe,
+      'is_public': isPublic,
     };
   }
 
@@ -175,6 +200,9 @@ class ComplaintModel {
       fieldAssignments: fieldAssignments.map((f) => f.toEntity()).toList(),
       createdAt: createdAt,
       updatedAt: updatedAt,
+      likesCount: likesCount,
+      isLikedByMe: isLikedByMe,
+      isPublic: isPublic,
     );
   }
 }

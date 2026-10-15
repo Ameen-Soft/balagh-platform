@@ -8,6 +8,8 @@ import '../domain/entities/category_entity.dart';
 import '../domain/entities/complaint_entity.dart';
 import '../domain/entities/ministry_entity.dart';
 import '../domain/repositories/complaint_repository.dart';
+import 'community_complaints_notifier.dart';
+import 'community_complaints_state.dart';
 import 'create_complaint_notifier.dart';
 import 'create_complaint_state.dart';
 import 'my_complaints_notifier.dart';
@@ -75,4 +77,9 @@ final complaintDetailsProvider =
     FutureProvider.family<ComplaintEntity, int>((ref, id) async {
   final repository = ref.watch(complaintRepositoryProvider);
   return repository.getComplaintDetails(id);
+});
+
+final communityComplaintsNotifierProvider =
+    NotifierProvider<CommunityComplaintsNotifier, CommunityComplaintsState>(() {
+  return CommunityComplaintsNotifier();
 });

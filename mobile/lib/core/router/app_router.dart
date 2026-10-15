@@ -11,6 +11,7 @@ import 'package:mobile/features/auth/presentation/pages/forgot_password_page.dar
 import 'package:mobile/features/auth/presentation/pages/reset_password_page.dart';
 import 'package:mobile/features/complaints/domain/entities/complaint_entity.dart';
 import 'package:mobile/features/complaints/presentation/pages/complaint_details_page.dart';
+import 'package:mobile/features/complaints/presentation/pages/community_complaints_page.dart';
 import 'package:mobile/features/complaints/presentation/pages/create_complaint_page.dart';
 import 'package:mobile/features/complaints/presentation/pages/my_complaints_page.dart';
 import 'package:mobile/features/field_work/domain/entities/field_assignment_entity.dart';
@@ -135,6 +136,11 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         path: '/my-complaints',
         name: 'my-complaints',
         builder: (context, state) => const MyComplaintsPage(),
+      ),
+      GoRoute(
+        path: '/community-complaints',
+        name: 'community-complaints',
+        builder: (context, state) => const CommunityComplaintsPage(),
       ),
       GoRoute(
         path: '/complaints/:id',

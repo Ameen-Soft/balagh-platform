@@ -8,6 +8,7 @@ import 'package:mobile/features/complaints/domain/entities/complaint_entity.dart
 import 'package:mobile/features/complaints/domain/entities/ministry_entity.dart';
 import 'package:mobile/features/complaints/domain/entities/paginated_complaints_result.dart';
 import 'package:mobile/features/complaints/domain/repositories/complaint_repository.dart';
+import 'package:mobile/features/complaints/domain/entities/complaint_like_result.dart';
 
 class FakeComplaintRepository implements ComplaintRepository {
   bool shouldThrow = false;
@@ -21,6 +22,7 @@ class FakeComplaintRepository implements ComplaintRepository {
     required double latitude,
     required double longitude,
     String? priority,
+    bool? isPublic,
     List<String>? attachmentPaths,
   }) async {
     if (shouldThrow) {
@@ -35,9 +37,36 @@ class FakeComplaintRepository implements ComplaintRepository {
       priority: priority ?? 'medium',
       latitude: latitude,
       longitude: longitude,
+      isPublic: isPublic ?? false,
       createdAt: DateTime.now(),
     );
   }
+
+  @override
+  Future<PaginatedComplaintsResult> getPublicComplaints({
+    int page = 1,
+    String? sortBy,
+    int? categoryId,
+    String? status,
+    String? search,
+  }) async =>
+      PaginatedComplaintsResult.empty();
+
+  @override
+  Future<List<ComplaintEntity>> getMapComplaints({
+    double? minLat,
+    double? minLng,
+    double? maxLat,
+    double? maxLng,
+  }) async => [];
+
+  @override
+  Future<ComplaintLikeResult> likeComplaint(int complaintId) async =>
+      const ComplaintLikeResult(isLiked: true, likesCount: 1);
+
+  @override
+  Future<ComplaintLikeResult> unlikeComplaint(int complaintId) async =>
+      const ComplaintLikeResult(isLiked: false, likesCount: 0);
 
   @override
   Future<List<CategoryEntity>> getCategories({

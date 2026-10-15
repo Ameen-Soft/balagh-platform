@@ -1,5 +1,6 @@
 import '../../domain/entities/category_entity.dart';
 import '../../domain/entities/complaint_entity.dart';
+import '../../domain/entities/complaint_like_result.dart';
 import '../../domain/entities/ministry_entity.dart';
 import '../../domain/entities/paginated_complaints_result.dart';
 import '../../domain/repositories/complaint_repository.dart';
@@ -53,6 +54,56 @@ class ComplaintRepositoryImpl implements ComplaintRepository {
   }
 
   @override
+  Future<PaginatedComplaintsResult> getPublicComplaints({
+    int page = 1,
+    String? sortBy,
+    int? categoryId,
+    String? status,
+    String? search,
+  }) async {
+    final result = await remoteDataSource.getPublicComplaints(
+      page: page,
+      sortBy: sortBy,
+      categoryId: categoryId,
+      status: status,
+      search: search,
+    );
+    return PaginatedComplaintsResult(
+      complaints: result.items.map((m) => m.toEntity()).toList(),
+      currentPage: result.meta.currentPage,
+      lastPage: result.meta.lastPage,
+      total: result.meta.total,
+      hasMore: result.meta.hasMore,
+    );
+  }
+
+  @override
+  Future<List<ComplaintEntity>> getMapComplaints({
+    double? minLat,
+    double? minLng,
+    double? maxLat,
+    double? maxLng,
+  }) async {
+    final models = await remoteDataSource.getMapComplaints(
+      minLat: minLat,
+      minLng: minLng,
+      maxLat: maxLat,
+      maxLng: maxLng,
+    );
+    return models.map((m) => m.toEntity()).toList();
+  }
+
+  @override
+  Future<ComplaintLikeResult> likeComplaint(int complaintId) async {
+    return await remoteDataSource.likeComplaint(complaintId);
+  }
+
+  @override
+  Future<ComplaintLikeResult> unlikeComplaint(int complaintId) async {
+    return await remoteDataSource.unlikeComplaint(complaintId);
+  }
+
+  @override
   Future<ComplaintEntity> getComplaintDetails(int id) async {
     final model = await remoteDataSource.getComplaintDetails(id);
     return model.toEntity();
@@ -66,6 +117,7 @@ class ComplaintRepositoryImpl implements ComplaintRepository {
     required double latitude,
     required double longitude,
     String? priority,
+    bool? isPublic,
     List<String>? attachmentPaths,
   }) async {
     final model = await remoteDataSource.createComplaint(
@@ -75,6 +127,7 @@ class ComplaintRepositoryImpl implements ComplaintRepository {
       latitude: latitude,
       longitude: longitude,
       priority: priority,
+      isPublic: isPublic,
       attachmentPaths: attachmentPaths,
     );
     return model.toEntity();

@@ -7,6 +7,7 @@ import 'package:geolocator/geolocator.dart';
 import 'package:intl/intl.dart' hide TextDirection;
 import '../../../../core/constants/app_colors.dart';
 import '../../application/map_notifier.dart';
+import '../../../auth/application/providers.dart';
 import '../../../complaints/domain/entities/complaint_entity.dart';
 import '../../../projects/domain/entities/project_entity.dart';
 
@@ -894,23 +895,120 @@ class _MapPageState extends ConsumerState<MapPage>
             overflow: TextOverflow.ellipsis,
           ),
           const SizedBox(height: 14),
-          SizedBox(
-            width: double.infinity,
-            child: ElevatedButton.icon(
-              onPressed: () {
-                context.push('/complaints/${complaint.id}', extra: complaint);
-              },
-              icon: const Icon(Icons.arrow_back_rounded, size: 16),
-              label: const Text('عرض تفاصيل البلاغ كاملة'),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.deepBlack,
-                foregroundColor: Colors.white,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
+          Row(
+            children: [
+              // Like / Upvote Button
+              InkWell(
+                onTap: () {
+                  final authState = ref.read(authNotifierProvider);
+                  if (!authState.isAuthenticated) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('يرجى تسجيل الدخول لتأييد البلاغ.'),
+                        duration: Duration(seconds: 2),
+                      ),
+                    );
+                    return;
+                  }
+
+                  final wasLiked = complaint.isLikedByMe;
+                  final newLiked = !wasLiked;
+                  final newCount = wasLiked
+                      ? (complaint.likesCount > 0 ? complaint.likesCount - 1 : 0)
+                      : complaint.likesCount + 1;
+
+                  setState(() {
+                    _selectedComplaint = complaint.copyWith(
+                      isLikedByMe: newLiked,
+                      likesCount: newCount,
+                    );
+                  });
+
+                  ref.read(mapNotifierProvider.notifier).toggleLike(complaint.id).catchError((err) {
+                    if (mounted) {
+                      setState(() {
+                        _selectedComplaint = complaint; // rollback on failure
+                      });
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('تعذر تسجيل التفاعل. يرجى التحقق من الاتصال بالشبكة.'),
+                          duration: Duration(seconds: 2),
+                        ),
+                      );
+                    }
+                  });
+                },
+                borderRadius: BorderRadius.circular(12),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                  decoration: BoxDecoration(
+                    color: complaint.isLikedByMe
+                        ? AppColors.yemenRedLight
+                        : AppColors.backgroundSubtle,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color: complaint.isLikedByMe
+                          ? AppColors.yemenRed
+                          : AppColors.borderSubtle,
+                    ),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        complaint.isLikedByMe
+                            ? Icons.favorite_rounded
+                            : Icons.favorite_border_rounded,
+                        size: 18,
+                        color: complaint.isLikedByMe
+                            ? AppColors.yemenRed
+                            : AppColors.textSecondary,
+                      ),
+                      const SizedBox(width: 6),
+                      Text(
+                        complaint.likesCount.toString(),
+                        style: TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w800,
+                          color: complaint.isLikedByMe
+                              ? AppColors.yemenRed
+                              : AppColors.deepBlack,
+                        ),
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        'تأييد',
+                        style: TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w600,
+                          color: complaint.isLikedByMe
+                              ? AppColors.yemenRed
+                              : AppColors.textSecondary,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
-                padding: const EdgeInsets.symmetric(vertical: 12),
               ),
-            ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: ElevatedButton.icon(
+                  onPressed: () {
+                    context.push('/complaints/${complaint.id}', extra: complaint);
+                  },
+                  icon: const Icon(Icons.arrow_back_rounded, size: 16),
+                  label: const Text('عرض التفاصيل'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.deepBlack,
+                    foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                  ),
+                ),
+              ),
+            ],
           ),
         ],
       ),

@@ -64,6 +64,10 @@ class CreateComplaintNotifier extends Notifier<CreateComplaintState> {
     state = state.copyWith(priority: value);
   }
 
+  void setIsPublic(bool value) {
+    state = state.copyWith(isPublic: value);
+  }
+
   void setStep(int step) {
     if (step >= 0 && step <= 3) {
       state = state.copyWith(
@@ -206,6 +210,7 @@ class CreateComplaintNotifier extends Notifier<CreateComplaintState> {
         latitude: state.latitude!,
         longitude: state.longitude!,
         priority: state.priority,
+        isPublic: state.isPublic,
         attachmentPaths: attachments.isNotEmpty ? attachments : null,
       );
 

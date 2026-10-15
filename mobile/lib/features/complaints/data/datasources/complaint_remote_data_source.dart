@@ -2,6 +2,7 @@ import 'package:dio/dio.dart';
 import 'package:mobile/core/network/api_client.dart';
 import 'package:mobile/core/network/api_endpoints.dart';
 import 'package:mobile/core/network/api_exceptions.dart';
+import '../../domain/entities/complaint_like_result.dart';
 import '../models/category_model.dart';
 import '../models/complaint_model.dart';
 import '../models/ministry_model.dart';
@@ -25,6 +26,25 @@ abstract class ComplaintRemoteDataSource {
     String? search,
   });
 
+  Future<PaginatedComplaintsModel> getPublicComplaints({
+    int page = 1,
+    String? sortBy,
+    int? categoryId,
+    String? status,
+    String? search,
+  });
+
+  Future<List<ComplaintModel>> getMapComplaints({
+    double? minLat,
+    double? minLng,
+    double? maxLat,
+    double? maxLng,
+  });
+
+  Future<ComplaintLikeResult> likeComplaint(int complaintId);
+
+  Future<ComplaintLikeResult> unlikeComplaint(int complaintId);
+
   Future<ComplaintModel> getComplaintDetails(int id);
 
   Future<ComplaintModel> createComplaint({
@@ -34,6 +54,7 @@ abstract class ComplaintRemoteDataSource {
     required double latitude,
     required double longitude,
     String? priority,
+    bool? isPublic,
     List<String>? attachmentPaths,
   });
 
@@ -117,6 +138,94 @@ class ComplaintRemoteDataSourceImpl implements ComplaintRemoteDataSource {
   }
 
   @override
+  Future<PaginatedComplaintsModel> getPublicComplaints({
+    int page = 1,
+    String? sortBy,
+    int? categoryId,
+    String? status,
+    String? search,
+  }) async {
+    final Map<String, dynamic> queryParams = {
+      'page': page,
+      if (sortBy != null && sortBy.isNotEmpty) 'sort_by': sortBy,
+      'category_id': ?categoryId,
+      if (status != null && status.isNotEmpty) 'status': status,
+      if (search != null && search.isNotEmpty) 'search': search,
+    };
+
+    final response = await apiClient.get(
+      ApiEndpoints.publicComplaints,
+      queryParameters: queryParams,
+    );
+
+    final data = response.data;
+    if (data is Map<String, dynamic>) {
+      return PaginatedComplaintsModel.fromJson(data);
+    }
+
+    return PaginatedComplaintsModel(
+      items: [],
+      meta: PaginationMetaModel.empty(),
+    );
+  }
+
+  @override
+  Future<List<ComplaintModel>> getMapComplaints({
+    double? minLat,
+    double? minLng,
+    double? maxLat,
+    double? maxLng,
+  }) async {
+    final Map<String, dynamic> queryParams = {};
+    if (minLat != null && minLng != null && maxLat != null && maxLng != null) {
+      queryParams['bbox'] = '$minLat,$minLng,$maxLat,$maxLng';
+    }
+
+    final response = await apiClient.get(
+      ApiEndpoints.mapComplaints,
+      queryParameters: queryParams.isNotEmpty ? queryParams : null,
+    );
+
+    final data = response.data;
+    if (data is Map<String, dynamic> && data['data'] is List) {
+      return (data['data'] as List)
+          .whereType<Map<String, dynamic>>()
+          .map((item) => ComplaintModel.fromJson(item))
+          .toList();
+    }
+
+    return [];
+  }
+
+  @override
+  Future<ComplaintLikeResult> likeComplaint(int complaintId) async {
+    final response = await apiClient.post(
+      ApiEndpoints.likeComplaint(complaintId),
+    );
+
+    final data = response.data;
+    if (data is Map<String, dynamic> && data['data'] is Map<String, dynamic>) {
+      return ComplaintLikeResult.fromJson(data['data'] as Map<String, dynamic>);
+    }
+
+    return const ComplaintLikeResult(isLiked: true, likesCount: 1);
+  }
+
+  @override
+  Future<ComplaintLikeResult> unlikeComplaint(int complaintId) async {
+    final response = await apiClient.delete(
+      ApiEndpoints.unlikeComplaint(complaintId),
+    );
+
+    final data = response.data;
+    if (data is Map<String, dynamic> && data['data'] is Map<String, dynamic>) {
+      return ComplaintLikeResult.fromJson(data['data'] as Map<String, dynamic>);
+    }
+
+    return const ComplaintLikeResult(isLiked: false, likesCount: 0);
+  }
+
+  @override
   Future<ComplaintModel> getComplaintDetails(int id) async {
     final response = await apiClient.get(ApiEndpoints.complaintDetails(id));
     final data = response.data;
@@ -136,6 +245,7 @@ class ComplaintRemoteDataSourceImpl implements ComplaintRemoteDataSource {
     required double latitude,
     required double longitude,
     String? priority,
+    bool? isPublic,
     List<String>? attachmentPaths,
   }) async {
     dynamic payload;
@@ -149,6 +259,7 @@ class ComplaintRemoteDataSourceImpl implements ComplaintRemoteDataSource {
         MapEntry('latitude', latitude.toString()),
         MapEntry('longitude', longitude.toString()),
         if (priority != null && priority.isNotEmpty) MapEntry('priority', priority),
+        if (isPublic != null) MapEntry('is_public', isPublic ? '1' : '0'),
       ]);
 
       for (final path in attachmentPaths) {
@@ -167,6 +278,7 @@ class ComplaintRemoteDataSourceImpl implements ComplaintRemoteDataSource {
         'latitude': latitude,
         'longitude': longitude,
         'priority': ?priority,
+        'is_public': ?isPublic,
       };
     }
 

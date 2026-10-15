@@ -249,6 +249,15 @@ class _HomePageState extends ConsumerState<HomePage> {
                     children: [
                       Expanded(
                         child: _buildServiceCard(
+                          icon: Icons.groups_rounded,
+                          title: 'مجتمع بادر / البلاغات العامة',
+                          color: AppColors.yemenRed,
+                          onTap: () => context.push('/community-complaints'),
+                        ),
+                      ),
+                      const SizedBox(width: 14),
+                      Expanded(
+                        child: _buildServiceCard(
                           icon: Icons.construction_rounded,
                           title: 'المشاريع المجتمعية',
                           color: AppColors.yemenGold,
