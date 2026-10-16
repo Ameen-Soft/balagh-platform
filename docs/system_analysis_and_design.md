@@ -727,7 +727,7 @@ erDiagram
         decimal latitude
         decimal longitude
         boolean is_public "default false"
-        int unsigned likes_count "default 0 index"
+        int likes_count "unsigned default 0 indexed"
         timestamp created_at
         timestamp updated_at
     }
