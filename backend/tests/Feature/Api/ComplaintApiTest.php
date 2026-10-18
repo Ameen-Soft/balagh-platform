@@ -184,4 +184,51 @@ class ComplaintApiTest extends TestCase
 
         $response->assertStatus(403);
     }
+
+    public function test_citizen_can_filter_complaints_by_all_valid_statuses(): void
+    {
+        // Create complaints with assigned and reopened statuses
+        Complaint::create([
+            'citizen_id' => $this->citizen->id,
+            'category_id' => $this->category->id,
+            'current_department_id' => $this->category->department_id,
+            'title' => 'بلاغ مسند للميدان',
+            'description' => 'وصف البلاغ المسند للميدان',
+            'status' => 'assigned',
+            'priority' => 'medium',
+            'latitude' => 15.340000,
+            'longitude' => 44.210000,
+        ]);
+
+        Complaint::create([
+            'citizen_id' => $this->citizen->id,
+            'category_id' => $this->category->id,
+            'current_department_id' => $this->category->department_id,
+            'title' => 'بلاغ أُعيد فتحه',
+            'description' => 'وصف البلاغ الذي أعيد فتحه',
+            'status' => 'reopened',
+            'priority' => 'urgent',
+            'latitude' => 15.340000,
+            'longitude' => 44.210000,
+        ]);
+
+        // Test filtering by 'assigned'
+        $responseAssigned = $this->actingAs($this->citizen, 'sanctum')
+            ->getJson('/api/v1/complaints?status=assigned');
+
+        $responseAssigned->assertStatus(200)
+            ->assertJsonPath('success', true)
+            ->assertJsonCount(1, 'data')
+            ->assertJsonPath('data.0.status', 'assigned');
+
+        // Test filtering by 'reopened'
+        $responseReopened = $this->actingAs($this->citizen, 'sanctum')
+            ->getJson('/api/v1/complaints?status=reopened');
+
+        $responseReopened->assertStatus(200)
+            ->assertJsonPath('success', true)
+            ->assertJsonCount(1, 'data')
+            ->assertJsonPath('data.0.status', 'reopened');
+    }
 }
+

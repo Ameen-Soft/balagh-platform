@@ -333,6 +333,10 @@ class _CommunityComplaintsPageState
               value: 'closed',
               child: Text('مغلق'),
             ),
+            const PopupMenuItem<String>(
+              value: 'reopened',
+              child: Text('أُعيد فتحها'),
+            ),
           ],
           child: Container(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
