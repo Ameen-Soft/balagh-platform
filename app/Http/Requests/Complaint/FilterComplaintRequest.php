@@ -14,7 +14,7 @@ class FilterComplaintRequest extends BaseApiRequest
     public function rules(): array
     {
         return [
-            'status' => ['nullable', 'string', 'in:new,under_review,in_progress,resolved,rejected,closed'],
+            'status' => ['nullable', 'string', 'in:new,under_review,assigned,in_progress,resolved,rejected,closed,reopened'],
             'ministry_id' => ['nullable', 'integer', 'exists:ministries,id'],
             'department_id' => ['nullable', 'integer', 'exists:departments,id'],
             'category_id' => ['nullable', 'integer', 'exists:categories,id'],
