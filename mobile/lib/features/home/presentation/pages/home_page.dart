@@ -1,14 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:mobile/core/constants/app_colors.dart';
-import 'package:mobile/features/auth/application/providers.dart';
-import 'package:mobile/features/auth/domain/entities/user_entity.dart';
-import 'package:mobile/features/complaints/application/complaints_providers.dart';
-import 'package:mobile/features/complaints/presentation/widgets/complaint_card.dart';
-import 'package:mobile/features/field_work/application/providers/field_work_providers.dart';
-import 'package:mobile/features/field_work/presentation/widgets/task_card.dart';
-import 'package:mobile/features/notifications/application/notification_providers.dart';
+import '../../../../core/constants/app_colors.dart';
+import '../../../auth/application/providers.dart';
+import '../../../auth/domain/entities/user_entity.dart';
+import '../../../complaints/application/complaints_providers.dart';
+import '../../../field_work/application/providers/field_work_providers.dart';
+import '../../../field_work/presentation/widgets/task_card.dart';
+import '../../../notifications/application/notification_providers.dart';
+import '../widgets/home_bottom_bar.dart';
+import '../widgets/home_carousel_slider.dart';
+import '../widgets/home_drawer.dart';
+import '../widgets/home_public_complaints_section.dart';
+import '../widgets/home_quick_access.dart';
+import '../widgets/home_stats_row.dart';
+import '../widgets/home_support_modal.dart';
 
 class HomePage extends ConsumerStatefulWidget {
   const HomePage({super.key});
@@ -18,6 +24,8 @@ class HomePage extends ConsumerStatefulWidget {
 }
 
 class _HomePageState extends ConsumerState<HomePage> {
+  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
+
   @override
   void initState() {
     super.initState();
@@ -26,6 +34,8 @@ class _HomePageState extends ConsumerState<HomePage> {
       if (user?.isFieldWorker == true) {
         ref.read(fieldWorkNotifierProvider.notifier).loadAssignments();
       }
+      ref.read(communityComplaintsNotifierProvider.notifier).loadInitial();
+      ref.read(notificationsNotifierProvider.notifier).refresh();
     });
   }
 
@@ -40,14 +50,16 @@ class _HomePageState extends ConsumerState<HomePage> {
           style: TextStyle(fontWeight: FontWeight.bold),
         ),
         content: const Text(
-          'هل أنت متأكد من رغبتك في تسجيل الخروج من منصة بلاغ؟',
+          'هل أنت متأكد من رغبتك في تسجيل الخروج من منصة بادر؟',
           textAlign: TextAlign.right,
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(dialogContext).pop(),
-            child: const Text('إلغاء',
-                style: TextStyle(color: AppColors.textSecondary)),
+            child: const Text(
+              'إلغاء',
+              style: TextStyle(color: AppColors.textSecondary),
+            ),
           ),
           ElevatedButton(
             onPressed: () {
@@ -58,7 +70,8 @@ class _HomePageState extends ConsumerState<HomePage> {
               backgroundColor: AppColors.yemenRed,
               foregroundColor: Colors.white,
               shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(10)),
+                borderRadius: BorderRadius.circular(10),
+              ),
             ),
             child: const Text('تأكيد الخروج'),
           ),
@@ -73,111 +86,41 @@ class _HomePageState extends ConsumerState<HomePage> {
     final user = authState.user;
     final isFieldWorker = user?.isFieldWorker == true;
 
+    // Real complaints of user for status calculations
+    final myComplaintsAsync = ref.watch(myComplaintsProvider);
+    final myComplaints = myComplaintsAsync.value ?? const [];
+
+    final newCount = myComplaints
+        .where((c) => c.status == 'new' || c.status == 'submitted')
+        .length;
+    final underReviewCount =
+        myComplaints.where((c) => c.status == 'under_review').length;
+    final inProgressCount = myComplaints
+        .where((c) => c.status == 'in_progress' || c.status == 'assigned')
+        .length;
+    final resolvedCount = myComplaints
+        .where((c) => c.status == 'resolved' || c.status == 'closed')
+        .length;
+
+    // Real community/public complaints
+    final communityState = ref.watch(communityComplaintsNotifierProvider);
+
     return Scaffold(
-      backgroundColor: AppColors.backgroundSubtle,
-      appBar: AppBar(
-        backgroundColor: Colors.white,
-        elevation: 0,
-        scrolledUnderElevation: 1,
-        title: Row(
-          children: [
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-              decoration: BoxDecoration(
-                color: AppColors.deepBlack,
-                borderRadius: BorderRadius.circular(6),
-              ),
-              child: const Text(
-                'بادر',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontWeight: FontWeight.w900,
-                  fontSize: 14,
-                ),
-              ),
-            ),
-            const SizedBox(width: 8),
-            Text(
-              isFieldWorker ? 'بوابة العمل الميداني' : 'الرئيسية',
-              style: const TextStyle(
-                color: AppColors.yemenBlack,
-                fontWeight: FontWeight.w800,
-                fontSize: 18,
-              ),
-            ),
-          ],
-        ),
-        actions: [
-          if (isFieldWorker)
-            IconButton(
-              tooltip: 'المهام الميدانية',
-              icon: const Icon(Icons.assignment_outlined,
-                  color: AppColors.yemenBlack),
-              onPressed: () => context.push('/tasks'),
-            ),
-          // Notifications Bell with dynamic unread badge
-          Stack(
-            alignment: Alignment.center,
-            children: [
-              IconButton(
-                tooltip: 'الإشعارات',
-                icon: const Icon(
-                  Icons.notifications_none_rounded,
-                  color: AppColors.yemenBlack,
-                  size: 24,
-                ),
-                onPressed: () => context.push('/notifications'),
-              ),
-              Consumer(
-                builder: (context, ref, _) {
-                  final unreadCount =
-                      ref.watch(unreadNotificationsCountProvider);
-                  if (unreadCount <= 0) return const SizedBox.shrink();
-                  return Positioned(
-                    top: 8,
-                    right: 8,
-                    child: Container(
-                      padding: const EdgeInsets.all(4),
-                      decoration: const BoxDecoration(
-                        color: AppColors.yemenRed,
-                        shape: BoxShape.circle,
-                      ),
-                      constraints: const BoxConstraints(
-                        minWidth: 16,
-                        minHeight: 16,
-                      ),
-                      child: Text(
-                        unreadCount > 99 ? '99+' : unreadCount.toString(),
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 9,
-                          fontWeight: FontWeight.bold,
-                          height: 1,
-                        ),
-                        textAlign: TextAlign.center,
-                      ),
-                    ),
-                  );
-                },
-              ),
-            ],
-          ),
-          IconButton(
-            tooltip: 'الملف الشخصي',
-            icon: const Icon(
-              Icons.account_circle_outlined,
-              color: AppColors.yemenBlack,
-              size: 24,
-            ),
-            onPressed: () => context.push('/profile'),
-          ),
-          IconButton(
-            tooltip: 'تسجيل الخروج',
-            icon: const Icon(Icons.logout_rounded, color: AppColors.yemenRed),
-            onPressed: () => _showLogoutDialog(context, ref),
-          ),
-          const SizedBox(width: 8),
-        ],
+      key: _scaffoldKey,
+      backgroundColor: const Color(0xFFF8F9FA),
+      drawer: HomeDrawer(
+        user: user,
+        onLogout: () {
+          Navigator.of(context).pop();
+          _showLogoutDialog(context, ref);
+        },
+      ),
+      bottomNavigationBar: HomeBottomBar(
+        onHomeTap: () {},
+        onMapTap: () => context.push('/map'),
+        onCreateComplaintTap: () => context.push('/create-complaint'),
+        onComplaintsTap: () => context.push('/my-complaints'),
+        onMoreTap: () => _scaffoldKey.currentState?.openDrawer(),
       ),
       body: SafeArea(
         child: RefreshIndicator(
@@ -187,116 +130,114 @@ class _HomePageState extends ConsumerState<HomePage> {
               await ref
                   .read(fieldWorkNotifierProvider.notifier)
                   .loadAssignments();
-            } else {
-              ref.invalidate(recentComplaintsProvider);
-              try {
-                await ref.read(recentComplaintsProvider.future);
-              } catch (_) {}
             }
+            ref.invalidate(myComplaintsProvider);
+            ref.invalidate(recentComplaintsProvider);
+            await ref
+                .read(communityComplaintsNotifierProvider.notifier)
+                .loadInitial();
             ref.read(notificationsNotifierProvider.notifier).refresh();
           },
           child: SingleChildScrollView(
             physics: const AlwaysScrollableScrollPhysics(),
-            padding: const EdgeInsets.all(20.0),
+            padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                // 1. Welcome Card (Personalized for Field Worker vs Citizen)
-                _buildWelcomeCard(context, user, isFieldWorker),
-
-                const SizedBox(height: 20),
-
-                // 2. Field Worker Specialized Section
-                if (isFieldWorker) ...[
-                  _buildFieldWorkerHub(context, ref),
-                  const SizedBox(height: 24),
-                ],
-
-                // 3. Citizen Quick Services
-                if (!isFieldWorker) ...[
-                  const Text(
-                    'الخدمات السريعة',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w700,
-                      color: AppColors.yemenBlack,
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: _buildServiceCard(
-                          icon: Icons.campaign_rounded,
-                          title: 'تقديم بلاغ',
-                          color: AppColors.yemenRed,
-                          onTap: () => context.push('/create-complaint'),
-                        ),
-                      ),
-                      const SizedBox(width: 14),
-                      Expanded(
-                        child: _buildServiceCard(
-                          icon: Icons.track_changes_rounded,
-                          title: 'متابعة البلاغات',
-                          color: AppColors.yemenEmerald,
-                          onTap: () => context.push('/my-complaints'),
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 14),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: _buildServiceCard(
-                          icon: Icons.groups_rounded,
-                          title: 'مجتمع بادر / البلاغات العامة',
-                          color: AppColors.yemenRed,
-                          onTap: () => context.push('/community-complaints'),
-                        ),
-                      ),
-                      const SizedBox(width: 14),
-                      Expanded(
-                        child: _buildServiceCard(
-                          icon: Icons.construction_rounded,
-                          title: 'المشاريع المجتمعية',
-                          color: AppColors.yemenGold,
-                          onTap: () => context.push('/projects'),
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 14),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: _buildServiceCard(
-                          icon: Icons.map_rounded,
-                          title: 'الخريطة التفاعلية',
-                          color: AppColors.yemenBlackMuted,
-                          onTap: () => context.push('/map'),
-                        ),
-                      ),
-                      const SizedBox(width: 14),
-                      Expanded(
-                        child: _buildServiceCard(
-                          icon: Icons.support_agent_rounded,
-                          title: 'الدعم والمساعدة',
-                          color: AppColors.yemenBlackMuted,
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 24),
-
-                  // Recent Complaints Section for Citizens
-                  _buildRecentComplaintsSection(context, ref),
-                ],
+                // 1. Top Bar matching the mockup
+                _buildTopBar(context, ref, user),
 
                 const SizedBox(height: 16),
 
-                // Account Details Card
-                _buildAccountInfoCard(context, user),
+                // 2. Carousel with 4 auto-sliding cards (every 5 seconds)
+                HomeCarouselSlider(
+                  items: [
+                    // Card 1
+                    HomeCarouselItem(
+                      imagePath: 'assets/images/HomeCard1.jpg',
+                      title: 'معاً .. نحو بيئة أفضل',
+                      description:
+                          'شارك في تحسين خدمات مدينتك من خلال الإبلاغ عن المشاكل والأعطال.',
+                      buttonText: 'تقديم بلاغ',
+                      onTap: () => context.push('/create-complaint'),
+                    ),
+                    // Card 2
+                    HomeCarouselItem(
+                      imagePath: 'assets/images/HomeCard2.jpg',
+                      title: 'شاهد البلاغات على الخريطة',
+                      description:
+                          'استعرض جميع البلاغات العامة والمشاريع التنموية في موقعها على الخريطة.',
+                      buttonText: 'عرض الخريطة',
+                      onTap: () => context.push('/map'),
+                    ),
+                    // Card 3
+                    HomeCarouselItem(
+                      imagePath: 'assets/images/HomeCard3.jpg',
+                      title: 'المشاريع التنموية',
+                      description:
+                          'تعرف على المشاريع الجارية والمستقبلية في جميع مناطق الجمهورية.',
+                      buttonText: 'استعرض المشاريع',
+                      onTap: () => context.push('/projects'),
+                    ),
+                    // Card 4
+                    HomeCarouselItem(
+                      imagePath: 'assets/images/HomeCard4.jpg',
+                      title: 'الدعم والمساعدة',
+                      description:
+                          'تواصل معنا في حال وجود أي استفسار أو تحتاج مساعدة.',
+                      buttonText: 'تواصل معنا',
+                      onTap: () => HomeSupportModal.show(context),
+                    ),
+                  ],
+                ),
+
+                const SizedBox(height: 20),
+
+                // 3. Status Counters Row (4 cards matching the mockup)
+                HomeStatsRow(
+                  newCount: newCount,
+                  underReviewCount: underReviewCount,
+                  inProgressCount: inProgressCount,
+                  resolvedCount: resolvedCount,
+                  onStatTap: (status) => context.push('/my-complaints'),
+                ),
+
+                const SizedBox(height: 24),
+
+                // 4. Quick Access (2 rows: 4 cards then 3 cards)
+                HomeQuickAccess(
+                  onPublicComplaintsTap: () =>
+                      context.push('/community-complaints'),
+                  onMyComplaintsTap: () => context.push('/my-complaints'),
+                  onProjectsTap: () => context.push('/projects'),
+                  onMapTap: () => context.push('/map'),
+                  onProfileTap: () => context.push('/profile'),
+                  onNotificationsTap: () => context.push('/notifications'),
+                  onSupportTap: () => HomeSupportModal.show(context),
+                ),
+
+                const SizedBox(height: 24),
+
+                // 5. Field Worker Specialized Section (if applicable)
+                if (isFieldWorker) ...[
+                  _buildFieldWorkerSection(context, ref),
+                  const SizedBox(height: 24),
+                ],
+
+                // 6. Latest Public Complaints Section
+                HomePublicComplaintsSection(
+                  complaints: communityState.complaints,
+                  isLoading: communityState.isLoadingInitial,
+                  errorMessage: communityState.errorMessage,
+                  onViewAllTap: () => context.push('/community-complaints'),
+                  onComplaintTap: (complaint) => context.push(
+                    '/complaints/${complaint.id}',
+                    extra: complaint,
+                  ),
+                  onRetry: () => ref
+                      .read(communityComplaintsNotifierProvider.notifier)
+                      .loadInitial(),
+                ),
 
                 const SizedBox(height: 24),
               ],
@@ -307,161 +248,142 @@ class _HomePageState extends ConsumerState<HomePage> {
     );
   }
 
-  Widget _buildWelcomeCard(BuildContext context, UserEntity? user, bool isFieldWorker) {
-    return Material(
-      color: Colors.transparent,
-      borderRadius: BorderRadius.circular(20),
-      child: InkWell(
-        onTap: () => context.push('/profile'),
-        borderRadius: BorderRadius.circular(20),
-        child: Container(
-          padding: const EdgeInsets.all(20),
-          decoration: BoxDecoration(
-            gradient: const LinearGradient(
-              colors: [
-                AppColors.yemenBlackLight,
-                AppColors.yemenBlack,
-              ],
-              begin: Alignment.topRight,
-              end: Alignment.bottomLeft,
+  /// Top Bar: Hamburger menu on the physical left, Notifications & User Avatar on the physical right
+  Widget _buildTopBar(BuildContext context, WidgetRef ref, UserEntity? user) {
+    final unreadCount = ref.watch(unreadNotificationsCountProvider);
+    final hasUnread = unreadCount > 0;
+
+    return Directionality(
+      textDirection: TextDirection.ltr,
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          // Left: Hamburger Menu Icon
+          IconButton(
+            icon: const Icon(
+              Icons.menu_rounded,
+              color: AppColors.yemenBlack,
+              size: 28,
             ),
-            borderRadius: BorderRadius.circular(20),
-            boxShadow: [
-              BoxShadow(
-                color: AppColors.yemenBlack.withValues(alpha: 0.18),
-                blurRadius: 16,
-                offset: const Offset(0, 6),
-              ),
-            ],
+            tooltip: 'القائمة الرئيسية',
+            onPressed: () => _scaffoldKey.currentState?.openDrawer(),
           ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+
+          // Right: Notification Bell & User Avatar
+          Row(
+            mainAxisSize: MainAxisSize.min,
             children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              // Notification Bell with Red Badge
+              Stack(
+                clipBehavior: Clip.none,
                 children: [
-                  Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                    decoration: BoxDecoration(
-                      color: isFieldWorker ? AppColors.yemenGold : AppColors.yemenRed,
-                      borderRadius: BorderRadius.circular(20),
+                  IconButton(
+                    icon: const Icon(
+                      Icons.notifications_none_rounded,
+                      color: AppColors.yemenBlack,
+                      size: 26,
                     ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(
-                          isFieldWorker
-                              ? Icons.engineering_rounded
-                              : Icons.person_rounded,
-                          size: 14,
-                          color: Colors.white,
-                        ),
-                        const SizedBox(width: 6),
-                        Text(
-                          isFieldWorker ? 'موظف صيانة ميدانية' : (user?.primaryRoleName ?? 'مواطن'),
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 12,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ],
-                    ),
+                    tooltip: 'الإشعارات',
+                    onPressed: () => context.push('/notifications'),
                   ),
-                  Row(
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                        decoration: BoxDecoration(
-                          color: Colors.white.withValues(alpha: 0.12),
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: const Row(
-                          children: [
-                            Text(
-                              'الملف الشخصي',
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 11,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            SizedBox(width: 4),
-                            Icon(Icons.arrow_forward_ios_rounded,
-                                size: 10, color: Colors.white),
-                          ],
+                  if (hasUnread)
+                    Positioned(
+                      top: 8,
+                      right: 8,
+                      child: Container(
+                        width: 9,
+                        height: 9,
+                        decoration: const BoxDecoration(
+                          color: AppColors.yemenRed,
+                          shape: BoxShape.circle,
                         ),
                       ),
-                      const SizedBox(width: 8),
-                      CircleAvatar(
-                        radius: 20,
-                        backgroundColor: Colors.white.withValues(alpha: 0.15),
-                        child: Icon(
-                          isFieldWorker
-                              ? Icons.handyman_rounded
-                              : Icons.person_rounded,
-                          color: Colors.white,
-                          size: 22,
-                        ),
-                      ),
-                    ],
-                  ),
+                    ),
                 ],
               ),
-              const SizedBox(height: 16),
-              Text(
-                'أهلاً بك، ${user?.name ?? "مستخدم بادر"}',
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 20,
-                  fontWeight: FontWeight.w800,
-                ),
-              ),
-              const SizedBox(height: 4),
-              Text(
-                user?.department != null
-                    ? 'الجهة: ${user!.department!.name}'
-                    : (user?.email ?? ''),
-                style: TextStyle(
-                  color: Colors.white.withValues(alpha: 0.8),
-                  fontSize: 13,
-                ),
+              const SizedBox(width: 4),
+
+              // User Profile Avatar (First letter of name or network image)
+              GestureDetector(
+                onTap: () => context.push('/profile'),
+                child: _buildUserAvatar(user),
               ),
             ],
           ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildUserAvatar(UserEntity? user) {
+    final name = user?.name.trim() ?? '';
+    final initial = name.isNotEmpty ? name.characters.first : 'م';
+
+    return Container(
+      width: 38,
+      height: 38,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        border: Border.all(color: const Color(0xFFE5E7EB), width: 1.5),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.04),
+            blurRadius: 6,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: ClipOval(
+        child: _buildAvatarInitial(initial),
+      ),
+    );
+  }
+
+  Widget _buildAvatarInitial(String initial) {
+    return Container(
+      color: AppColors.yemenBlack,
+      alignment: Alignment.center,
+      child: Text(
+        initial,
+        style: const TextStyle(
+          color: Colors.white,
+          fontSize: 17,
+          fontWeight: FontWeight.w900,
         ),
       ),
     );
   }
 
-  Widget _buildFieldWorkerHub(BuildContext context, WidgetRef ref) {
+  Widget _buildFieldWorkerSection(BuildContext context, WidgetRef ref) {
     final fieldWorkState = ref.watch(fieldWorkNotifierProvider);
-    final assignments = fieldWorkState.assignments;
-
-    final pendingCount = assignments.where((a) => a.isPending).length;
-    final inProgressCount = assignments.where((a) => a.isInProgress).length;
-    final completedCount = assignments.where((a) => a.isCompleted).length;
-    final activeTasks = assignments.where((a) => !a.isCompleted).toList();
+    final activeTasks = fieldWorkState.assignments
+        .where((a) => !a.isCompleted)
+        .toList();
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Section Header
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            const Row(
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Icon(Icons.dashboard_customize_rounded,
-                    size: 20, color: AppColors.deepBlack),
-                SizedBox(width: 8),
-                Text(
-                  'لوحة مهام الصيانة الميدانية',
+                const Text(
+                  'مهام الصيانة الميدانية',
                   style: TextStyle(
-                    fontSize: 16,
+                    fontSize: 17,
                     fontWeight: FontWeight.w800,
-                    color: AppColors.deepBlack,
+                    color: AppColors.yemenBlack,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Container(
+                  width: 36,
+                  height: 3.5,
+                  decoration: BoxDecoration(
+                    color: AppColors.yemenGold,
+                    borderRadius: BorderRadius.circular(2),
                   ),
                 ),
               ],
@@ -472,7 +394,7 @@ class _HomePageState extends ConsumerState<HomePage> {
               label: const Text(
                 'سجل المهام',
                 style: TextStyle(
-                  color: AppColors.yemenRed,
+                  color: AppColors.yemenGold,
                   fontWeight: FontWeight.bold,
                   fontSize: 13,
                 ),
@@ -480,153 +402,38 @@ class _HomePageState extends ConsumerState<HomePage> {
             ),
           ],
         ),
-
         const SizedBox(height: 12),
-
-        // 4 KPI Metric Chips in a 2x2 grid
-        Row(
-          children: [
-            Expanded(
-              child: _buildMetricCard(
-                title: 'إجمالي المهام',
-                count: assignments.length.toString(),
-                icon: Icons.assignment_rounded,
-                color: AppColors.deepBlack,
-                onTap: () {
-                  ref.read(fieldWorkNotifierProvider.notifier).setFilter('all');
-                  context.push('/tasks');
-                },
-              ),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: _buildMetricCard(
-                title: 'بانتظار القبول',
-                count: pendingCount.toString(),
-                icon: Icons.hourglass_top_rounded,
-                color: AppColors.yemenGold,
-                onTap: () {
-                  ref.read(fieldWorkNotifierProvider.notifier).setFilter('pending');
-                  context.push('/tasks');
-                },
-              ),
-            ),
-          ],
-        ),
-
-        const SizedBox(height: 12),
-
-        Row(
-          children: [
-            Expanded(
-              child: _buildMetricCard(
-                title: 'قيد التنفيذ',
-                count: inProgressCount.toString(),
-                icon: Icons.engineering_rounded,
-                color: AppColors.yemenRed,
-                onTap: () {
-                  ref
-                      .read(fieldWorkNotifierProvider.notifier)
-                      .setFilter('in_progress');
-                  context.push('/tasks');
-                },
-              ),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: _buildMetricCard(
-                title: 'أعمال منجزة',
-                count: completedCount.toString(),
-                icon: Icons.verified_rounded,
-                color: AppColors.yemenEmerald,
-                onTap: () {
-                  ref
-                      .read(fieldWorkNotifierProvider.notifier)
-                      .setFilter('completed');
-                  context.push('/tasks');
-                },
-              ),
-            ),
-          ],
-        ),
-
-        const SizedBox(height: 24),
-
-        // Active Tasks Sub-header
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            const Text(
-              'المهام الميدانية الجارية',
-              style: TextStyle(
-                fontSize: 15,
-                fontWeight: FontWeight.w700,
-                color: AppColors.yemenBlack,
-              ),
-            ),
-            Text(
-              '${activeTasks.length} مهام نشطة',
-              style: const TextStyle(
-                fontSize: 12,
-                color: AppColors.textMuted,
-              ),
-            ),
-          ],
-        ),
-
-        const SizedBox(height: 10),
-
-        if (fieldWorkState.isLoading && assignments.isEmpty)
-          const Center(
-            child: Padding(
-              padding: EdgeInsets.all(24.0),
-              child: CircularProgressIndicator(color: AppColors.yemenRed),
+        if (fieldWorkState.isLoading && activeTasks.isEmpty)
+          const Padding(
+            padding: EdgeInsets.symmetric(vertical: 20),
+            child: Center(
+              child: CircularProgressIndicator(color: AppColors.yemenGold),
             ),
           )
         else if (activeTasks.isEmpty)
           Container(
-            padding: const EdgeInsets.all(20),
+            padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
               color: Colors.white,
               borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: AppColors.borderSubtle),
+              border: Border.all(color: const Color(0xFFF1F3F5)),
             ),
-            child: Row(
+            child: const Row(
               children: [
-                Container(
-                  padding: const EdgeInsets.all(10),
-                  decoration: BoxDecoration(
-                    color: AppColors.yemenEmerald.withValues(alpha: 0.1),
-                    shape: BoxShape.circle,
-                  ),
-                  child: const Icon(
-                    Icons.check_circle_outline_rounded,
-                    color: AppColors.yemenEmerald,
-                    size: 24,
-                  ),
+                Icon(
+                  Icons.check_circle_outline_rounded,
+                  color: AppColors.yemenEmerald,
+                  size: 24,
                 ),
-                const SizedBox(width: 14),
-                const Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'لا توجد مهام معلقة حالياً',
-                        style: TextStyle(
-                          fontSize: 13,
-                          fontWeight: FontWeight.bold,
-                          color: AppColors.textPrimary,
-                        ),
-                      ),
-                      SizedBox(height: 2),
-                      Text(
-                        'تم إنجاز كافة المهام الميدانية المسندة، أو بانتظار تكليفات جديدة من الإدارة.',
-                        style: TextStyle(
-                          fontSize: 11,
-                          color: AppColors.textSecondary,
-                        ),
-                      ),
-                    ],
+                SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    'لا توجد مهام ميدانية جارية حالياً.',
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.textSecondary,
+                    ),
                   ),
                 ),
               ],
@@ -634,9 +441,9 @@ class _HomePageState extends ConsumerState<HomePage> {
           )
         else
           Column(
-            children: activeTasks.take(3).map((assignment) {
+            children: activeTasks.take(2).map((assignment) {
               return Padding(
-                padding: const EdgeInsets.only(bottom: 12.0),
+                padding: const EdgeInsets.only(bottom: 10.0),
                 child: TaskCard(
                   assignment: assignment,
                   onTap: () {
@@ -650,359 +457,6 @@ class _HomePageState extends ConsumerState<HomePage> {
             }).toList(),
           ),
       ],
-    );
-  }
-
-  Widget _buildMetricCard({
-    required String title,
-    required String count,
-    required IconData icon,
-    required Color color,
-    required VoidCallback onTap,
-  }) {
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(14),
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: AppColors.borderSubtle),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.02),
-              blurRadius: 6,
-              offset: const Offset(0, 2),
-            ),
-          ],
-        ),
-        child: Row(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                color: color.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(10),
-              ),
-              child: Icon(icon, color: color, size: 20),
-            ),
-            const SizedBox(width: 10),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    count,
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w800,
-                      color: color,
-                    ),
-                  ),
-                  Text(
-                    title,
-                    style: const TextStyle(
-                      fontSize: 11,
-                      color: AppColors.textSecondary,
-                      fontWeight: FontWeight.w500,
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildAccountInfoCard(BuildContext context, UserEntity? user) {
-    return Container(
-      padding: const EdgeInsets.all(18),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.borderSubtle),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              const Text(
-                'بيانات الحساب',
-                style: TextStyle(
-                  fontSize: 15,
-                  fontWeight: FontWeight.w700,
-                  color: AppColors.yemenBlack,
-                ),
-              ),
-              InkWell(
-                onTap: () => context.push('/profile'),
-                borderRadius: BorderRadius.circular(8),
-                child: Padding(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                  child: Row(
-                    children: const [
-                      Text(
-                        'عرض وتعديل',
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: AppColors.yemenRed,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      SizedBox(width: 4),
-                      Icon(Icons.arrow_forward_ios_rounded,
-                          size: 11, color: AppColors.yemenRed),
-                    ],
-                  ),
-                ),
-              ),
-            ],
-          ),
-          const Divider(height: 20),
-          _buildInfoRow(
-            icon: Icons.phone_outlined,
-            label: 'رقم الهاتف',
-            value: (user?.phone != null && user!.phone!.isNotEmpty)
-                ? user.phone!
-                : 'غير مسجل',
-          ),
-          const SizedBox(height: 10),
-          _buildInfoRow(
-            icon: Icons.badge_outlined,
-            label: 'رقم الهوية الوطنية',
-            value: (user?.nationalId != null && user!.nationalId!.isNotEmpty)
-                ? user.nationalId!
-                : 'غير مسجل',
-          ),
-          if (user?.department != null) ...[
-            const SizedBox(height: 10),
-            _buildInfoRow(
-              icon: Icons.business_outlined,
-              label: 'الجهة / القسم',
-              value: user!.department!.name,
-            ),
-          ],
-        ],
-      ),
-    );
-  }
-
-  Widget _buildRecentComplaintsSection(BuildContext context, WidgetRef ref) {
-    final recentAsync = ref.watch(recentComplaintsProvider);
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            const Text(
-              'شكاواي الأخيرة',
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w700,
-                color: AppColors.yemenBlack,
-              ),
-            ),
-            TextButton(
-              onPressed: () => context.push('/my-complaints'),
-              child: const Text(
-                'عرض الكل',
-                style: TextStyle(
-                  color: AppColors.yemenRed,
-                  fontWeight: FontWeight.w700,
-                  fontSize: 13,
-                ),
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 8),
-        recentAsync.when(
-          data: (complaints) {
-            if (complaints.isEmpty) {
-              return Container(
-                padding: const EdgeInsets.all(18),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: AppColors.borderSubtle),
-                ),
-                child: Row(
-                  children: [
-                    CircleAvatar(
-                      radius: 20,
-                      backgroundColor: AppColors.yemenRedLight,
-                      child: const Icon(Icons.inbox_outlined,
-                          size: 20, color: AppColors.yemenRed),
-                    ),
-                    const SizedBox(width: 12),
-                    const Expanded(
-                      child: Text(
-                        'لا توجد بلاغات مسجلة بعد. يمكنك تقديم بلاغ جديد الآن.',
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: AppColors.textSecondary,
-                        ),
-                      ),
-                    ),
-                    TextButton(
-                      onPressed: () => context.push('/create-complaint'),
-                      child: const Text(
-                        'تقديم',
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          color: AppColors.yemenRed,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              );
-            }
-
-            return Column(
-              children: complaints.take(2).map((item) {
-                return Padding(
-                  padding: const EdgeInsets.only(bottom: 12.0),
-                  child: ComplaintCard(
-                    complaint: item,
-                    onTap: () =>
-                        context.push('/complaints/${item.id}', extra: item),
-                  ),
-                );
-              }).toList(),
-            );
-          },
-          loading: () => const Center(
-            child: Padding(
-              padding: EdgeInsets.all(16.0),
-              child: CircularProgressIndicator(color: AppColors.yemenRed),
-            ),
-          ),
-          error: (err, _) => Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: AppColors.borderSubtle),
-            ),
-            child: Row(
-              children: [
-                const Icon(Icons.info_outline_rounded,
-                    color: AppColors.textMuted, size: 20),
-                const SizedBox(width: 8),
-                const Expanded(
-                  child: Text(
-                    'تعذر استرجاع الشكاوى الأخيرة.',
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: AppColors.textSecondary,
-                    ),
-                  ),
-                ),
-                TextButton(
-                  onPressed: () => ref.invalidate(recentComplaintsProvider),
-                  child: const Text(
-                    'إعادة المحاولة',
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: AppColors.yemenBlack,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildInfoRow({
-    required IconData icon,
-    required String label,
-    required String value,
-  }) {
-    return Row(
-      children: [
-        Icon(icon, size: 18, color: AppColors.textSecondary),
-        const SizedBox(width: 10),
-        Text(
-          label,
-          style: const TextStyle(
-            fontSize: 13,
-            color: AppColors.textSecondary,
-          ),
-        ),
-        const Spacer(),
-        Text(
-          value,
-          style: const TextStyle(
-            fontSize: 13,
-            fontWeight: FontWeight.w600,
-            color: AppColors.yemenBlack,
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildServiceCard({
-    required IconData icon,
-    required String title,
-    required Color color,
-    VoidCallback? onTap,
-  }) {
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(16),
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 16),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: AppColors.borderSubtle),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.02),
-              blurRadius: 10,
-              offset: const Offset(0, 4),
-            ),
-          ],
-        ),
-        child: Column(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: color.withValues(alpha: 0.1),
-                shape: BoxShape.circle,
-              ),
-              child: Icon(icon, color: color, size: 28),
-            ),
-            const SizedBox(height: 12),
-            Text(
-              title,
-              textAlign: TextAlign.center,
-              style: const TextStyle(
-                fontSize: 13,
-                fontWeight: FontWeight.w700,
-                color: AppColors.yemenBlack,
-              ),
-            ),
-          ],
-        ),
-      ),
     );
   }
 }
