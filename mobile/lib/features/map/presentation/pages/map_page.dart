@@ -10,6 +10,7 @@ import '../../application/map_notifier.dart';
 import '../../../auth/application/providers.dart';
 import '../../../complaints/domain/entities/complaint_entity.dart';
 import '../../../projects/domain/entities/project_entity.dart';
+import '../../../home/presentation/widgets/home_drawer.dart';
 
 enum MapStyleType {
   positron, // النمط الأبيض الناصع المتناغم مع هوية بادر (الافتراضي)
@@ -25,6 +26,7 @@ class MapPage extends ConsumerStatefulWidget {
 
 class _MapPageState extends ConsumerState<MapPage>
     with SingleTickerProviderStateMixin {
+  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   final MapController _mapController = MapController();
   MapStyleType _currentStyle = MapStyleType.positron;
   // مفتاح CARTO Basemaps API Key
@@ -128,6 +130,8 @@ class _MapPageState extends ConsumerState<MapPage>
     }
 
     return Scaffold(
+      key: _scaffoldKey,
+      drawer: const HomeDrawer(),
       backgroundColor: AppColors.backgroundSubtle,
       body: Stack(
         children: [
@@ -361,6 +365,11 @@ class _MapPageState extends ConsumerState<MapPage>
                 ),
               ],
             ),
+          ),
+          IconButton(
+            icon: const Icon(Icons.menu_rounded, color: AppColors.deepBlack),
+            tooltip: 'القائمة الرئيسية',
+            onPressed: () => _scaffoldKey.currentState?.openDrawer(),
           ),
           IconButton(
             icon: const Icon(Icons.refresh_rounded, color: AppColors.deepBlack),

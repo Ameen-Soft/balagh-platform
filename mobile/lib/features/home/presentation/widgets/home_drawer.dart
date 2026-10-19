@@ -1,24 +1,27 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/constants/app_colors.dart';
+import '../../../auth/application/providers.dart';
 import '../../../auth/domain/entities/user_entity.dart';
 import 'home_support_modal.dart';
 
-class HomeDrawer extends StatelessWidget {
+class HomeDrawer extends ConsumerWidget {
   final UserEntity? user;
-  final VoidCallback onLogout;
+  final VoidCallback? onLogout;
 
   const HomeDrawer({
     super.key,
-    required this.user,
-    required this.onLogout,
+    this.user,
+    this.onLogout,
   });
 
   @override
-  Widget build(BuildContext context) {
-    final name = user?.name.trim() ?? '';
+  Widget build(BuildContext context, WidgetRef ref) {
+    final effectiveUser = user ?? ref.watch(authNotifierProvider).user;
+    final name = effectiveUser?.name.trim() ?? '';
     final initial = name.isNotEmpty ? name.characters.first : 'م';
-    final isFieldWorker = user?.isFieldWorker == true;
+    final isFieldWorker = effectiveUser?.isFieldWorker == true;
 
     return Drawer(
       backgroundColor: Colors.white,
@@ -75,7 +78,7 @@ class HomeDrawer extends StatelessWidget {
                       child: Text(
                         isFieldWorker
                             ? 'صيانة ميدانية'
-                            : (user?.primaryRoleName ?? 'مواطن'),
+                            : (effectiveUser?.primaryRoleName ?? 'مواطن'),
                         style: const TextStyle(
                           color: Colors.white,
                           fontSize: 11,
@@ -87,7 +90,7 @@ class HomeDrawer extends StatelessWidget {
                 ),
                 const SizedBox(height: 14),
                 Text(
-                  user?.name ?? 'مستخدم بادر',
+                  effectiveUser?.name ?? 'مستخدم بادر',
                   style: const TextStyle(
                     color: Colors.white,
                     fontSize: 17,
@@ -96,7 +99,7 @@ class HomeDrawer extends StatelessWidget {
                 ),
                 const SizedBox(height: 3),
                 Text(
-                  user?.email ?? '',
+                  effectiveUser?.email ?? '',
                   style: TextStyle(
                     color: Colors.white.withValues(alpha: 0.7),
                     fontSize: 12,
@@ -114,7 +117,10 @@ class HomeDrawer extends StatelessWidget {
                 _buildDrawerItem(
                   icon: Icons.home_rounded,
                   title: 'الرئيسية',
-                  onTap: () => Navigator.of(context).pop(),
+                  onTap: () {
+                    Navigator.of(context).pop();
+                    context.go('/home');
+                  },
                 ),
                 _buildDrawerItem(
                   icon: Icons.add_circle_outline_rounded,
@@ -218,9 +224,53 @@ class HomeDrawer extends StatelessWidget {
                     fontSize: 14,
                   ),
                 ),
-                onTap: onLogout,
+                onTap: onLogout ?? () {
+                  Navigator.of(context).pop();
+                  _showDefaultLogoutDialog(context, ref);
+                },
               ),
             ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showDefaultLogoutDialog(BuildContext context, WidgetRef ref) {
+    showDialog(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: const Text(
+          'تسجيل الخروج',
+          textAlign: TextAlign.right,
+          style: TextStyle(fontWeight: FontWeight.bold),
+        ),
+        content: const Text(
+          'هل أنت متأكد من رغبتك في تسجيل الخروج من منصة بادر؟',
+          textAlign: TextAlign.right,
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(),
+            child: const Text(
+              'إلغاء',
+              style: TextStyle(color: AppColors.textSecondary),
+            ),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.of(dialogContext).pop();
+              ref.read(authNotifierProvider.notifier).logout();
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.yemenRed,
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(10),
+              ),
+            ),
+            child: const Text('تأكيد الخروج'),
           ),
         ],
       ),

@@ -1,8 +1,8 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import '../../../../core/constants/app_colors.dart';
-import '../../../../core/utils/app_date_formatter.dart';
+import '../../../../core/network/media_url_resolver.dart';
 import '../../domain/entities/complaint_entity.dart';
-import 'status_badge.dart';
 
 class ComplaintCard extends StatelessWidget {
   final ComplaintEntity complaint;
@@ -16,10 +16,13 @@ class ComplaintCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final priorityColor = _getPriorityColor(complaint.priority);
+    final statusConfig = _getStatusConfig(complaint.status);
     final formattedDate = complaint.createdAt != null
-        ? AppDateFormatter.formatDate(complaint.createdAt)
-        : null;
+        ? '${complaint.createdAt!.year}/${complaint.createdAt!.month.toString().padLeft(2, '0')}/${complaint.createdAt!.day.toString().padLeft(2, '0')}'
+        : '';
+
+    final locationText = _buildLocationText();
+    final imageUrl = _extractImageUrl();
 
     return Material(
       color: Colors.transparent,
@@ -30,133 +33,140 @@ class ComplaintCard extends StatelessWidget {
           decoration: BoxDecoration(
             color: Colors.white,
             borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: AppColors.borderSubtle),
+            border: Border.all(color: const Color(0xFFF1F3F5), width: 1.2),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withValues(alpha: 0.03),
+                color: Colors.black.withValues(alpha: 0.04),
                 blurRadius: 10,
                 offset: const Offset(0, 3),
               ),
             ],
           ),
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+          padding: const EdgeInsets.all(12),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              // Header: Reference Number & Status Badge
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Row(
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 8, vertical: 3),
-                        decoration: BoxDecoration(
-                          color: AppColors.backgroundSubtle,
-                          borderRadius: BorderRadius.circular(6),
-                          border: Border.all(color: AppColors.borderSubtle),
-                        ),
-                        child: Text(
-                          complaint.complaintNumber,
-                          style: const TextStyle(
-                            fontSize: 12,
-                            fontWeight: FontWeight.w800,
-                            color: AppColors.yemenBlack,
-                            letterSpacing: 0.5,
-                          ),
-                        ),
-                      ),
-                      if (complaint.attachments.isNotEmpty) ...[
-                        const SizedBox(width: 8),
-                        Icon(
-                          Icons.photo_camera_outlined,
-                          size: 15,
-                          color: AppColors.textSecondary.withValues(alpha: 0.8),
-                        ),
-                      ],
-                    ],
-                  ),
-                  StatusBadge(status: complaint.status),
-                ],
-              ),
-              const SizedBox(height: 12),
+              // 1. Right Side: Thumbnail with Status Colored Corner Tag
+              _buildThumbnail(imageUrl, statusConfig.color),
 
-              // Title
-              Text(
-                complaint.title,
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-                style: const TextStyle(
-                  fontSize: 15,
-                  fontWeight: FontWeight.w700,
-                  color: AppColors.yemenBlack,
-                  height: 1.3,
-                ),
-              ),
-              const SizedBox(height: 8),
+              const SizedBox(width: 12),
 
-              // Ministry & Category hierarchy
-              Row(
-                children: [
-                  const Icon(
-                    Icons.account_balance_outlined,
-                    size: 14,
-                    color: AppColors.textSecondary,
-                  ),
-                  const SizedBox(width: 5),
-                  Expanded(
-                    child: Text(
-                      '${complaint.ministryName ?? "الجهة المعنية"} • ${complaint.category?.name ?? "عام"}',
-                      style: const TextStyle(
-                        fontSize: 12,
-                        color: AppColors.textSecondary,
-                      ),
+              // 2. Middle: Title, Location with Pin Icon, Date with Calendar Icon
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    // Title
+                    Text(
+                      complaint.title,
+                      maxLines: 1,
                       overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        fontSize: 14.5,
+                        fontWeight: FontWeight.w800,
+                        color: AppColors.yemenBlack,
+                        height: 1.25,
+                      ),
                     ),
-                  ),
-                ],
-              ),
-              const Divider(height: 22),
+                    const SizedBox(height: 6),
 
-              // Footer: Date & Priority
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  if (formattedDate != null)
+                    // Location Pin Row
                     Row(
                       children: [
                         const Icon(
-                          Icons.calendar_today_outlined,
-                          size: 13,
-                          color: AppColors.textMuted,
+                          Icons.location_on_rounded,
+                          size: 14,
+                          color: Color(0xFF9CA3AF),
                         ),
                         const SizedBox(width: 4),
-                        Text(
-                          formattedDate,
-                          style: const TextStyle(
-                            fontSize: 12,
-                            color: AppColors.textMuted,
+                        Expanded(
+                          child: Text(
+                            locationText,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(
+                              fontSize: 11.5,
+                              color: Color(0xFF6B7280),
+                              fontWeight: FontWeight.w500,
+                            ),
                           ),
                         ),
                       ],
-                    )
-                  else
-                    const SizedBox.shrink(),
-                  Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                    decoration: BoxDecoration(
-                      color: priorityColor.withValues(alpha: 0.1),
-                      borderRadius: BorderRadius.circular(6),
                     ),
-                    child: Text(
-                      complaint.priorityArabic,
-                      style: TextStyle(
-                        fontSize: 11,
-                        fontWeight: FontWeight.bold,
-                        color: priorityColor,
+                    const SizedBox(height: 6),
+
+                    // Date Row
+                    if (formattedDate.isNotEmpty)
+                      Row(
+                        children: [
+                          const Icon(
+                            Icons.calendar_today_outlined,
+                            size: 12,
+                            color: Color(0xFF9CA3AF),
+                          ),
+                          const SizedBox(width: 4),
+                          Text(
+                            formattedDate,
+                            style: const TextStyle(
+                              fontSize: 11,
+                              color: Color(0xFF9CA3AF),
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ],
                       ),
+                  ],
+                ),
+              ),
+
+              const SizedBox(width: 10),
+
+              // 3. Left Side: Status Pill Badge and Navigation Arrow
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  // Status Badge Pill
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 4,
+                    ),
+                    decoration: BoxDecoration(
+                      color: statusConfig.backgroundColor,
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          statusConfig.icon,
+                          size: 12,
+                          color: statusConfig.color,
+                        ),
+                        const SizedBox(width: 4),
+                        Text(
+                          statusConfig.label,
+                          style: TextStyle(
+                            color: statusConfig.color,
+                            fontSize: 11,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+
+                  const SizedBox(height: 16),
+
+                  // Arrow Navigation Chevron
+                  const Padding(
+                    padding: EdgeInsets.only(right: 6),
+                    child: Icon(
+                      Icons.chevron_left_rounded,
+                      size: 20,
+                      color: Color(0xFF9CA3AF),
                     ),
                   ),
                 ],
@@ -168,16 +178,190 @@ class ComplaintCard extends StatelessWidget {
     );
   }
 
-  Color _getPriorityColor(String priority) {
-    switch (priority) {
-      case 'urgent':
-      case 'high':
-        return AppColors.yemenRed;
-      case 'low':
-        return AppColors.textSecondary;
-      case 'medium':
-      default:
-        return AppColors.yemenGold;
+  Widget _buildThumbnail(String? imageUrl, Color statusColor) {
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(12),
+      child: SizedBox(
+        width: 74,
+        height: 74,
+        child: Stack(
+          fit: StackFit.expand,
+          children: [
+            // Image or Fallback
+            if (imageUrl != null && imageUrl.isNotEmpty)
+              CachedNetworkImage(
+                imageUrl: imageUrl,
+                fit: BoxFit.cover,
+                placeholder: (context, url) => Container(
+                  color: const Color(0xFFF3F4F6),
+                  child: const Center(
+                    child: SizedBox(
+                      width: 18,
+                      height: 18,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: AppColors.yemenRed,
+                      ),
+                    ),
+                  ),
+                ),
+                errorWidget: (context, url, error) => _buildFallbackThumbnail(),
+              )
+            else
+              _buildFallbackThumbnail(),
+
+            // Top-right status ribbon / corner triangle
+            Positioned(
+              top: 0,
+              right: 0,
+              child: CustomPaint(
+                size: const Size(20, 20),
+                painter: _CornerRibbonPainter(statusColor),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildFallbackThumbnail() {
+    return Container(
+      decoration: const BoxDecoration(
+        gradient: LinearGradient(
+          colors: [Color(0xFFE5E7EB), Color(0xFFF3F4F6)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+      ),
+      child: const Center(
+        child: Icon(
+          Icons.photo_outlined,
+          size: 26,
+          color: Color(0xFF9CA3AF),
+        ),
+      ),
+    );
+  }
+
+  String? _extractImageUrl() {
+    if (complaint.attachments.isNotEmpty) {
+      final first = complaint.attachments.first;
+      final raw = first.fileUrl ?? first.filePath;
+      if (raw.isNotEmpty) {
+        return MediaUrlResolver.resolve(raw);
+      }
     }
+    return null;
+  }
+
+  String _buildLocationText() {
+    if (complaint.ministryName != null && complaint.departmentName != null) {
+      return '${complaint.ministryName} - ${complaint.departmentName}';
+    }
+    if (complaint.ministryName != null) {
+      return '${complaint.ministryName} - ${complaint.category?.name ?? "القسم المعني"}';
+    }
+    if (complaint.category != null) {
+      return complaint.category!.name;
+    }
+    return 'أمانة العاصمة - قسم البلاغات';
+  }
+
+  _StatusConfig _getStatusConfig(String status) {
+    switch (status) {
+      case 'in_progress':
+      case 'assigned':
+        return const _StatusConfig(
+          label: 'قيد المعالجة',
+          color: Color(0xFFDC2626),
+          backgroundColor: Color(0xFFFEE2E2),
+          icon: Icons.access_time_rounded,
+        );
+      case 'resolved':
+      case 'closed':
+        return const _StatusConfig(
+          label: 'تم الحل',
+          color: Color(0xFF16A34A),
+          backgroundColor: Color(0xFFDCFCE7),
+          icon: Icons.check_circle_outline_rounded,
+        );
+      case 'under_review':
+        return const _StatusConfig(
+          label: 'قيد المراجعة',
+          color: Color(0xFFD97706),
+          backgroundColor: Color(0xFFFEF3C7),
+          icon: Icons.access_time_rounded,
+        );
+      case 'rejected':
+        return const _StatusConfig(
+          label: 'مرفوض',
+          color: Color(0xFF6B7280),
+          backgroundColor: Color(0xFFF3F4F6),
+          icon: Icons.highlight_off_rounded,
+        );
+      case 'new':
+      case 'submitted':
+        return const _StatusConfig(
+          label: 'جديد وارد',
+          color: Color(0xFF2563EB),
+          backgroundColor: Color(0xFFDBEAFE),
+          icon: Icons.fiber_new_rounded,
+        );
+      case 'reopened':
+        return const _StatusConfig(
+          label: 'أُعيد فتحها',
+          color: Color(0xFF7C3AED),
+          backgroundColor: Color(0xFFEDE9FE),
+          icon: Icons.replay_rounded,
+        );
+      default:
+        return _StatusConfig(
+          label: complaint.statusArabic,
+          color: const Color(0xFF4B5563),
+          backgroundColor: const Color(0xFFF3F4F6),
+          icon: Icons.info_outline_rounded,
+        );
+    }
+  }
+}
+
+class _StatusConfig {
+  final String label;
+  final Color color;
+  final Color backgroundColor;
+  final IconData icon;
+
+  const _StatusConfig({
+    required this.label,
+    required this.color,
+    required this.backgroundColor,
+    required this.icon,
+  });
+}
+
+class _CornerRibbonPainter extends CustomPainter {
+  final Color color;
+
+  const _CornerRibbonPainter(this.color);
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = color
+      ..style = PaintingStyle.fill;
+
+    final path = Path()
+      ..moveTo(0, 0)
+      ..lineTo(size.width, 0)
+      ..lineTo(size.width, size.height)
+      ..close();
+
+    canvas.drawPath(path, paint);
+  }
+
+  @override
+  bool shouldRepaint(covariant _CornerRibbonPainter oldDelegate) {
+    return oldDelegate.color != color;
   }
 }

@@ -25,6 +25,7 @@ class MyComplaintsNotifier extends Notifier<MyComplaintsState> {
       final result = await _repository.getPaginatedComplaints(
         page: 1,
         status: state.selectedStatus,
+        search: state.searchQuery,
       );
 
       state = state.copyWith(
@@ -61,6 +62,7 @@ class MyComplaintsNotifier extends Notifier<MyComplaintsState> {
       final result = await _repository.getPaginatedComplaints(
         page: nextPage,
         status: state.selectedStatus,
+        search: state.searchQuery,
       );
 
       state = state.copyWith(
@@ -87,6 +89,7 @@ class MyComplaintsNotifier extends Notifier<MyComplaintsState> {
       final result = await _repository.getPaginatedComplaints(
         page: 1,
         status: state.selectedStatus,
+        search: state.searchQuery,
       );
 
       state = state.copyWith(
@@ -116,6 +119,19 @@ class MyComplaintsNotifier extends Notifier<MyComplaintsState> {
     state = state.copyWith(
       selectedStatus: status,
       clearStatus: status == null,
+    );
+
+    await loadInitial();
+  }
+
+  /// Search complaints by keyword or tracking number
+  Future<void> setSearchQuery(String? query) async {
+    final trimmed = query?.trim();
+    if (state.searchQuery == trimmed) return;
+
+    state = state.copyWith(
+      searchQuery: trimmed,
+      clearSearch: trimmed == null || trimmed.isEmpty,
     );
 
     await loadInitial();

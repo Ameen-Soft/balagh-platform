@@ -1,7 +1,16 @@
 import 'package:flutter/material.dart';
 import '../../../../core/constants/app_colors.dart';
 
+enum HomeBottomBarTab {
+  home,
+  map,
+  complaints,
+  more,
+  none,
+}
+
 class HomeBottomBar extends StatelessWidget {
+  final HomeBottomBarTab currentTab;
   final VoidCallback onHomeTap;
   final VoidCallback onMapTap;
   final VoidCallback onCreateComplaintTap;
@@ -10,6 +19,7 @@ class HomeBottomBar extends StatelessWidget {
 
   const HomeBottomBar({
     super.key,
+    this.currentTab = HomeBottomBarTab.home,
     required this.onHomeTap,
     required this.onMapTap,
     required this.onCreateComplaintTap,
@@ -44,11 +54,11 @@ class HomeBottomBar extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              // 1. الرئيسية (Selected with Red indicator)
+              // 1. الرئيسية
               _buildNavItem(
                 icon: Icons.home_rounded,
                 label: 'الرئيسية',
-                isSelected: true,
+                isSelected: currentTab == HomeBottomBarTab.home,
                 onTap: onHomeTap,
               ),
 
@@ -56,7 +66,7 @@ class HomeBottomBar extends StatelessWidget {
               _buildNavItem(
                 icon: Icons.map_outlined,
                 label: 'الخريطة',
-                isSelected: false,
+                isSelected: currentTab == HomeBottomBarTab.map,
                 onTap: onMapTap,
               ),
 
@@ -70,7 +80,7 @@ class HomeBottomBar extends StatelessWidget {
               _buildNavItem(
                 icon: Icons.assignment_outlined,
                 label: 'البلاغات',
-                isSelected: false,
+                isSelected: currentTab == HomeBottomBarTab.complaints,
                 onTap: onComplaintsTap,
               ),
 
@@ -78,7 +88,7 @@ class HomeBottomBar extends StatelessWidget {
               _buildNavItem(
                 icon: Icons.more_horiz_rounded,
                 label: 'المزيد',
-                isSelected: false,
+                isSelected: currentTab == HomeBottomBarTab.more,
                 onTap: onMoreTap,
               ),
             ],

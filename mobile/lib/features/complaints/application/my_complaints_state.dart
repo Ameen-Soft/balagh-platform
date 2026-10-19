@@ -11,6 +11,7 @@ class MyComplaintsState {
   final bool isRefreshing;
   final String? errorMessage;
   final String? selectedStatus;
+  final String? searchQuery;
 
   const MyComplaintsState({
     required this.complaints,
@@ -23,6 +24,7 @@ class MyComplaintsState {
     required this.isRefreshing,
     this.errorMessage,
     this.selectedStatus,
+    this.searchQuery,
   });
 
   factory MyComplaintsState.initial() {
@@ -37,6 +39,7 @@ class MyComplaintsState {
       isRefreshing: false,
       errorMessage: null,
       selectedStatus: null,
+      searchQuery: null,
     );
   }
 
@@ -53,6 +56,8 @@ class MyComplaintsState {
     bool clearError = false,
     String? selectedStatus,
     bool clearStatus = false,
+    String? searchQuery,
+    bool clearSearch = false,
   }) {
     return MyComplaintsState(
       complaints: complaints ?? this.complaints,
@@ -65,6 +70,7 @@ class MyComplaintsState {
       isRefreshing: isRefreshing ?? this.isRefreshing,
       errorMessage: clearError ? null : (errorMessage ?? this.errorMessage),
       selectedStatus: clearStatus ? null : (selectedStatus ?? this.selectedStatus),
+      searchQuery: clearSearch ? null : (searchQuery ?? this.searchQuery),
     );
   }
 }
