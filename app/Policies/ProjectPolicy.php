@@ -43,7 +43,9 @@ class ProjectPolicy
      */
     public function create(User $user): bool
     {
-        return $user->hasPermission('projects.manage');
+        return $user->hasPermission('projects.create')
+            || $user->hasPermission('projects.manage')
+            || $user->hasRole('Ministry Admin');
     }
 
     /**

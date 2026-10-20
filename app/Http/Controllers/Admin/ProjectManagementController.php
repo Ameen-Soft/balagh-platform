@@ -32,6 +32,19 @@ class ProjectManagementController extends Controller
      */
     public function store(Request $request): RedirectResponse
     {
+        if (! $request->has('title') && $request->has('name')) {
+            $request->merge(['title' => $request->input('name')]);
+        }
+        if (! $request->has('target_amount') && $request->has('budget')) {
+            $request->merge(['target_amount' => $request->input('budget')]);
+        }
+        if (! $request->has('department_id')) {
+            $firstDept = Department::first();
+            if ($firstDept) {
+                $request->merge(['department_id' => $firstDept->id]);
+            }
+        }
+
         $validated = $request->validate([
             'title' => 'required|string|max:255',
             'department_id' => 'required|exists:departments,id',
@@ -39,13 +52,15 @@ class ProjectManagementController extends Controller
             'target_amount' => 'required|numeric|min:0',
             'latitude' => 'required|numeric|between:-90,90',
             'longitude' => 'required|numeric|between:-180,180',
-            'status' => 'required|in:active,completed,suspended,planning,in_progress',
+            'status' => 'required|in:active,completed,suspended,planning,in_progress,draft,published',
+            'image' => 'nullable|file|image|mimes:jpeg,png,jpg,webp|max:5120',
         ]);
 
-        $validated['current_amount'] = 0;
-        $validated['created_by'] = auth()->id();
-
-        Project::create($validated);
+        $this->projectService->createProject(
+            $validated,
+            $request->file('image'),
+            auth()->user()
+        );
 
         return back()->with('success', 'تم إنشاء المشروع التنموي بنجاح.');
     }

@@ -9,6 +9,7 @@ use App\Http\Controllers\Admin\UserManagementController;
 use App\Http\Controllers\Ministry\ComplaintOperationsController;
 use App\Http\Controllers\Ministry\DashboardController as MinistryDashboardController;
 use App\Http\Controllers\Ministry\FieldAssignmentController;
+use App\Http\Controllers\Ministry\MinistryProjectController;
 use App\Http\Controllers\Ministry\TransferOperationsController;
 use App\Http\Controllers\PublicController;
 use Illuminate\Support\Facades\Route;
@@ -98,6 +99,11 @@ Route::middleware([
 
     // Transfers
     Route::get('/transfers', [TransferOperationsController::class, 'index'])->name('transfers.index');
+
+    // Developmental Projects Management
+    Route::get('/projects', [MinistryProjectController::class, 'index'])->name('projects.index');
+    Route::post('/projects', [MinistryProjectController::class, 'store'])->name('projects.store');
+    Route::post('/projects/{project}/update-progress', [MinistryProjectController::class, 'updateProgress'])->name('projects.update_progress');
 });
 
 /*

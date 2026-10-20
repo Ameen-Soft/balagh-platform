@@ -6,7 +6,7 @@
                 <span class="w-2.5 h-2.5 rounded-full bg-red-600"></span>
                 إضافة مشروع تنموي جديد
             </h3>
-            <form method="POST" action="{{ route('admin.projects.store') }}" class="space-y-3">
+            <form method="POST" action="{{ route('admin.projects.store') }}" enctype="multipart/form-data" class="space-y-3">
                 @csrf
                 <div>
                     <label class="block text-xs font-bold text-slate-700 mb-1">اسم المشروع التنموي</label>
@@ -69,6 +69,12 @@
                               class="w-full py-2 px-3 rounded-xl border border-slate-300 text-xs focus:ring-2 focus:ring-red-500"></textarea>
                 </div>
 
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1">صورة المشروع (اختياري)</label>
+                    <input type="file" name="image" accept="image/*" 
+                           class="w-full py-1.5 px-3 rounded-xl border border-slate-300 text-xs text-slate-600 focus:ring-2 focus:ring-red-500 file:mr-2 file:py-1 file:px-2.5 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-slate-100 file:text-slate-700 hover:file:bg-slate-200">
+                </div>
+
                 <button type="submit" class="w-full py-2.5 rounded-xl bg-red-600 text-white font-bold text-xs hover:bg-red-700 transition">
                     + إطلاق المشروع التنموي
                 </button>
@@ -98,8 +104,19 @@
                         @forelse($projects as $p)
                             <tr class="hover:bg-slate-50/80 transition">
                                 <td class="py-4 px-6">
-                                    <p class="font-bold text-slate-900">{{ $p->name }}</p>
-                                    <p class="text-[10px] text-slate-400">#PRJ-{{ $p->id }} | {{ $p->governorate ?? 'صنعاء' }}</p>
+                                    <div class="flex items-center gap-3">
+                                        @if($p->image_url)
+                                            <img src="{{ $p->image_url }}" alt="{{ $p->name }}" class="w-10 h-10 rounded-lg object-cover shrink-0 border border-slate-200">
+                                        @else
+                                            <div class="w-10 h-10 rounded-lg bg-slate-100 border border-slate-200 flex items-center justify-center shrink-0 text-slate-400">
+                                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                                            </div>
+                                        @endif
+                                        <div>
+                                            <p class="font-bold text-slate-900">{{ $p->name }}</p>
+                                            <p class="text-[10px] text-slate-400">#PRJ-{{ $p->id }} | {{ $p->governorate ?? 'صنعاء' }}</p>
+                                        </div>
+                                    </div>
                                 </td>
                                 <td class="py-4 px-6 whitespace-nowrap">
                                     <div class="flex items-center gap-2">

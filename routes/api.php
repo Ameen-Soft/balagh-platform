@@ -108,7 +108,8 @@ Route::prefix('v1')->group(function () {
             Route::post('/{assignment}/complete', [FieldAssignmentController::class, 'complete']);
         });
 
-        // Developmental Project Community Contributions
+        // Developmental Projects Management & Community Contributions
+        Route::post('/projects', [ProjectController::class, 'store']);
         Route::post('/projects/{project}/contribute', [ProjectController::class, 'contribute']);
     });
 });
