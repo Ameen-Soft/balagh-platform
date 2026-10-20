@@ -22,6 +22,8 @@ class ProjectResource extends JsonResource
             'id' => $this->id,
             'title' => $this->title,
             'description' => $this->description,
+            'image_path' => $this->image_path,
+            'image_url' => $this->image_url,
             'status' => $this->status,
             'target_amount' => $target,
             'current_amount' => $current,

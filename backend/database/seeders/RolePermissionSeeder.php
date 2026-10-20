@@ -29,6 +29,7 @@ class RolePermissionSeeder extends Seeder
             'departments.manage',
             'categories.manage',
             'projects.manage',
+            'projects.create',
             'projects.contribute',
             'settings.manage',
             'reports.view',
@@ -62,6 +63,7 @@ class RolePermissionSeeder extends Seeder
                 'complaints.close',
                 'tasks.view',
                 'tasks.assign',
+                'projects.create',
                 'reports.view',
             ],
             'Super Admin' => $permissions, // Full permissions

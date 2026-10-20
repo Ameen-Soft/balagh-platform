@@ -6,8 +6,10 @@ use App\Http\Controllers\Api\ApiResponseTrait;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Project\FilterProjectRequest;
 use App\Http\Requests\Project\StoreProjectContributionRequest;
+use App\Http\Requests\Project\StoreProjectRequest;
 use App\Http\Resources\ProjectContributionResource;
 use App\Http\Resources\ProjectResource;
+use App\Models\Department;
 use App\Models\Project;
 use App\Services\ProjectService;
 use Illuminate\Http\JsonResponse;
@@ -60,6 +62,35 @@ class ProjectController extends Controller
         return $this->successResponse(
             new ProjectContributionResource($contribution),
             'تم تسجيل المساهمة التنموية بنجاح.',
+            201
+        );
+    }
+
+    /**
+     * Store a new developmental project.
+     */
+    public function store(StoreProjectRequest $request): JsonResponse
+    {
+        Gate::authorize('create', Project::class);
+
+        $user = $request->user();
+        $validated = $request->validated();
+
+        // Scope check: Ministry Admin can only create projects for departments within their ministry
+        if (! $user->hasRole('Super Admin') && $user->hasRole('Ministry Admin')) {
+            $userMinistryId = $user->department?->ministry_id;
+            $dept = Department::find($validated['department_id']);
+            if (! $dept || $dept->ministry_id !== $userMinistryId) {
+                return $this->errorResponse('لا تملك صلاحية إنشاء مشروع تابع لوزارة أو جهة أخرى.', 403);
+            }
+        }
+
+        $imageFile = $request->file('image');
+        $project = $this->projectService->createProject($validated, $imageFile, $user);
+
+        return $this->successResponse(
+            new ProjectResource($project),
+            'تم إنشاء المشروع التنموي بنجاح.',
             201
         );
     }

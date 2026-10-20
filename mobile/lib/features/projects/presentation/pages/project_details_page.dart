@@ -192,6 +192,21 @@ class _ProjectDetailsPageState extends ConsumerState<ProjectDetailsPage> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
+                    // Optional Project Hero Image Banner
+                    if (project.imageUrl != null && project.imageUrl!.trim().isNotEmpty) ...[
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(18),
+                        child: Image.network(
+                          project.imageUrl!,
+                          height: 180,
+                          width: double.infinity,
+                          fit: BoxFit.cover,
+                          errorBuilder: (context, error, stackTrace) => const SizedBox.shrink(),
+                        ),
+                      ),
+                      const SizedBox(height: 14),
+                    ],
+
                     // 1. Hero Card: Status & Title & Ministry
                     Container(
                       padding: const EdgeInsets.all(18),

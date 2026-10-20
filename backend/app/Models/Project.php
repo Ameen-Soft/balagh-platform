@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Storage;
 
 class Project extends Model
 {
@@ -12,6 +13,7 @@ class Project extends Model
     protected $fillable = [
         'title',
         'description',
+        'image_path',
         'department_id',
         'target_amount',
         'current_amount',
@@ -19,6 +21,10 @@ class Project extends Model
         'latitude',
         'longitude',
         'created_by',
+    ];
+
+    protected $appends = [
+        'image_url',
     ];
 
     protected function casts(): array
@@ -49,6 +55,20 @@ class Project extends Model
     public function getNameAttribute(): string
     {
         return $this->title ?? '';
+    }
+
+    public function getImageUrlAttribute(): ?string
+    {
+        if (! $this->image_path) {
+            return null;
+        }
+
+        if (str_starts_with($this->image_path, 'http://') || str_starts_with($this->image_path, 'https://')) {
+            return $this->image_path;
+        }
+
+        $disk = config('balagh.storage.disk', 'public');
+        return Storage::disk($disk)->url($this->image_path);
     }
 
     public function getBudgetAttribute(): float

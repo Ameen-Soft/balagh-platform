@@ -10,6 +10,8 @@ class ProjectModel {
   final double targetAmount;
   final double currentAmount;
   final double progressPercentage;
+  final String? imageUrl;
+  final String? imagePath;
   final double? latitude;
   final double? longitude;
   final String? departmentName;
@@ -28,6 +30,8 @@ class ProjectModel {
     required this.targetAmount,
     required this.currentAmount,
     required this.progressPercentage,
+    this.imageUrl,
+    this.imagePath,
     this.latitude,
     this.longitude,
     this.departmentName,
@@ -100,6 +104,8 @@ class ProjectModel {
       targetAmount: parseDouble(json['target_amount']),
       currentAmount: parseDouble(json['current_amount']),
       progressPercentage: parseDouble(json['progress_percentage']),
+      imageUrl: json['image_url']?.toString(),
+      imagePath: json['image_path']?.toString(),
       latitude: parseNullableDouble(json['latitude']),
       longitude: parseNullableDouble(json['longitude']),
       departmentName: parsedDeptName,
@@ -121,6 +127,8 @@ class ProjectModel {
       'target_amount': targetAmount,
       'current_amount': currentAmount,
       'progress_percentage': progressPercentage,
+      'image_url': imageUrl,
+      'image_path': imagePath,
       'latitude': latitude,
       'longitude': longitude,
       if (departmentName != null)
@@ -145,6 +153,8 @@ class ProjectModel {
       targetAmount: targetAmount,
       currentAmount: currentAmount,
       progressPercentage: progressPercentage,
+      imageUrl: imageUrl,
+      imagePath: imagePath,
       latitude: latitude,
       longitude: longitude,
       departmentName: departmentName,

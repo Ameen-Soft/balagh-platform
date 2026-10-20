@@ -6,13 +6,15 @@ use App\Models\Project;
 use App\Models\ProjectContribution;
 use App\Models\User;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
 class ProjectService
 {
     public function __construct(
-        protected NotificationService $notificationService
+        protected NotificationService $notificationService,
+        protected FileUploadService $fileUploadService
     ) {}
 
     /**
@@ -125,5 +127,26 @@ class ProjectService
         );
 
         return $contribution->load(['project', 'contributor']);
+    }
+
+    /**
+     * Create a developmental project with optional image upload.
+     *
+     * @param  array<string, mixed>  $data
+     */
+    public function createProject(array $data, ?UploadedFile $image = null, ?User $creator = null): Project
+    {
+        $creatorId = $creator?->id ?? auth()->id();
+
+        if ($image) {
+            $uploaded = $this->fileUploadService->upload($image, 'projects');
+            $data['image_path'] = $uploaded['file_path'];
+        }
+
+        $data['created_by'] = $creatorId;
+        $data['current_amount'] = $data['current_amount'] ?? 0;
+        $data['status'] = $data['status'] ?? 'active';
+
+        return Project::create($data)->load(['department.ministry', 'createdBy']);
     }
 }

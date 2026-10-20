@@ -9,6 +9,8 @@ class ProjectEntity {
   final double targetAmount;
   final double currentAmount;
   final double progressPercentage;
+  final String? imageUrl;
+  final String? imagePath;
   final double? latitude;
   final double? longitude;
   final String? departmentName;
@@ -27,6 +29,8 @@ class ProjectEntity {
     required this.targetAmount,
     required this.currentAmount,
     required this.progressPercentage,
+    this.imageUrl,
+    this.imagePath,
     this.latitude,
     this.longitude,
     this.departmentName,
@@ -48,11 +52,14 @@ class ProjectEntity {
         return 'منشور';
       case 'active':
         return 'نشط';
+      case 'planning':
+        return 'مخطط له';
       case 'in_progress':
         return 'قيد التنفيذ';
       case 'completed':
         return 'مكتمل';
       case 'suspended':
+      case 'halted':
         return 'معلق';
       default:
         return status;
