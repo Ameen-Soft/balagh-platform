@@ -9,6 +9,8 @@ use App\Models\User;
 use Database\Seeders\MinistryDepartmentSeeder;
 use Database\Seeders\RolePermissionSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
 
 class ProjectApiTest extends TestCase
@@ -109,5 +111,92 @@ class ProjectApiTest extends TestCase
             'user_id' => $this->citizen->id,
             'type' => 'project_contribution_success',
         ]);
+    }
+
+    public function test_ministry_admin_can_create_project_without_image(): void
+    {
+        $ministryAdmin = User::factory()->create([
+            'is_active' => true,
+            'department_id' => $this->department->id,
+        ]);
+        $ministryAdmin->roles()->attach(Role::where('name', 'Ministry Admin')->first()->id);
+
+        $payload = [
+            'title' => 'مشروع إنشاء شبكة صرف صحي حديثة',
+            'description' => 'يهدف المشروع إلى توفير بنية تحتية متكاملة لخدمة 10 آلاف مواطن.',
+            'department_id' => $this->department->id,
+            'target_amount' => 150000.00,
+            'latitude' => 15.369445,
+            'longitude' => 44.191007,
+            'status' => 'active',
+        ];
+
+        $response = $this->actingAs($ministryAdmin, 'sanctum')
+            ->postJson('/api/v1/projects', $payload);
+
+        $response->assertStatus(201)
+            ->assertJsonPath('success', true)
+            ->assertJsonPath('data.title', $payload['title'])
+            ->assertJsonPath('data.image_path', null);
+
+        $this->assertDatabaseHas('projects', [
+            'title' => $payload['title'],
+            'department_id' => $this->department->id,
+            'created_by' => $ministryAdmin->id,
+            'image_path' => null,
+        ]);
+    }
+
+    public function test_ministry_admin_can_create_project_with_optional_image(): void
+    {
+        Storage::fake('public');
+
+        $ministryAdmin = User::factory()->create([
+            'is_active' => true,
+            'department_id' => $this->department->id,
+        ]);
+        $ministryAdmin->roles()->attach(Role::where('name', 'Ministry Admin')->first()->id);
+
+        $image = UploadedFile::fake()->create('project_photo.jpg', 100, 'image/jpeg');
+
+        $payload = [
+            'title' => 'مشروع إنشاء مركز صحي نموذجي',
+            'description' => 'مشروع صحي تنموي لتخفيف العبء عن المستشفيات المركزية.',
+            'department_id' => $this->department->id,
+            'target_amount' => 250000.00,
+            'latitude' => 15.369445,
+            'longitude' => 44.191007,
+            'status' => 'active',
+            'image' => $image,
+        ];
+
+        $response = $this->actingAs($ministryAdmin, 'sanctum')
+            ->postJson('/api/v1/projects', $payload);
+
+        $response->assertStatus(201)
+            ->assertJsonPath('success', true)
+            ->assertJsonPath('data.title', $payload['title']);
+
+        $createdProject = Project::where('title', $payload['title'])->first();
+        $this->assertNotNull($createdProject);
+        $this->assertNotNull($createdProject->image_path);
+        Storage::disk('public')->assertExists($createdProject->image_path);
+    }
+
+    public function test_citizen_cannot_create_project(): void
+    {
+        $payload = [
+            'title' => 'مشروع غير مصرح',
+            'description' => 'محاولة إنشاء مشروع من حساب مواطن.',
+            'department_id' => $this->department->id,
+            'target_amount' => 50000.00,
+            'latitude' => 15.369445,
+            'longitude' => 44.191007,
+        ];
+
+        $response = $this->actingAs($this->citizen, 'sanctum')
+            ->postJson('/api/v1/projects', $payload);
+
+        $response->assertStatus(403);
     }
 }
