@@ -21,13 +21,12 @@
                 </div>
                 <div>
                     <label class="block text-xs font-bold text-slate-700 mb-1">المسؤول عن الوزارة (مشرف الوزارة)</label>
-                    <select name="admin_user_id" class="w-full py-2 px-3 rounded-xl border border-slate-300 text-xs focus:ring-2 focus:ring-red-500">
-                        <option value="">-- اختياري: تعيين مشرف الآن --</option>
-                        @foreach($eligibleUsers as $user)
-                            <option value="{{ $user->id }}">{{ $user->name }} ({{ $user->email }})</option>
-                        @endforeach
-                    </select>
-                    <p class="text-[10px] text-slate-400 mt-1">يُمنح المشرف صلاحية Ministry Admin ويُربط بالوزارة تلقائياً.</p>
+                    <x-user-search-picker 
+                        name="admin_user_id" 
+                        scope="ministry_candidates" 
+                        placeholder="ابحث بالاسم، البريد، أو الهاتف لتعيين مشرف..." 
+                        :required="false"
+                        hint="اختياري: ابحث عن المستخدم لتعيينه مشرفاً، وسيُمنح صلاحية Ministry Admin ويُربط بالوزارة تلقائياً." />
                 </div>
                 <button type="submit" class="w-full py-2.5 rounded-xl bg-red-600 text-white font-bold text-xs hover:bg-red-700 transition">
                     + تسجيل الوزارة
@@ -135,12 +134,11 @@
                         @csrf
                         <div class="flex-1 w-full">
                             <label class="block text-xs font-bold text-slate-700 mb-1">اختر المشرف المسؤول عن الوزارة</label>
-                            <select name="admin_user_id" required class="w-full py-2 px-3 rounded-xl border border-slate-300 text-xs focus:ring-2 focus:ring-red-500 bg-white">
-                                <option value="">-- اختر المستخدم من الحسابات المسجلة --</option>
-                                @foreach($eligibleUsers as $user)
-                                    <option value="{{ $user->id }}">{{ $user->name }} ({{ $user->email }})</option>
-                                @endforeach
-                            </select>
+                            <x-user-search-picker 
+                                name="admin_user_id" 
+                                scope="ministry_candidates" 
+                                placeholder="ابحث بالاسم، البريد، أو الهاتف لتعيين المشرف..." 
+                                :required="true" />
                         </div>
                         <div class="flex items-center gap-2">
                             <button type="submit" class="py-2 px-4 rounded-xl bg-red-600 text-white font-bold text-xs hover:bg-red-700 transition">

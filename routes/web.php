@@ -15,6 +15,7 @@ use App\Http\Controllers\Ministry\MinistryProjectController;
 use App\Http\Controllers\Ministry\TransferOperationsController;
 use App\Http\Controllers\Ministry\WorkerManagementController;
 use App\Http\Controllers\PublicController;
+use App\Http\Controllers\UserSearchController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -143,4 +144,9 @@ Route::middleware([
         }
         return view('dashboard');
     })->name('dashboard');
+
+    // High-Performance Unified User Search Endpoint
+    Route::get('/internal/search/users', [UserSearchController::class, 'search'])
+        ->middleware('throttle:60,1')
+        ->name('internal.search.users');
 });
