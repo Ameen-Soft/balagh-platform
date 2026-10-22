@@ -36,7 +36,8 @@ class ComplaintOperationsController extends Controller
         $filters['department_id'] = $deptId; // Strictly scoped
 
         $complaints = $this->complaintQuery->paginateComplaints($filters, 15);
-        $categories = Category::where('department_id', $deptId)->orWhereNull('department_id')->get();
+        $ministryDeptIds = Department::where('ministry_id', $user->department?->ministry_id)->pluck('id');
+        $categories = Category::whereIn('department_id', $ministryDeptIds)->orWhereNull('department_id')->get();
 
         return view('ministry.complaints.index', compact('complaints', 'categories', 'filters'));
     }
@@ -78,8 +79,10 @@ class ComplaintOperationsController extends Controller
         $this->authorizeComplaintAccess($complaint, $user);
 
         $validated = $request->validate([
-            'status' => 'required|in:under_review,in_progress,resolved,rejected,closed',
-            'notes' => 'nullable|string|max:1000',
+            'status' => 'required|in:under_review,in_progress,resolved,rejected,closed,reopened',
+            'notes' => 'required_if:status,rejected|nullable|string|max:1000',
+        ], [
+            'notes.required_if' => 'سبب رفض البلاغ مطلوب وإلزامي لتوضيح القرار للمواطن.',
         ]);
 
         $this->complaintService->updateStatus($complaint, $validated['status'], $validated['notes'] ?? null, $user);

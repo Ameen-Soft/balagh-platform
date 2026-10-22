@@ -107,11 +107,11 @@ class EndToEndLifecycleTest extends TestCase
 
         $assignResponse->assertStatus(201);
         $assignmentId = $assignResponse->json('data.id');
-        $this->assertEquals('pending', $assignResponse->json('data.status'));
+        $this->assertEquals('in_progress', $assignResponse->json('data.status'));
 
         $this->assertDatabaseHas('complaints', [
             'id' => $complaintId,
-            'status' => 'assigned',
+            'status' => 'in_progress',
         ]);
 
         // -------------------------------------------------------------

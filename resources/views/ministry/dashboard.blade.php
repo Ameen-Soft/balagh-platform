@@ -13,7 +13,15 @@
                 <p class="text-xs text-zinc-400 mt-1">بوابة المتابعة والإشراف والتكليف الميداني لمعالجة شكاوى المواطنين</p>
             </div>
 
-            <div class="flex items-center gap-4 text-left">
+            <div class="flex flex-wrap items-center gap-3 text-left">
+                <a href="{{ route('ministry.departments.index') }}" class="px-3 py-2.5 rounded-xl bg-[#0d0d11] border border-zinc-800 text-xs text-white hover:border-zinc-700 transition font-bold flex items-center gap-2 shadow-sm">
+                    <svg class="w-4 h-4 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" /></svg>
+                    الإدارات الخدمية
+                </a>
+                <a href="{{ route('ministry.categories.index') }}" class="px-3 py-2.5 rounded-xl bg-[#0d0d11] border border-zinc-800 text-xs text-white hover:border-zinc-700 transition font-bold flex items-center gap-2 shadow-sm">
+                    <svg class="w-4 h-4 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" /></svg>
+                    تصنيفات البلاغات
+                </a>
                 <div class="bg-[#0d0d11] border border-zinc-800 rounded-2xl p-4 text-center min-w-[120px]">
                     <span class="text-[11px] text-zinc-400 block font-bold">نسبة إنجاز الجهة</span>
                     <span class="text-2xl font-black text-amber-400">{{ $deptOverview['resolution_rate'] }}%</span>
@@ -234,7 +242,11 @@
                         </h3>
                         <p class="text-[11px] text-slate-400 mt-0.5">متابعة الفِرق في الميدان</p>
                     </div>
-                    <a href="{{ route('ministry.assignments.index') }}" class="text-[11px] font-bold text-red-600 hover:text-red-700 transition">عرض الكل</a>
+                    <div class="flex items-center gap-2.5">
+                        <a href="{{ route('ministry.workers.index') }}" class="text-[11px] font-bold text-slate-500 hover:text-slate-800 transition">إدارة الكادر الميداني</a>
+                        <span class="text-slate-300">|</span>
+                        <a href="{{ route('ministry.assignments.index') }}" class="text-[11px] font-bold text-red-600 hover:text-red-700 transition">عرض المهام</a>
+                    </div>
                 </div>
 
                 <div class="space-y-3">

@@ -26,51 +26,73 @@ class FieldWorkService
      */
     public function assignWorker(Complaint $complaint, int $workerId, ?string $notes, User $assignedBy): FieldAssignment
     {
-        $worker = User::find($workerId);
-        if (! $worker || ! $worker->hasRole('Field Worker')) {
+        if (in_array($complaint->status, ['closed', 'rejected'])) {
             throw ValidationException::withMessages([
-                'user_id' => ['المستخدم المحدد ليس موظفاً ميدانياً نشطاً.'],
+                'complaint' => ['لا يمكن إسناد بلاغ مغلق أو مرفوض لموظف ميداني.'],
             ]);
         }
 
-        $assignment = DB::transaction(function () use ($complaint, $worker, $notes, $assignedBy) {
+        $worker = User::find($workerId);
+        if (! $worker || ! $worker->hasRole('Field Worker') || ! $worker->is_active) {
+            throw ValidationException::withMessages([
+                'user_id' => ['المستخدم المحدد ليس موظفاً ميدانياً نشطاً ومفعلاً.'],
+            ]);
+        }
+
+        $oldComplaintStatus = $complaint->status;
+
+        $assignment = DB::transaction(function () use ($complaint, $worker, $notes, $assignedBy, $oldComplaintStatus) {
             // Cancel any previously active assignment for this complaint
             FieldAssignment::where('complaint_id', $complaint->id)
                 ->whereIn('status', ['pending', 'accepted', 'in_progress'])
                 ->update(['status' => 'failed']);
 
-            // Create new assignment
+            // Create new assignment directly in in_progress with started_at set
             $assignment = FieldAssignment::create([
                 'complaint_id' => $complaint->id,
                 'worker_id' => $worker->id,
                 'assigned_by' => $assignedBy->id,
-                'status' => 'pending',
+                'status' => 'in_progress',
+                'started_at' => now(),
                 'notes' => $notes,
             ]);
 
-            // Update complaint status to 'assigned'
-            $complaint->update(['status' => 'assigned']);
+            // Update complaint status to 'in_progress' directly
+            $complaint->update(['status' => 'in_progress']);
 
             // Add timeline entry
             ComplaintTimeline::create([
                 'complaint_id' => $complaint->id,
                 'event_type' => 'assigned',
-                'description' => "تم إسناد البلاغ للموظف الميداني [{$worker->name}].",
-                'old_value' => null,
-                'new_value' => (string) $worker->id,
+                'description' => "تم إسناد البلاغ للموظف الميداني [{$worker->name}] وبدء مرحلة التنفيذ الميداني مباشرة.",
+                'old_value' => $oldComplaintStatus,
+                'new_value' => 'in_progress',
                 'performed_by' => $assignedBy->id,
             ]);
 
             return $assignment;
         });
 
-        // Side-effect notification outside transaction
+        // Notification to worker
         $this->notificationService->send(
             userId: $worker->id,
-            title: 'مهمة ميدانية جديدة',
-            body: "تم إسناد مهمة معاينة للبلاغ '{$complaint->title}' إليك.",
+            title: 'مهمة ميدانية جديدة قيد التنفيذ',
+            body: "تم إسناد مهمة معاينة للبلاغ '{$complaint->title}' إليك وهي قيد التنفيذ الآن.",
             type: 'task_assigned',
             data: ['assignment_id' => $assignment->id, 'complaint_id' => $complaint->id]
+        );
+
+        // Notification to citizen
+        $this->notificationService->send(
+            userId: $complaint->citizen_id,
+            title: 'تحديث حالة البلاغ',
+            body: "تم إسناد بلاغك '{$complaint->title}' للفريق الميداني وبدء مرحلة التنفيذ.",
+            type: 'complaint_status_changed',
+            data: [
+                'complaint_id' => $complaint->id,
+                'old_status' => $oldComplaintStatus,
+                'new_status' => 'in_progress',
+            ]
         );
 
         return $assignment->load([
@@ -91,7 +113,18 @@ class FieldWorkService
     {
         if ($assignment->worker_id !== $worker->id) {
             throw ValidationException::withMessages([
-                'assignment' => ['غير مصرح لك بقبول هذه المهمة الميدانية.'],
+                'assignment' => ['غير مصرح لك بقبول هذه المهمة الميدانية لأنها ليست مسندة إليك.'],
+            ]);
+        }
+
+        // If already in_progress, return idempotently without failing
+        if ($assignment->status === 'in_progress') {
+            return $assignment->load([
+                'complaint.category',
+                'complaint.currentDepartment.ministry',
+                'complaint.attachments',
+                'worker',
+                'assignedBy',
             ]);
         }
 
@@ -139,7 +172,18 @@ class FieldWorkService
     {
         if ($assignment->worker_id !== $worker->id) {
             throw ValidationException::withMessages([
-                'assignment' => ['غير مصرح لك بالبدء في هذه المهمة الميدانية.'],
+                'assignment' => ['غير مصرح لك بالبدء في هذه المهمة الميدانية لأنها ليست مسندة إليك.'],
+            ]);
+        }
+
+        // If already in_progress, return idempotently without failing
+        if ($assignment->status === 'in_progress') {
+            return $assignment->load([
+                'complaint.category',
+                'complaint.currentDepartment.ministry',
+                'complaint.attachments',
+                'worker',
+                'assignedBy',
             ]);
         }
 
@@ -252,14 +296,26 @@ class FieldWorkService
     ): FieldAssignment {
         if ($assignment->worker_id !== $worker->id) {
             throw ValidationException::withMessages([
-                'assignment' => ['غير مصرح لك بإتمام هذه المهمة.'],
+                'assignment' => ['غير مصرح لك بإتمام هذه المهمة لأنها مسندة لموظف ميداني آخر.'],
+            ]);
+        }
+
+        if (! $worker->is_active) {
+            throw ValidationException::withMessages([
+                'worker' => ['حساب الموظف الميداني معطل وغير نشط.'],
+            ]);
+        }
+
+        if ($assignment->status !== 'in_progress') {
+            throw ValidationException::withMessages([
+                'assignment' => ['لا يمكن إتمام هذه المهمة لأن حالتها الحالية ليست قيد التنفيذ.'],
             ]);
         }
 
         $complaint = $assignment->complaint;
-        if (! $complaint) {
+        if (! $complaint || in_array($complaint->status, ['closed', 'rejected'])) {
             throw ValidationException::withMessages([
-                'assignment' => ['البلاغ المرتبط بهذه المهمة غير موجود.'],
+                'assignment' => ['البلاغ المرتبط بهذه المهمة غير موجود أو تم إغلاقه/رفضه مسبقاً.'],
             ]);
         }
 
@@ -280,7 +336,14 @@ class FieldWorkService
             ]);
         }
 
-        // 2. Atomic Database Transaction
+        // 2. Report validation check
+        if (mb_strlen(trim($report)) < 10) {
+            throw ValidationException::withMessages([
+                'report' => ['التقرير الميداني يجب ألا يقل عن 10 أحرف لتوضيح العمل المنجز.'],
+            ]);
+        }
+
+        // 3. Atomic Database Transaction
         DB::transaction(function () use ($assignment, $complaint, $report, $latitude, $longitude, $evidenceFiles, $worker) {
             // Update assignment status
             $assignment->update([
@@ -313,14 +376,14 @@ class FieldWorkService
             ComplaintTimeline::create([
                 'complaint_id' => $complaint->id,
                 'event_type' => 'resolved',
-                'description' => "أتم الباحث الميداني المعالجة بنجاح. تقرير الإنجاز: {$report}",
+                'description' => "أتم الباحث الميداني [{$worker->name}] المعالجة بنجاح. تقرير الإنجاز: {$report}",
                 'old_value' => 'in_progress',
                 'new_value' => 'resolved',
                 'performed_by' => $worker->id,
             ]);
         });
 
-        // 3. Post-Commit Notification to citizen
+        // 4. Post-Commit Notification to citizen
         $this->notificationService->send(
             userId: $complaint->citizen_id,
             title: 'تم حل البلاغ بنجاح',

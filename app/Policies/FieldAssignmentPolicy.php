@@ -56,7 +56,7 @@ class FieldAssignmentPolicy
     public function accept(User $user, FieldAssignment $assignment): bool
     {
         return $assignment->worker_id === $user->id
-            && in_array($assignment->status, ['assigned', 'pending'])
+            && in_array($assignment->status, ['assigned', 'pending', 'in_progress'])
             && $user->hasPermission('tasks.update_status');
     }
 
@@ -66,7 +66,7 @@ class FieldAssignmentPolicy
     public function start(User $user, FieldAssignment $assignment): bool
     {
         return $assignment->worker_id === $user->id
-            && in_array($assignment->status, ['assigned', 'pending', 'accepted'])
+            && in_array($assignment->status, ['assigned', 'pending', 'accepted', 'in_progress'])
             && $user->hasPermission('tasks.update_status');
     }
 
