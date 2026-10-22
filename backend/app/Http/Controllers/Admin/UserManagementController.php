@@ -28,12 +28,22 @@ class UserManagementController extends Controller
         }
 
         if ($search) {
-            $query->where(function ($q) use ($search) {
-                $q->where('name', 'like', "%{$search}%")
-                    ->orWhere('email', 'like', "%{$search}%")
-                    ->orWhere('phone', 'like', "%{$search}%")
-                    ->orWhere('national_id', 'like', "%{$search}%");
-            });
+            $trimmed = trim($search);
+            if (preg_match('/^[0-9+]+$/', $trimmed)) {
+                $query->where(function ($q) use ($trimmed) {
+                    $q->where('phone', 'like', "{$trimmed}%")
+                        ->orWhere('national_id', 'like', "{$trimmed}%");
+                });
+            } elseif (str_contains($trimmed, '@')) {
+                $query->where('email', 'like', "{$trimmed}%");
+            } else {
+                $query->where(function ($q) use ($trimmed) {
+                    $q->where('name', 'like', "{$trimmed}%")
+                        ->orWhere('email', 'like', "{$trimmed}%")
+                        ->orWhere('phone', 'like', "{$trimmed}%")
+                        ->orWhere('national_id', 'like', "{$trimmed}%");
+                });
+            }
         }
 
         $users = $query->latest()->paginate(15);

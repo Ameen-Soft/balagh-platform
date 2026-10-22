@@ -101,7 +101,17 @@ class MinistryStructureAndCategoryManagementTest extends TestCase
         $response->assertStatus(200);
         $response->assertSee('إدارة الهيكل المؤسسي والوزارات');
         $response->assertSee($this->ministry->name);
-        $response->assertSee($this->citizen->name);
+        $response->assertSee('userSearchPicker', false);
+
+        // Verify eligible users are searchable via optimized search endpoint
+        $searchResponse = $this->actingAs($this->superAdmin)
+            ->getJson(route('internal.search.users', [
+                'query' => $this->citizen->name,
+                'scope' => 'ministry_candidates',
+            ]));
+
+        $searchResponse->assertOk();
+        $this->assertContains($this->citizen->id, collect($searchResponse->json('data'))->pluck('id'));
     }
 
     /**

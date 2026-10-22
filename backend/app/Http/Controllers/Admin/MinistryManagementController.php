@@ -25,12 +25,7 @@ class MinistryManagementController extends Controller
             'departments.users.roles',
         ])->latest()->get();
 
-        $eligibleUsers = User::where('is_active', true)
-            ->whereDoesntHave('roles', fn ($q) => $q->where('name', 'Super Admin'))
-            ->orderBy('name')
-            ->get(['id', 'name', 'email', 'phone', 'department_id']);
-
-        return view('admin.ministries.index', compact('ministries', 'eligibleUsers'));
+        return view('admin.ministries.index', compact('ministries'));
     }
 
     /**

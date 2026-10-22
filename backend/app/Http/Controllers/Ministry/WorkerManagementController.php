@@ -48,12 +48,22 @@ class WorkerManagementController extends Controller
             ->where('is_active', true);
 
         if ($search) {
-            $citizensQuery->where(function ($q) use ($search) {
-                $q->where('name', 'like', "%{$search}%")
-                    ->orWhere('email', 'like', "%{$search}%")
-                    ->orWhere('phone', 'like', "%{$search}%")
-                    ->orWhere('national_id', 'like', "%{$search}%");
-            });
+            $trimmed = trim($search);
+            if (preg_match('/^[0-9+]+$/', $trimmed)) {
+                $citizensQuery->where(function ($q) use ($trimmed) {
+                    $q->where('phone', 'like', "{$trimmed}%")
+                        ->orWhere('national_id', 'like', "{$trimmed}%");
+                });
+            } elseif (str_contains($trimmed, '@')) {
+                $citizensQuery->where('email', 'like', "{$trimmed}%");
+            } else {
+                $citizensQuery->where(function ($q) use ($trimmed) {
+                    $q->where('name', 'like', "{$trimmed}%")
+                        ->orWhere('email', 'like', "{$trimmed}%")
+                        ->orWhere('phone', 'like', "{$trimmed}%")
+                        ->orWhere('national_id', 'like', "{$trimmed}%");
+                });
+            }
         }
 
         $citizens = $citizensQuery->latest()->paginate(10)->withQueryString();

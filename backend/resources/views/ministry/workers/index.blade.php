@@ -131,17 +131,55 @@
         </div>
 
         <!-- Section 2: Search & Promote Citizens -->
-        <div class="bg-white rounded-2xl border border-slate-200/80 shadow-xs overflow-hidden">
+        <div class="bg-white rounded-2xl border border-slate-200/80 shadow-xs overflow-hidden"
+             x-data="{ quickCitizenId: '', quickCitizenName: '' }"
+             @user-selected="quickCitizenId = $event.detail.id; quickCitizenName = $event.detail.user.name"
+             @user-cleared="quickCitizenId = ''; quickCitizenName = ''">
+            
             <div class="p-5 border-b border-slate-100 flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
                     <h2 class="text-sm font-black text-slate-900">ترقية حساب مواطن إلى موظف ميداني</h2>
-                    <p class="text-xs text-slate-500 mt-0.5">البحث في الحسابات المسجلة بالنظام لتعيينهم كموظفين ميدانيين بالقسم.</p>
+                    <p class="text-xs text-slate-500 mt-0.5">البحث السريع المباشر في الحسابات لتعيينهم كموظفين ميدانيين بالقسم فوراً.</p>
+                </div>
+            </div>
+
+            <!-- Quick Instant Autocomplete Promotion Bar -->
+            <div class="p-5 bg-slate-50/60 border-b border-slate-100">
+                <form method="POST" 
+                      :action="'{{ url('/ministry/workers') }}/' + quickCitizenId + '/promote'" 
+                      @submit="if(!confirm('هل تريد ترقية المواطن [' + (quickCitizenName || 'المحدد') + '] إلى موظف ميداني تابع لهذا القسم؟')) $event.preventDefault()"
+                      class="flex flex-col sm:flex-row items-end gap-3 max-w-2xl">
+                    @csrf
+                    <div class="flex-1 w-full">
+                        <label class="block text-xs font-bold text-slate-700 mb-1.5">البحث التفاعلي اللحظي عن مواطن (بالاسم، الهاتف، أو الرقم الوطني)</label>
+                        <x-user-search-picker 
+                            name="selected_citizen_id" 
+                            scope="citizens_for_promotion" 
+                            placeholder="اكتب اسم المواطن، رقم الهاتف أو الرقم الوطني للبحث الفوري..." 
+                            :required="false" />
+                    </div>
+                    <button type="submit" 
+                            :disabled="!quickCitizenId"
+                            :class="quickCitizenId ? 'bg-emerald-600 hover:bg-emerald-700 text-white cursor-pointer shadow-xs' : 'bg-slate-200 text-slate-400 cursor-not-allowed'"
+                            class="py-2.5 px-5 rounded-xl text-xs font-black transition shrink-0 flex items-center justify-center gap-1.5">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                        </svg>
+                        <span>ترقية الحساب المختار</span>
+                    </button>
+                </form>
+            </div>
+
+            <div class="p-5 border-b border-slate-100 flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div>
+                    <h3 class="text-xs font-bold text-slate-700">قائمة المواطنين المؤهلين</h3>
+                    <p class="text-[11px] text-slate-400">استعراض وتصفح الحسابات المسجلة للترقية الميدانية</p>
                 </div>
                 <form method="GET" action="{{ route('ministry.workers.index') }}" class="flex items-center gap-2">
                     <input type="text" name="search" value="{{ $search }}" placeholder="بحث بالاسم، الهاتف، الرقم الوطني..." 
                            class="py-2 px-3.5 rounded-xl border border-slate-300 text-xs focus:ring-2 focus:ring-red-500 w-64">
                     <button type="submit" class="py-2 px-4 rounded-xl bg-black text-white text-xs font-bold hover:bg-zinc-800 transition">
-                        بحث
+                        تصفية
                     </button>
                     @if($search)
                         <a href="{{ route('ministry.workers.index') }}" class="py-2 px-3 rounded-xl bg-slate-100 text-slate-600 text-xs font-bold hover:bg-slate-200 transition">
