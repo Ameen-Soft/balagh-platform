@@ -9,8 +9,11 @@ use App\Http\Controllers\Admin\UserManagementController;
 use App\Http\Controllers\Ministry\ComplaintOperationsController;
 use App\Http\Controllers\Ministry\DashboardController as MinistryDashboardController;
 use App\Http\Controllers\Ministry\FieldAssignmentController;
+use App\Http\Controllers\Ministry\MinistryCategoryController;
+use App\Http\Controllers\Ministry\MinistryDepartmentController;
 use App\Http\Controllers\Ministry\MinistryProjectController;
 use App\Http\Controllers\Ministry\TransferOperationsController;
+use App\Http\Controllers\Ministry\WorkerManagementController;
 use App\Http\Controllers\PublicController;
 use Illuminate\Support\Facades\Route;
 
@@ -55,22 +58,23 @@ Route::middleware([
 
     // Ministries & Departments Management
     Route::get('/ministries', [MinistryManagementController::class, 'index'])->name('ministries.index');
-    Route::POST('/ministries', [MinistryManagementController::class, 'storeMinistry'])->name('ministries.store');
-    Route::POST('/departments', [MinistryManagementController::class, 'storeDepartment'])->name('departments.store');
+    Route::post('/ministries', [MinistryManagementController::class, 'storeMinistry'])->name('ministries.store');
+    Route::post('/ministries/{ministry}/assign-admin', [MinistryManagementController::class, 'assignAdmin'])->name('ministries.assign_admin');
+    Route::post('/departments', [MinistryManagementController::class, 'storeDepartment'])->name('departments.store');
 
     // Categories Management
     Route::get('/categories', [CategoryManagementController::class, 'index'])->name('categories.index');
-    Route::POST('/categories', [CategoryManagementController::class, 'store'])->name('categories.store');
+    Route::post('/categories', [CategoryManagementController::class, 'store'])->name('categories.store');
 
     // Users & Roles Management
     Route::get('/users', [UserManagementController::class, 'index'])->name('users.index');
-    Route::POST('/users', [UserManagementController::class, 'store'])->name('users.store');
-    Route::POST('/users/{user}/toggle-active', [UserManagementController::class, 'toggleActive'])->name('users.toggle_active');
+    Route::post('/users', [UserManagementController::class, 'store'])->name('users.store');
+    Route::post('/users/{user}/toggle-active', [UserManagementController::class, 'toggleActive'])->name('users.toggle_active');
 
     // Development Projects Management
     Route::get('/projects', [ProjectManagementController::class, 'index'])->name('projects.index');
-    Route::POST('/projects', [ProjectManagementController::class, 'store'])->name('projects.store');
-    Route::POST('/projects/{project}/update-progress', [ProjectManagementController::class, 'updateProgress'])->name('projects.update_progress');
+    Route::post('/projects', [ProjectManagementController::class, 'store'])->name('projects.store');
+    Route::post('/projects/{project}/update-progress', [ProjectManagementController::class, 'updateProgress'])->name('projects.update_progress');
 });
 
 /*
@@ -90,12 +94,25 @@ Route::middleware([
     // Operational Complaints Processing
     Route::get('/complaints', [ComplaintOperationsController::class, 'index'])->name('complaints.index');
     Route::get('/complaints/{complaint}', [ComplaintOperationsController::class, 'show'])->name('complaints.show');
-    Route::POST('/complaints/{complaint}/status', [ComplaintOperationsController::class, 'updateStatus'])->name('complaints.update_status');
-    Route::POST('/complaints/{complaint}/assign', [ComplaintOperationsController::class, 'assignWorker'])->name('complaints.assign_worker');
-    Route::POST('/complaints/{complaint}/transfer', [ComplaintOperationsController::class, 'transfer'])->name('complaints.transfer');
+    Route::post('/complaints/{complaint}/status', [ComplaintOperationsController::class, 'updateStatus'])->name('complaints.update_status');
+    Route::post('/complaints/{complaint}/assign', [ComplaintOperationsController::class, 'assignWorker'])->name('complaints.assign_worker');
+    Route::post('/complaints/{complaint}/transfer', [ComplaintOperationsController::class, 'transfer'])->name('complaints.transfer');
+
+    // Service Departments Management
+    Route::get('/departments', [MinistryDepartmentController::class, 'index'])->name('departments.index');
+    Route::post('/departments', [MinistryDepartmentController::class, 'store'])->name('departments.store');
+
+    // Complaint Categories Management
+    Route::get('/categories', [MinistryCategoryController::class, 'index'])->name('categories.index');
+    Route::post('/categories', [MinistryCategoryController::class, 'store'])->name('categories.store');
 
     // Field Tasks & Assignments
     Route::get('/assignments', [FieldAssignmentController::class, 'index'])->name('assignments.index');
+
+    // Field Workers Management
+    Route::get('/workers', [WorkerManagementController::class, 'index'])->name('workers.index');
+    Route::post('/workers/{user}/promote', [WorkerManagementController::class, 'promote'])->name('workers.promote');
+    Route::post('/workers/{user}/demote', [WorkerManagementController::class, 'demote'])->name('workers.demote');
 
     // Transfers
     Route::get('/transfers', [TransferOperationsController::class, 'index'])->name('transfers.index');

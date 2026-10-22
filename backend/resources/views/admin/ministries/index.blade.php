@@ -15,14 +15,19 @@
                            class="w-full py-2 px-3 rounded-xl border border-slate-300 text-xs focus:ring-2 focus:ring-red-500">
                 </div>
                 <div>
-                    <label class="block text-xs font-bold text-slate-700 mb-1">الرمز التعريفي (Code)</label>
-                    <input type="text" name="code" required placeholder="مثال: MPW" 
-                           class="w-full py-2 px-3 rounded-xl border border-slate-300 text-xs focus:ring-2 focus:ring-red-500">
-                </div>
-                <div>
                     <label class="block text-xs font-bold text-slate-700 mb-1">البريد الإلكتروني الرسمي</label>
                     <input type="email" name="contact_email" required placeholder="contact@mpw.gov.ye" 
                            class="w-full py-2 px-3 rounded-xl border border-slate-300 text-xs focus:ring-2 focus:ring-red-500">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1">المسؤول عن الوزارة (مشرف الوزارة)</label>
+                    <select name="admin_user_id" class="w-full py-2 px-3 rounded-xl border border-slate-300 text-xs focus:ring-2 focus:ring-red-500">
+                        <option value="">-- اختياري: تعيين مشرف الآن --</option>
+                        @foreach($eligibleUsers as $user)
+                            <option value="{{ $user->id }}">{{ $user->name }} ({{ $user->email }})</option>
+                        @endforeach
+                    </select>
+                    <p class="text-[10px] text-slate-400 mt-1">يُمنح المشرف صلاحية Ministry Admin ويُربط بالوزارة تلقائياً.</p>
                 </div>
                 <button type="submit" class="w-full py-2.5 rounded-xl bg-red-600 text-white font-bold text-xs hover:bg-red-700 transition">
                     + تسجيل الوزارة
@@ -87,20 +92,65 @@
     <!-- Ministries Directory -->
     <div class="space-y-6">
         @foreach($ministries as $ministry)
-            <div class="bg-white rounded-2xl border border-slate-200/80 p-6 shadow-xs">
-                <div class="flex items-center justify-between border-b border-slate-100 pb-4 mb-4">
+            @php
+                $ministryAdmins = $ministry->departments->flatMap->users->filter(fn($u) => $u->hasRole('Ministry Admin'))->unique('id');
+            @endphp
+            <div class="bg-white rounded-2xl border border-slate-200/80 p-6 shadow-xs" x-data="{ reassignOpen: false }">
+                <div class="flex flex-col md:flex-row md:items-center justify-between border-b border-slate-100 pb-4 mb-4 gap-4">
                     <div class="flex items-center gap-3">
-                        <div class="w-10 h-10 rounded-xl bg-red-50 text-red-600 border border-red-200 flex items-center justify-center font-bold">
-                            {{ $ministry->code }}
+                        <div class="w-11 h-11 rounded-2xl bg-red-50 text-red-600 border border-red-200 flex items-center justify-center font-black">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                            </svg>
                         </div>
                         <div>
                             <h4 class="text-base font-bold text-slate-900">{{ $ministry->name }}</h4>
-                            <p class="text-xs text-slate-500">{{ $ministry->description ?? 'لا يوجد وصف مدخل' }}</p>
+                            <p class="text-xs text-slate-500">{{ $ministry->contact_email }}</p>
                         </div>
                     </div>
-                    <span class="text-xs font-bold text-slate-400">
-                        {{ $ministry->departments->count() }} إدارة خدمية
-                    </span>
+
+                    <!-- Ministry Admin & Departments count -->
+                    <div class="flex flex-wrap items-center gap-3">
+                        <div class="text-xs px-3 py-1.5 rounded-xl bg-slate-50 border border-slate-200/80">
+                            <span class="text-slate-400">المسؤول:</span>
+                            @if($ministryAdmins->isNotEmpty())
+                                <span class="font-bold text-slate-800 mr-1">{{ $ministryAdmins->pluck('name')->join('، ') }}</span>
+                            @else
+                                <span class="text-amber-600 font-bold mr-1">لم يُعيّن مسؤول</span>
+                            @endif
+                            <button type="button" @click="reassignOpen = !reassignOpen" class="text-red-600 hover:text-red-700 font-bold underline mr-2 text-[11px]">
+                                {{ $ministryAdmins->isNotEmpty() ? 'تغيير' : 'تعيين مسؤول' }}
+                            </button>
+                        </div>
+
+                        <span class="text-xs font-bold text-slate-400 bg-slate-50 px-3 py-1.5 rounded-xl border border-slate-200/60">
+                            {{ $ministry->departments->count() }} إدارة خدمية
+                        </span>
+                    </div>
+                </div>
+
+                <!-- Reassign Admin Form (Collapsible) -->
+                <div x-show="reassignOpen" x-cloak class="mb-4 p-4 rounded-xl bg-slate-50 border border-red-200/60 transition">
+                    <form method="POST" action="{{ route('admin.ministries.assign_admin', $ministry) }}" class="flex flex-col sm:flex-row items-end gap-3">
+                        @csrf
+                        <div class="flex-1 w-full">
+                            <label class="block text-xs font-bold text-slate-700 mb-1">اختر المشرف المسؤول عن الوزارة</label>
+                            <select name="admin_user_id" required class="w-full py-2 px-3 rounded-xl border border-slate-300 text-xs focus:ring-2 focus:ring-red-500 bg-white">
+                                <option value="">-- اختر المستخدم من الحسابات المسجلة --</option>
+                                @foreach($eligibleUsers as $user)
+                                    <option value="{{ $user->id }}">{{ $user->name }} ({{ $user->email }})</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <button type="submit" class="py-2 px-4 rounded-xl bg-red-600 text-white font-bold text-xs hover:bg-red-700 transition">
+                                حفظ التعيين
+                            </button>
+                            <button type="button" @click="reassignOpen = false" class="py-2 px-3 rounded-xl bg-slate-200 text-slate-700 font-bold text-xs hover:bg-slate-300 transition">
+                                إلغاء
+                            </button>
+                        </div>
+                    </form>
                 </div>
 
                 <!-- Departments under this ministry -->
@@ -109,9 +159,9 @@
                         <div class="p-4 rounded-xl bg-slate-50 border border-slate-200/80 flex items-center justify-between">
                             <div>
                                 <p class="text-xs font-bold text-slate-800">{{ $dept->name }}</p>
-                                <span class="text-[10px] font-mono text-slate-400">{{ $dept->code }}</span>
+                                <p class="text-[10px] text-slate-500 mt-0.5 line-clamp-1">{{ $dept->description }}</p>
                             </div>
-                            <div class="text-left">
+                            <div class="text-left shrink-0 mr-2">
                                 <span class="text-[11px] font-bold text-slate-600 block">{{ $dept->complaints->count() }} بلاغ</span>
                                 <span class="text-[10px] text-slate-400 block">{{ $dept->users->count() }} موظف</span>
                             </div>

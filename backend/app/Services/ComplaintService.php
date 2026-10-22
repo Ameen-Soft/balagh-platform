@@ -8,6 +8,7 @@ use App\Models\ComplaintTimeline;
 use App\Models\User;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
 
 class ComplaintService
 {
@@ -113,11 +114,46 @@ class ComplaintService
     }
 
     /**
-     * Update status of a complaint with atomic timeline recording and side-effect notification.
+     * Update status of a complaint with atomic timeline recording, strict lifecycle validation,
+     * mandatory rejection rationale, and side-effect notification.
+     *
+     * @throws ValidationException
      */
     public function updateStatus(Complaint $complaint, string $newStatus, ?string $notes, User $performer): Complaint
     {
         $oldStatus = $complaint->status;
+
+        // 1. Strict Server-Controlled Lifecycle Transitions Map
+        $allowedTransitions = [
+            'new' => ['under_review', 'assigned', 'in_progress', 'rejected'],
+            'submitted' => ['under_review', 'assigned', 'in_progress', 'rejected'],
+            'under_review' => ['in_progress', 'assigned', 'resolved', 'rejected', 'closed'],
+            'assigned' => ['in_progress', 'under_review', 'rejected'],
+            'in_progress' => ['resolved', 'under_review', 'rejected'],
+            'resolved' => ['closed', 'reopened'],
+            'rejected' => ['reopened', 'under_review', 'closed'],
+            'closed' => ['reopened'],
+            'reopened' => ['under_review', 'assigned', 'in_progress', 'rejected'],
+        ];
+
+        if ($newStatus !== $oldStatus) {
+            $validNext = $allowedTransitions[$oldStatus] ?? [];
+            if (! in_array($newStatus, $validNext)) {
+                throw ValidationException::withMessages([
+                    'status' => ["الانتقال من حالة [{$complaint->status_arabic}] إلى [{$newStatus}] غير مسموح به في دورة حياة البلاغ."],
+                ]);
+            }
+        }
+
+        // 2. Rejection must have a mandatory reason
+        if ($newStatus === 'rejected') {
+            $trimmedNotes = trim((string) $notes);
+            if (mb_strlen($trimmedNotes) < 5) {
+                throw ValidationException::withMessages([
+                    'notes' => ['يجب إدخال سبب الرفض (5 أحرف على الأقل) لتوضيح مبرر القرار للمواطن.'],
+                ]);
+            }
+        }
 
         DB::transaction(function () use ($complaint, $newStatus, $oldStatus, $notes, $performer) {
             $complaint->update(['status' => $newStatus]);

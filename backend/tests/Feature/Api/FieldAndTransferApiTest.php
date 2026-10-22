@@ -122,8 +122,8 @@ class FieldAndTransferApiTest extends TestCase
 
         $assignment = FieldAssignment::where('complaint_id', $complaint->id)->first();
         $this->assertNotNull($assignment);
-        $this->assertEquals('pending', $assignment->status);
-        $this->assertEquals('assigned', $complaint->fresh()->status);
+        $this->assertEquals('in_progress', $assignment->status);
+        $this->assertEquals('in_progress', $complaint->fresh()->status);
 
         // 3. Worker starts assignment
         $startResponse = $this->actingAs($this->fieldWorker, 'sanctum')

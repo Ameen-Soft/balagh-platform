@@ -152,8 +152,8 @@ stateDiagram-v2
 |---|---|---|---|
 | **Citizen** | المواطن | Mobile App | تقديم شكاوى، تتبع الحالة، تصفح المشاريع، تسجيل مساهمة |
 | **Field Worker** | الموظف الميداني | Mobile App | استلام مهام، تنفيذ ميداني، توثيق الإصلاح |
-| **Ministry Admin** | مشرف الوزارة | Web Dashboard | مراجعة شكاوى، إسناد مهام، تحويل بين جهات |
-| **Super Admin** | المدير العام | Web Dashboard | إدارة وزارات، تصنيفات، مشاريع، إحصائيات |
+| **Ministry Admin** | مشرف الوزارة | Web Dashboard | مراجعة شكاوى، إسناد مهام، تحويل بين جهات، إدارة الإدارات الخدمية وتصنيفات الوزارة، وإدارة الكادر الميداني |
+| **Super Admin** | المدير العام | Web Dashboard | إدارة الوزارات وتعيين مسؤوليها، تصنيفات عامة، مشاريع، مستخدمين، إحصائيات |
 
 ## 2.2 Functional Requirements — المتطلبات الوظيفية
 
@@ -177,9 +177,9 @@ stateDiagram-v2
 | FR-16 | Create and manage development projects | Super Admin | Projects Module |
 | FR-17 | Track project phases and completion percentage | All | Progress tracking |
 | FR-18 | Record a simulated community contribution to a project | Citizen | Crowdfunding simulation |
-| FR-19 | Manage ministries and departments | Super Admin | Administration |
+| FR-19 | Manage ministries and departments | Super Admin, Ministry Admin | Administration (Super Admin manages nationwide ministries & assigns ministry admins; Ministry Admin creates & manages departmental service units) |
 | FR-20 | Manage users, roles, and permissions | Super Admin | RBAC |
-| FR-21 | Manage complaint categories | Super Admin | Administration |
+| FR-21 | Manage complaint categories | Super Admin, Ministry Admin | Administration & Dynamic Routing (Super Admin manages nationwide categories; Ministry Admin creates & manages ministry-scoped root and subcategories) |
 | FR-22 | View statistics and reports | Super Admin, Ministry Admin | Reporting |
 | FR-23 | Browse and filter public complaints feed based on explicit citizen opt-in (default private) and allowed statuses while preserving privacy | Citizen, All | Community Engagement |
 | FR-24 | Like/upvote a public complaint by authenticated citizens with concurrency-safe duplicate prevention | Citizen | Community Engagement |
@@ -603,9 +603,9 @@ flowchart LR
     UC1 -.->|"include"| UC2
 ```
 
-**Figure 5.10 – Use Case Diagram: Central Administration**
+**Figure 5.10 – Use Case Diagram: Central & Ministry Administration**
 
-إدارة الأقسام include مرتبطة بإدارة الوزارات لأن كل قسم تابع لوزارة.
+تشمل الإدارة المركزية رقابة المدير العام (Super Admin) على الوزارات المركزية وتعيين المشرفين المسؤولين عنها، بينما يتمتع مشرف الوزارة (Ministry Admin) بصلاحيات لامركزية لإنشاء وإدارة الإدارات الخدمية الفرعية التابعة لوزارته، وتحديد تصنيفات البلاغات (الرئيسية والفرعية) وربطها التلقائي بالإدارات المختصة لضمان التوجيه الآلي للشكاوى دون تدخل المدير العام.
 
 ---
 
@@ -655,7 +655,7 @@ erDiagram
     MINISTRIES {
         bigint id PK
         string name
-        string code UK
+        string code UK "nullable auto-generated"
         string logo
         string contact_email
         boolean is_active

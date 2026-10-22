@@ -45,12 +45,13 @@
   * استعراض المشاريع التنموية وتسجيل المساهمات المالية الافتراضية.
 
 * **الموظف الميداني (Field Worker):**
-  * استعراض المهام الميدانية المسندة إليه وإدارتها بحسب الحالة.
+  * استعراض المهام الميدانية المسندة إليه وإدارتها (تبدأ المهمة بحالة قيد التنفيذ مباشرة دون الحاجة لخطوة قبول منفصلة).
   * التحقق اللحظي من الموقع الجغرافي ومطابقته مع إحداثيات البلاغ ضمن النطاق المسموح به (Geofencing).
-  * بدء التنفيذ ورفع صورة إثبات الإنجاز المباشرة (ما بعد الإصلاح) وكتابة تقرير المعالجة لإغلاق المهمة.
+  * رفع صورة إثبات الإنجاز المباشرة (ما بعد الإصلاح) وكتابة تقرير المعالجة لإتمام المهمة وحل البلاغ.
 
 * **مشرف الوزارة (Ministry Admin):**
-  * إدارة الشكاوى الخاصة بنطاق وزارته وتدقيق بياناتها.
+  * إدارة الشكاوى الخاصة بنطاق وزارته واتخاذ القرارات الإجرائية المباشرة (إسناد المهمة للموظف الميداني أو رفض البلاغ مع سبب إلزامي).
+  * إدارة الكادر الميداني للوزارة: استعراض الموظفين وترقية حسابات المواطنين إلى موظفين ميدانيين أو إلغاء تعيينهم عند خلو المهام النشطة.
   * إسناد البلاغات للفرق الميدانية أو تحويل البلاغات الواردة بالخطأ لوزارات أخرى مع تدوين السبب.
   * متابعة التنبيهات الإدارية للبلاغات المتصدرة مجتمعياً (Trending Alerts).
 
@@ -345,14 +346,15 @@ Citizens can submit complaints through a cascading classification taxonomy with 
   * Explore developmental projects and register simulated financial pledges.
 
 * **Field Worker:**
-  * Receive prioritized field assignments via the mobile application based on department and location.
-  * Verify on-site physical presence at incident coordinates within the allowed perimeter (Geofencing).
-  * Capture mandatory post-repair evidence photos directly via camera and submit resolution reports to close assignments.
+  * View and manage assigned field tasks (assignments transition directly to `in_progress` without requiring a separate acceptance step).
+  * Verify on-site physical presence and match incident coordinates within the allowed perimeter (Geofencing).
+  * Capture mandatory post-repair evidence photos directly via camera and submit resolution reports to complete assignments and resolve the complaint.
 
 * **Ministry Admin:**
-  * Review, verify, and process incoming tickets within their ministry's scope.
-  * Dispatch field workers or re-route misdirected tickets to other ministries with logged transfer rationale.
-  * Monitor administrative alerts triggered by trending community complaints.
+  * Manage complaints within their ministry's scope and execute direct operational decisions (assigning tasks directly to field workers or rejecting complaints with a mandatory reason).
+  * Manage ministry field workforce: browse workers, promote registered citizen accounts to field workers, or demote them when free of active assignments.
+  * Dispatch complaints to field teams or re-route misdirected tickets to other ministries with logged transfer rationale.
+  * Monitor administrative alerts triggered by trending community complaints (Trending Alerts).
 
 * **Super Admin:**
   * Maintain comprehensive oversight across all ministries, departments, and user accounts.

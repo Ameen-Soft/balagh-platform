@@ -15,7 +15,7 @@ class UpdateComplaintStatusRequest extends BaseApiRequest
     {
         return [
             'status' => ['required', 'string', 'in:new,under_review,assigned,in_progress,resolved,rejected,closed,reopened'],
-            'notes' => ['nullable', 'string', 'max:1000'],
+            'notes' => ['required_if:status,rejected', 'nullable', 'string', 'max:1000'],
             'reason' => ['nullable', 'string', 'max:500'],
         ];
     }
@@ -30,6 +30,7 @@ class UpdateComplaintStatusRequest extends BaseApiRequest
         return [
             'status.required' => 'حالة البلاغ الجديدة مطلوبة.',
             'status.in' => 'حالة البلاغ المحددة غير صالحة.',
+            'notes.required_if' => 'سبب رفض البلاغ مطلوب وإلزامي لتوضيح القرار للمواطن.',
             'notes.max' => 'الملاحظات يجب ألا تتجاوز 1000 حرف.',
             'reason.max' => 'سبب التحديث يجب ألا يتجاوز 500 حرف.',
         ];

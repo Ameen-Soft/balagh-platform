@@ -40,30 +40,6 @@ class _TaskDetailsPageState extends ConsumerState<TaskDetailsPage> {
     });
   }
 
-  Future<void> _handleAccept(FieldWorkAssignmentEntity assignment) async {
-    final notifier = ref.read(fieldWorkNotifierProvider.notifier);
-    final success = await notifier.acceptAssignment(assignment.id);
-
-    if (!mounted) return;
-
-    if (success) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('تم قبول المهمة بنجاح، يمكنك الآن الانتقال لموقع البلاغ لبدء التنفيذ.'),
-          backgroundColor: AppColors.yemenEmerald,
-        ),
-      );
-    } else {
-      final error = ref.read(fieldWorkNotifierProvider).errorMessage;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(error ?? 'فشل قبول المهمة.'),
-          backgroundColor: AppColors.yemenRed,
-        ),
-      );
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     final state = ref.watch(fieldWorkNotifierProvider);
@@ -999,50 +975,7 @@ class _TaskDetailsPageState extends ConsumerState<TaskDetailsPage> {
       );
     }
 
-    if (assignment.isPending) {
-      return Container(
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          border: Border(top: BorderSide(color: AppColors.borderSubtle)),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.06),
-              blurRadius: 10,
-              offset: const Offset(0, -2),
-            ),
-          ],
-        ),
-        child: ElevatedButton.icon(
-          onPressed: state.isAccepting ? null : () => _handleAccept(assignment),
-          icon: state.isAccepting
-              ? const SizedBox(
-                  width: 18,
-                  height: 18,
-                  child: CircularProgressIndicator(
-                    strokeWidth: 2,
-                    valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                  ),
-                )
-              : const Icon(Icons.thumb_up_alt_rounded, size: 20),
-          label: Text(
-            state.isAccepting ? 'جارٍ قبول المهمة...' : 'قبول المهمة الميدانية',
-            style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
-          ),
-          style: ElevatedButton.styleFrom(
-            backgroundColor: AppColors.yemenGold,
-            foregroundColor: Colors.black,
-            padding: const EdgeInsets.symmetric(vertical: 16),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
-            ),
-          ),
-        ),
-      );
-    }
-
-    if (assignment.isAccepted || assignment.isInProgress) {
-      final isProgress = assignment.isInProgress;
+    if (!assignment.isCompleted && !assignment.isFailed) {
       return Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
@@ -1060,17 +993,16 @@ class _TaskDetailsPageState extends ConsumerState<TaskDetailsPage> {
           onPressed: () {
             context.push('/tasks/${assignment.id}/execute', extra: assignment);
           },
-          icon: Icon(
-            isProgress ? Icons.engineering_rounded : Icons.radar_rounded,
+          icon: const Icon(
+            Icons.engineering_rounded,
             size: 20,
           ),
-          label: Text(
-            isProgress ? 'متابعة العمل الميداني' : 'الانتقال للتنفيذ والتحقق الجغرافي',
-            style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
+          label: const Text(
+            'الانتقال للتنفيذ والتحقق الجغرافي',
+            style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
           ),
           style: ElevatedButton.styleFrom(
-            backgroundColor:
-                isProgress ? AppColors.yemenRed : const Color(0xFF2563EB),
+            backgroundColor: AppColors.yemenRed,
             foregroundColor: Colors.white,
             padding: const EdgeInsets.symmetric(vertical: 16),
             shape: RoundedRectangleBorder(
