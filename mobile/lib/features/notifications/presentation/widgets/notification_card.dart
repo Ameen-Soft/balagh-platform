@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/utils/app_date_formatter.dart';
 import '../../domain/entities/notification_entity.dart';
@@ -46,49 +47,58 @@ class NotificationCard extends StatelessWidget {
     }
   }
 
-  ({IconData icon, Color color, Color bg}) _getTypeStyle(String type) {
+  ({IconData icon, Color color, Color bg, String badgeText}) _getTypeStyle(
+    String type,
+  ) {
     switch (type) {
       case 'complaint_created':
         return (
-          icon: Icons.post_add_rounded,
+          icon: Icons.description_outlined,
           color: AppColors.yemenGold,
           bg: AppColors.yemenGoldLight,
+          badgeText: 'متوسط',
         );
       case 'complaint_status_changed':
         return (
           icon: Icons.sync_alt_rounded,
           color: AppColors.yemenRed,
           bg: AppColors.yemenRedLight,
+          badgeText: 'عاجل',
         );
       case 'complaint_transferred':
         return (
-          icon: Icons.alt_route_rounded,
+          icon: Icons.file_copy_outlined,
           color: const Color(0xFF2563EB),
           bg: const Color(0xFFEFF6FF),
+          badgeText: 'مسند للميدان',
         );
       case 'complaint_resolved':
         return (
-          icon: Icons.verified_rounded,
+          icon: Icons.verified_user_rounded,
           color: AppColors.yemenEmerald,
           bg: AppColors.yemenEmeraldLight,
+          badgeText: 'تم الإنجاز',
         );
       case 'task_assigned':
         return (
-          icon: Icons.assignment_ind_rounded,
-          color: AppColors.yemenGold,
-          bg: AppColors.yemenGoldLight,
+          icon: Icons.assignment_ind_outlined,
+          color: const Color(0xFF2563EB),
+          bg: const Color(0xFFEFF6FF),
+          badgeText: 'مهمة ميدانية',
         );
       case 'project_contribution_success':
         return (
-          icon: Icons.volunteer_activism_rounded,
-          color: AppColors.yemenEmerald,
-          bg: AppColors.yemenEmeraldLight,
+          icon: Icons.campaign_outlined,
+          color: AppColors.yemenRed,
+          bg: AppColors.yemenRedLight,
+          badgeText: 'عاجل',
         );
       default:
         return (
-          icon: Icons.notifications_active_rounded,
+          icon: Icons.notifications_active_outlined,
           color: AppColors.yemenRed,
           bg: AppColors.yemenRedLight,
+          badgeText: 'تنبيه',
         );
     }
   }
@@ -97,106 +107,123 @@ class NotificationCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final style = _getTypeStyle(notification.type);
     final isUnread = !notification.isRead;
-    final hasAction = notification.complaintId != null ||
-        notification.projectId != null ||
-        notification.assignmentId != null;
 
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       decoration: BoxDecoration(
-        color: isUnread ? Colors.white : const Color(0xFFFAFAFA),
-        borderRadius: BorderRadius.circular(16),
+        // خلفية وردية/حمراء خفيفة جداً للإشعار غير المقروء كما في التصميم، وبيضاء للمقروء
+        color: isUnread ? const Color(0xFFFFF8F8) : Colors.white,
+        borderRadius: BorderRadius.circular(20),
         border: Border.all(
           color: isUnread
-              ? AppColors.yemenRed.withValues(alpha: 0.25)
-              : AppColors.borderSubtle,
-          width: isUnread ? 1.4 : 1.0,
+              ? AppColors.yemenRed.withValues(alpha: 0.2)
+              : AppColors.borderSubtle.withValues(alpha: 0.7),
+          width: 1.2,
         ),
-        boxShadow: isUnread
-            ? [
-                BoxShadow(
-                  color: AppColors.yemenRed.withValues(alpha: 0.06),
-                  blurRadius: 10,
-                  offset: const Offset(0, 3),
-                ),
-              ]
-            : [
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.02),
-                  blurRadius: 4,
-                  offset: const Offset(0, 1),
-                ),
-              ],
+        boxShadow: [
+          BoxShadow(
+            color: isUnread
+                ? AppColors.yemenRed.withValues(alpha: 0.04)
+                : Colors.black.withValues(alpha: 0.015),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
       ),
       child: Material(
         color: Colors.transparent,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(20),
         child: InkWell(
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(20),
           onTap: () => _handleTap(context),
           child: Padding(
             padding: const EdgeInsets.all(16.0),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Top Row: Type Icon, Title, and Unread Dot
+                // 1. Top Section: Icon (Right), Title & Time (Middle), Status Pill (Left)
                 Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+                    // Rounded Square Icon Container
                     Container(
-                      width: 42,
-                      height: 42,
+                      width: 46,
+                      height: 46,
                       decoration: BoxDecoration(
                         color: style.bg,
-                        borderRadius: BorderRadius.circular(12),
+                        borderRadius: BorderRadius.circular(14),
                       ),
-                      child: Icon(
-                        style.icon,
-                        color: style.color,
-                        size: 22,
-                      ),
+                      child: Icon(style.icon, color: style.color, size: 23),
                     ),
                     const SizedBox(width: 12),
+
+                    // Title & Relative Time
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Row(
+                            crossAxisAlignment: CrossAxisAlignment.center,
                             children: [
                               Expanded(
                                 child: Text(
                                   notification.title,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
                                   style: TextStyle(
-                                    fontSize: 15,
+                                    fontSize: 14.5,
                                     fontWeight: isUnread
                                         ? FontWeight.w800
-                                        : FontWeight.w600,
-                                    color: isUnread
-                                        ? AppColors.deepBlack
-                                        : AppColors.textPrimary,
-                                    height: 1.3,
+                                        : FontWeight.w700,
+                                    color: AppColors.yemenBlack,
                                   ),
                                 ),
                               ),
-                              if (isUnread) ...[
-                                const SizedBox(width: 8),
-                                Container(
-                                  width: 8,
-                                  height: 8,
-                                  decoration: const BoxDecoration(
-                                    color: AppColors.yemenRed,
-                                    shape: BoxShape.circle,
-                                  ),
+                              const SizedBox(width: 8),
+                              // Status Badge Pill on the Left
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 10,
+                                  vertical: 4,
                                 ),
-                              ],
+                                decoration: BoxDecoration(
+                                  color: style.bg,
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    if (isUnread) ...[
+                                      Container(
+                                        width: 5,
+                                        height: 5,
+                                        decoration: BoxDecoration(
+                                          color: style.color,
+                                          shape: BoxShape.circle,
+                                        ),
+                                      ),
+                                      const SizedBox(width: 4),
+                                    ],
+                                    Text(
+                                      style.badgeText,
+                                      style: TextStyle(
+                                        fontSize: 10.5,
+                                        fontWeight: FontWeight.w800,
+                                        color: style.color,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
                             ],
                           ),
                           const SizedBox(height: 4),
                           Text(
                             _formatRelativeTime(notification.createdAt),
                             style: const TextStyle(
-                              fontSize: 12,
+                              fontSize: 11.5,
                               color: AppColors.textSecondary,
+                              fontWeight: FontWeight.w500,
                             ),
                           ),
                         ],
@@ -207,60 +234,36 @@ class NotificationCard extends StatelessWidget {
 
                 const SizedBox(height: 10),
 
-                // Body text
-                Text(
-                  notification.body,
-                  style: TextStyle(
-                    fontSize: 13.5,
-                    height: 1.5,
-                    color: isUnread
-                        ? AppColors.textPrimary.withValues(alpha: 0.9)
-                        : AppColors.textSecondary,
-                  ),
-                ),
-
-                // Bottom Action Footer if target entity is linked
-                if (hasAction) ...[
-                  const SizedBox(height: 12),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.end,
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 10,
-                          vertical: 5,
-                        ),
-                        decoration: BoxDecoration(
-                          color: style.bg,
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Text(
-                              notification.complaintId != null
-                                  ? 'عرض تفاصيل البلاغ'
-                                  : notification.projectId != null
-                                      ? 'عرض المشروع التنموي'
-                                      : 'عرض تفاصيل المهمة',
-                              style: TextStyle(
-                                fontSize: 12,
-                                fontWeight: FontWeight.w700,
-                                color: style.color,
-                              ),
-                            ),
-                            const SizedBox(width: 4),
-                            Icon(
-                              Icons.arrow_forward_ios_rounded,
-                              size: 11,
-                              color: style.color,
-                            ),
-                          ],
+                // 2. Bottom Section: Concise Body Text & Left Chevron Arrow
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    Expanded(
+                      child: Padding(
+                        // محاذاة النص مع بداية العنوان تحت الأيقونة
+                        padding: const EdgeInsets.only(right: 58.0),
+                        child: Text(
+                          notification.body,
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            fontSize: 12.5,
+                            height: 1.5,
+                            color: isUnread
+                                ? AppColors.textPrimary.withValues(alpha: 0.85)
+                                : AppColors.textSecondary,
+                          ),
                         ),
                       ),
-                    ],
-                  ),
-                ],
+                    ),
+                    const SizedBox(width: 8),
+                    Icon(
+                      Icons.chevron_left_rounded,
+                      color: AppColors.yemenBlack.withValues(alpha: 0.6),
+                      size: 22,
+                    ),
+                  ],
+                ),
               ],
             ),
           ),

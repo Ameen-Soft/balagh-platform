@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 import '../../../../core/constants/app_colors.dart';
 
 class ProfileInfoItem extends StatelessWidget {
@@ -20,32 +21,22 @@ class ProfileInfoItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 10.0),
+      padding: const EdgeInsets.symmetric(vertical: 12.0),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          Container(
-            width: 38,
-            height: 38,
-            decoration: BoxDecoration(
-              color: (iconColor ?? AppColors.yemenBlack).withValues(alpha: 0.08),
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: Icon(
-              icon,
-              size: 20,
-              color: iconColor ?? AppColors.yemenBlack,
-            ),
-          ),
-          const SizedBox(width: 14),
+          // السهم الأيسر (Chevron pointing left) لإنشاء مظهر تصفح أنيق
+          Icon(Icons.chevron_left_rounded, color: Colors.grey[400], size: 20),
+          const Spacer(),
+          // تفاصيل النصوص (Label on top, Value on bottom - RTL aligment)
           Expanded(
             child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+              crossAxisAlignment: CrossAxisAlignment.end,
               children: [
                 Text(
                   label,
                   style: const TextStyle(
-                    fontSize: 12,
+                    fontSize: 11,
                     color: AppColors.textSecondary,
                     fontWeight: FontWeight.w500,
                   ),
@@ -54,40 +45,30 @@ class ProfileInfoItem extends StatelessWidget {
                 Text(
                   value,
                   style: const TextStyle(
-                    fontSize: 14,
-                    color: AppColors.textPrimary,
-                    fontWeight: FontWeight.w700,
+                    fontSize: 13,
+                    color: AppColors.yemenBlack,
+                    fontWeight: FontWeight.w800,
                   ),
+                  textAlign: TextAlign.right,
                 ),
               ],
             ),
           ),
-          if (isReadOnly) ...[
-            const SizedBox(width: 8),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-              decoration: BoxDecoration(
-                color: const Color(0xFFF3F4F6),
-                borderRadius: BorderRadius.circular(6),
-              ),
-              child: const Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(Icons.lock_outline_rounded,
-                      size: 11, color: AppColors.textMuted),
-                  SizedBox(width: 3),
-                  Text(
-                    'ثابت',
-                    style: TextStyle(
-                      fontSize: 10,
-                      color: AppColors.textMuted,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ],
-              ),
+          const SizedBox(width: 14),
+          // الأيقونة محاطة بخلفية خفيفة جداً وعصرية في الجهة اليمنى
+          Container(
+            width: 38,
+            height: 38,
+            decoration: BoxDecoration(
+              color: (iconColor ?? AppColors.yemenBlack).withValues(alpha: 0.06),
+              borderRadius: BorderRadius.circular(10),
             ),
-          ],
+            child: Icon(
+              icon,
+              size: 18,
+              color: iconColor ?? AppColors.yemenBlack,
+            ),
+          ),
         ],
       ),
     );

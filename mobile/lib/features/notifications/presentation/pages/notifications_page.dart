@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/widgets/app_empty_state.dart';
 import '../../../../core/widgets/app_error_state.dart';
@@ -73,7 +74,7 @@ class _NotificationsPageState extends ConsumerState<NotificationsPage> {
               );
             },
             style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.deepBlack,
+              backgroundColor: AppColors.yemenRed,
               foregroundColor: Colors.white,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(10),
@@ -91,7 +92,8 @@ class _NotificationsPageState extends ConsumerState<NotificationsPage> {
     final state = ref.watch(notificationsNotifierProvider);
     final notifier = ref.read(notificationsNotifierProvider.notifier);
 
-    ref.listen<NotificationsState>(notificationsNotifierProvider, (previous, next) {
+    ref.listen<NotificationsState>(notificationsNotifierProvider,
+        (previous, next) {
       if (next.hasError &&
           next.notifications.isNotEmpty &&
           previous?.hasError != true) {
@@ -113,121 +115,204 @@ class _NotificationsPageState extends ConsumerState<NotificationsPage> {
 
     return Scaffold(
       backgroundColor: AppColors.backgroundSubtle,
-      appBar: AppBar(
-        backgroundColor: Colors.white,
-        elevation: 0,
-        scrolledUnderElevation: 1,
-        title: const Text(
-          'مركز الإشعارات',
-          style: TextStyle(
-            color: AppColors.yemenBlack,
-            fontWeight: FontWeight.w800,
-            fontSize: 18,
-          ),
-        ),
-        actions: [
-          if (state.unreadCount > 0)
-            TextButton.icon(
-              onPressed: () => _showMarkAllAsReadConfirmation(context),
-              icon: const Icon(
-                Icons.done_all_rounded,
-                size: 18,
-                color: AppColors.yemenRed,
-              ),
-              label: const Text(
-                'قراءة الكل',
-                style: TextStyle(
-                  color: AppColors.yemenRed,
-                  fontWeight: FontWeight.w700,
-                  fontSize: 13,
+      body: Column(
+        children: [
+          // 1. Dark Header with Overlapping Filter Capsules
+          Stack(
+            clipBehavior: Clip.none,
+            children: [
+              // Curved Dark Banner
+              Container(
+                width: double.infinity,
+                padding: EdgeInsets.only(
+                  top: MediaQuery.of(context).padding.top + 10,
+                  bottom: 42,
+                  left: 16,
+                  right: 16,
+                ),
+                decoration: const BoxDecoration(
+                  color: AppColors.yemenBlack,
+                  borderRadius: BorderRadius.only(
+                    bottomLeft: Radius.circular(28),
+                    bottomRight: Radius.circular(28),
+                  ),
+                  image: DecorationImage(
+                    image: AssetImage('assets/images/profilepageImage .png'),
+                    fit: BoxFit.cover,
+                    opacity: 0.85,
+                  ),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    // Back / Navigation Button
+                    IconButton(
+                      icon: const Icon(
+                        Icons.arrow_back_ios_new_rounded,
+                        color: Colors.white,
+                        size: 20,
+                      ),
+                      onPressed: () {
+                        if (context.canPop()) {
+                          context.pop();
+                        } else {
+                          context.go('/home');
+                        }
+                      },
+                    ),
+                    const Text(
+                      'مركز الإشعارات',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.w800,
+                        fontSize: 19,
+                      ),
+                    ),
+                    // Mark All as Read Icon Button
+                    if (state.unreadCount > 0)
+                      IconButton(
+                        tooltip: 'تأشير الكل كمقروء',
+                        onPressed: () =>
+                            _showMarkAllAsReadConfirmation(context),
+                        icon: const Icon(
+                          Icons.done_all_rounded,
+                          color: Colors.white,
+                          size: 22,
+                        ),
+                      )
+                    else
+                      const SizedBox(width: 48),
+                  ],
                 ),
               ),
-            ),
-          const SizedBox(width: 8),
-        ],
-      ),
-      body: SafeArea(
-        child: Column(
-          children: [
-            // Filter Pills Header
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-              color: Colors.white,
-              child: Row(
-                children: [
-                  _buildFilterChip(
-                    label: 'جميع الإشعارات',
-                    isSelected: !state.filterUnreadOnly,
-                    count: null,
-                    onTap: () => notifier.setFilterUnreadOnly(false),
-                  ),
-                  const SizedBox(width: 10),
-                  _buildFilterChip(
-                    label: 'غير المقروءة',
-                    isSelected: state.filterUnreadOnly,
-                    count: state.unreadCount > 0 ? state.unreadCount : null,
-                    onTap: () => notifier.setFilterUnreadOnly(true),
-                  ),
-                ],
-              ),
-            ),
-            const Divider(height: 1, thickness: 1, color: AppColors.borderSubtle),
 
-            // Content Area
-            Expanded(
-              child: RefreshIndicator(
-                color: AppColors.yemenRed,
-                onRefresh: () => notifier.refresh(),
-                child: _buildContent(state, notifier),
+              // Overlapping Segmented Filter Pills
+              Positioned(
+                bottom: -22,
+                left: 16,
+                right: 16,
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: _buildFilterPill(
+                        label: 'جميع الإشعارات',
+                        icon: Icons.notifications_active_outlined,
+                        isSelected: !state.filterUnreadOnly,
+                        badgeCount:
+                            state.unreadCount > 0 ? state.unreadCount : null,
+                        showDot: false,
+                        onTap: () => notifier.setFilterUnreadOnly(false),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: _buildFilterPill(
+                        label: 'غير المقروءة',
+                        icon: Icons.visibility_outlined,
+                        isSelected: state.filterUnreadOnly,
+                        badgeCount: null,
+                        showDot: state.unreadCount > 0,
+                        onTap: () => notifier.setFilterUnreadOnly(true),
+                      ),
+                    ),
+                  ],
+                ),
               ),
+            ],
+          ),
+
+          const SizedBox(height: 30),
+
+          // 2. Notifications List Content
+          Expanded(
+            child: RefreshIndicator(
+              color: AppColors.yemenRed,
+              onRefresh: () => notifier.refresh(),
+              child: _buildContent(state, notifier),
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
 
-  Widget _buildFilterChip({
+  Widget _buildFilterPill({
     required String label,
+    required IconData icon,
     required bool isSelected,
-    int? count,
+    int? badgeCount,
+    bool showDot = false,
     required VoidCallback onTap,
   }) {
     return GestureDetector(
       onTap: onTap,
       child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        duration: const Duration(milliseconds: 220),
+        height: 46,
+        padding: const EdgeInsets.symmetric(horizontal: 14),
         decoration: BoxDecoration(
-          color: isSelected ? AppColors.deepBlack : const Color(0xFFF3F4F6),
-          borderRadius: BorderRadius.circular(20),
+          color: isSelected ? AppColors.yemenBlack : Colors.white,
+          borderRadius: BorderRadius.circular(24),
+          border: Border.all(
+            color: isSelected
+                ? Colors.white.withValues(alpha: 0.15)
+                : AppColors.borderSubtle,
+            width: 1.2,
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: isSelected ? 0.14 : 0.05),
+              blurRadius: 12,
+              offset: const Offset(0, 4),
+            ),
+          ],
         ),
         child: Row(
-          mainAxisSize: MainAxisSize.min,
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Text(
-              label,
-              style: TextStyle(
-                color: isSelected ? Colors.white : AppColors.textSecondary,
-                fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
-                fontSize: 13,
+            Icon(
+              icon,
+              size: 18,
+              color: isSelected ? Colors.white : AppColors.yemenBlack,
+            ),
+            const SizedBox(width: 8),
+            Flexible(
+              child: Text(
+                label,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  color: isSelected ? Colors.white : AppColors.yemenBlack,
+                  fontWeight: FontWeight.w800,
+                  fontSize: 13,
+                ),
               ),
             ),
-            if (count != null) ...[
-              const SizedBox(width: 6),
+            if (badgeCount != null) ...[
+              const SizedBox(width: 8),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
                 decoration: BoxDecoration(
-                  color: isSelected ? AppColors.yemenRed : const Color(0xFFE5E7EB),
-                  borderRadius: BorderRadius.circular(10),
+                  color: AppColors.yemenRed,
+                  borderRadius: BorderRadius.circular(12),
                 ),
                 child: Text(
-                  count.toString(),
-                  style: TextStyle(
-                    color: isSelected ? Colors.white : AppColors.deepBlack,
+                  badgeCount.toString(),
+                  style: const TextStyle(
+                    color: Colors.white,
                     fontSize: 11,
                     fontWeight: FontWeight.bold,
                   ),
+                ),
+              ),
+            ] else if (showDot) ...[
+              const SizedBox(width: 6),
+              Container(
+                width: 7,
+                height: 7,
+                decoration: const BoxDecoration(
+                  color: AppColors.yemenRed,
+                  shape: BoxShape.circle,
                 ),
               ),
             ],
@@ -237,7 +322,8 @@ class _NotificationsPageState extends ConsumerState<NotificationsPage> {
     );
   }
 
-  Widget _buildContent(NotificationsState state, NotificationsNotifier notifier) {
+  Widget _buildContent(
+      NotificationsState state, NotificationsNotifier notifier) {
     if (state.isLoading && state.notifications.isEmpty) {
       return const Center(
         child: CircularProgressIndicator(
@@ -284,7 +370,7 @@ class _NotificationsPageState extends ConsumerState<NotificationsPage> {
     return ListView.builder(
       controller: _scrollController,
       physics: const AlwaysScrollableScrollPhysics(),
-      padding: const EdgeInsets.all(16.0),
+      padding: const EdgeInsets.fromLTRB(16, 6, 16, 24),
       itemCount: state.notifications.length + (state.isLoadingMore ? 1 : 0),
       itemBuilder: (context, index) {
         if (index == state.notifications.length) {

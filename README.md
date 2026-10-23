@@ -51,13 +51,15 @@
 
 * **مشرف الوزارة (Ministry Admin):**
   * إدارة الشكاوى الخاصة بنطاق وزارته واتخاذ القرارات الإجرائية المباشرة (إسناد المهمة للموظف الميداني أو رفض البلاغ مع سبب إلزامي).
-  * إدارة الكادر الميداني للوزارة: استعراض الموظفين وترقية حسابات المواطنين إلى موظفين ميدانيين أو إلغاء تعيينهم عند خلو المهام النشطة.
-  * إسناد البلاغات للفرق الميدانية أو تحويل البلاغات الواردة بالخطأ لوزارات أخرى مع تدوين السبب.
+  * اللامركزية الإدارية: إنشاء وإدارة الإدارات الخدمية التابعة للوزارة وتصنيفاتها التخصصية ذاتياً مع التوجيه الآلي للبلاغات.
+  * إدارة الكادر الميداني للوزارة: استعراض الموظفين وترقية حسابات المواطنين إلى موظفين ميدانيين بالبحث اللحظي السريع، أو إلغاء تعيينهم عند خلو المهام النشطة.
+  * إسناد البلاغات للفرق الميدانية مباشرة بحالة `قيد التنفيذ (in_progress)` أو تحويل البلاغات الواردة بالخطأ لوزارات أخرى مع تدوين السبب.
   * متابعة التنبيهات الإدارية للبلاغات المتصدرة مجتمعياً (Trending Alerts).
 
 * **المدير العام للنظام (Super Admin):**
   * الرقابة الإدارية الشاملة على كافة الوزارات والإدارات والمستخدمين.
-  * إدارة شجرة التصنيفات الخدمية والقطاعية للنظام.
+  * إدارة الوزارات والمؤسسات المركزية وتعيين المشرفين المسؤولين عنها ببحث تفاعلي فوري دون الحاجة لرمز تعريفي إلزامي.
+  * إدارة شجرة التصنيفات الخدمية والقطاعية العامة للنظام.
   * مراجعة المشاريع التنموية واعتمادها ومتابعة مؤشرات الأداء العامة (KPIs).
 
 ---
@@ -102,6 +104,16 @@
 * واجهة خفيفة لاسترجاع دبابيس الخريطة مع دعم فلترة النطاق المرئي (Bounding Box - `bbox`).
 * أمر Artisan مجدول لتسوية العدادات ومزامنتها دورياً (`complaints:reconcile-likes`).
 
+### 8. وحدة الهيكل المؤسسي والكوادر الميدانية (Institutional Structure & Field Workforce)
+* **اللامركزية الإدارية للوزارات:** تمكين الوزارة ذاتياً من إنشاء إداراتها الخدمية الفرعية وتصنيفاتها الخدمية المتسلسلة (مستوى رئيسي وفرعي) مع التوجيه الآلي المباشر للشكاوى.
+* **إدارة الكادر الميداني:** استعراض الكوادر، وترقية حسابات المواطنين النشطة إلى موظفين ميدانيين ببحث فوري مع حظر ترقية مديري النظام، وإلغاء التعيين المشروط بعدم وجود مهام نشطة.
+* **الانسيابية التشغيلية للميدان:** انتقال البلاغ والمهمة الميدانية مباشرة إلى حالة `قيد التنفيذ (in_progress)` فور الإسناد دون خطوات وسيطة، وإلزامية توثيق سبب الرفض عند رفض أي شكوى.
+
+### 9. وحدة البحث الذكي عالي الأداء والفهرسة (High-Performance Search & Indexing)
+* **فهارس بحث متقدمة:** إضافة فهارس B-Tree على حقول الاسم والهاتف وفهرس مركب للحالة والأقسام لتسريع الاستعلامات وتفادي مسح الجداول الشامل (Full Table Scans).
+* **خدمة بحث مركزية ومقيدة بالنطاق (`UserSearchService`):** استعلامات قائمة على البادئة (Prefix Index Scans) مع تطبيق قيود النطاق الصارمة (Scopes) لمنع تسريب البيانات وحجب كلمات المرور ورموز التوثيق.
+* **مكون واجهة تفاعلي موحد (`<x-user-search-picker>`):** مكون Alpine.js بمؤقت تأخير (Debounce 300ms)، وإلغاء الطلبات المتزامنة (AbortController)، ودعم التنقل بالأسهم واختيار الحسابات دون تفريغ مسبق للبيانات.
+
 ---
 
 ## بوابات الويب ولوحات التحكم
@@ -115,7 +127,14 @@
 | **ملف الشفافية للبلاغ** | `/public/complaints/{id}` | استعراض الخط الزمني ومراحل معالجة البلاغ العام | عام (Public) |
 | **دليل المشاريع التنموية** | `/public/projects` | استعراض المشاريع ومتابعة مؤشرات الإنجاز المالي والزمني | عام (Public) |
 | **لوحة الإدارة العامة** | `/admin/dashboard` | رقابة مركزية، مؤشرات الأداء، إدارة الوزارات والمستخدمين والمشاريع | محمي بـ Middleware (`super_admin`) |
-| **بوابة مشرف الوزارة** | `/ministry/dashboard` | فرز الشكاوى، إسناد المهام الميدانية، والتحويل بين الجهات | محمي بـ Middleware (`ministry_admin`) |
+| **إدارة الوزارات المركزية** | `/admin/ministries` | تسجيل الوزارات برمز تلقائي، تعيين المشرفين ببحث تفاعلي، ومتابعة الهيكل | محمي بـ Middleware (`super_admin`) |
+| **إدارة مستخدمي النظام** | `/admin/users` | استعراض وتعديل المستخدمين والبحث المتقدم بالبادئة وتعيين الأدوار | محمي بـ Middleware (`super_admin`) |
+| **بوابة مشرف الوزارة** | `/ministry/dashboard` | فرز الشكاوى، إحصائيات الوزارة، التنبيهات الإدارية، وإجراءات سريعة | محمي بـ Middleware (`ministry_admin`) |
+| **إدارة شكاوى الوزارة** | `/ministry/complaints` | معالجة الشكاوى، إسناد المهام للميدان، والتحويل البيني والرفض المسبب | محمي بـ Middleware (`ministry_admin`) |
+| **إدارات الوزارة الخدمية** | `/ministry/departments` | تسجيل وإدارة الإدارات الخدمية التابعة للوزارة ذاتياً | محمي بـ Middleware (`ministry_admin`) |
+| **تصنيفات بلاغات الوزارة** | `/ministry/categories` | بناء شجرة التصنيفات الخدمية (رئيسية وفرعية) وربطها التلقائي بالإدارات | محمي بـ Middleware (`ministry_admin`) |
+| **إدارة الكادر الميداني** | `/ministry/workers` | استعراض الموظفين وترقية المواطنين إلى موظفين ميدانيين ببحث فوري وإلغاء التعيين | محمي بـ Middleware (`ministry_admin`) |
+| **مهام العمل الميداني** | `/ministry/assignments` | متابعة المهام الميدانية والإنجاز والتحقق الجغرافي للفرق | محمي بـ Middleware (`ministry_admin`) |
 
 ---
 
@@ -124,14 +143,16 @@
 * **الواجهة الخلفية (Backend):**
   * إطار العمل: Laravel 13 مع PHP 8.3+.
   * إدارة المصادقة والجلسات: Laravel Jetstream و Laravel Sanctum.
-  * طبقة واجهات البرمجة: RESTful APIs تحت البادئة `/api/v1`.
-  * المعاملات والسياسات: إدارة العمليات المتزامنة عبر `DB::transaction` وسياسات التفويض (Policies).
+  * طبقة واجهات البرمجة: RESTful APIs تحت البادئة `/api/v1` ومسارات بحث داخلية محسنة `/internal/search/*`.
+  * المعاملات والسياسات: إدارة العمليات المتزامنة عبر `DB::transaction`، وسياسات التفويض (Policies)، وخدمات البحث المقيدة بالنطاقات (`UserSearchService`).
 * **قواعد البيانات (Database):**
   * نظام إدارة قواعد البيانات: MySQL 8+.
-  * الهيكلية: 18 جدولاً مترابطاً مع قيود المفاتيح الأجنبية والفهارس المركبة وحذف البيانات التتابعي (Cascade).
+  * الهيكلية: 18 جدولاً مترابطاً مع قيود المفاتيح الأجنبية، الفهارس المركبة، وحذف البيانات التتابعي (Cascade).
+  * تحسين الأداء والفهرسة: فهارس B-Tree على حقول البحث المتكرر (`name`, `phone`, `is_active`, `department_id`) لتسريع الاستعلامات بالبادئة ومنع المسح الشامل للجداول.
 * **بوابات الويب (Web UI):**
   * المكونات: Laravel Blade، Livewire 3، Alpine.js، و Tailwind CSS.
-  * التصميم: واجهات متجاوبة (شريط جانبي للشاشات الكبيرة ودرج منزلق للجوالات) مع دعم RTL.
+  * المكونات التفاعلية: حقل اختيار وبحث المستخدمين الموحد (`<x-user-search-picker>`) مع تقنيات Debounce و AbortController.
+  * التصميم: واجهات متجاوبة بنمط Obsidian Dark مع شريط جانبي للشاشات الكبيرة ودرج منزلق للجوالات ودعم كامل لاتجاه RTL.
 * **تطبيق الهاتف المحمول (Mobile App):**
   * إطار العمل: Flutter (Dart SDK `^3.13.1`).
   * البنية المعمارية: المعمارية النظيفة (Clean Architecture) مقسمة حسب الخصائص.
@@ -140,14 +161,16 @@
   * التخزين الآمن: مكتبة `flutter_secure_storage` لتخزين التوكن في Keystore / Keychain.
   * التوجيه: GoRouter مع معالجة التوجيه حسب حالة المصادقة واستعادة الجلسة بدون وميض.
   * الخرائط والموقع: مكتبات `flutter_map ^8.3.2`، `latlong2`، و `geolocator` مع خوادم CARTO CDN.
+  * الهوية البصرية وتجربة المستخدم: نقوش تراثية يمنية (`YemeniBorderPatterns`) في شاشات الملف الشخصي، وبانرات منحنية أنيقة مع كبسولات فلترة مقسمة في مركز الإشعارات.
 
 ---
 
 ## المعايير التقنية والموثوقية
 * **سلامة البيانات والتتبع:** قفل إحداثيات الموقع عند التصوير، والتحقق الجغرافي للموظف الميداني (Geofencing) قبل إغلاق المهام، وتدوين كل حركة في جدول الخط الزمني (`complaint_timeline`).
 * **إدارة التزامن:** استخدام معاملات قاعدة البيانات مع قفل السجلات (`lockForUpdate`) والفهارس الفريدة لمنع التكرار وسباق البيانات.
+* **كفاءة الاستعلامات والبحث الذكي:** استخدام فهارس B-Tree للبحث بالبادئة، وتفادي المسح الشامل (Full Table Scans)، وتحديد سقف النتائج القصوى لمنع استنزاف موارد الخادم وقاعدة البيانات.
 * **حماية الخصوصية:** الخصوصية كإعداد افتراضي للبلاغات، وحجب بيانات الاتصال والهوية الشخصية في الموارد العامة.
-* **الأمان وتحديد المعدل:** حماية مسارات المصادقة عبر قيود المعدل (Throttle)، وروابط تحقق موقّعة مشفرة، واستجابات موحدة تمنع استكشاف الحسابات.
+* **الأمان وتحديد المعدل:** حماية مسارات المصادقة والبحث عبر قيود المعدل (Throttle)، وروابط تحقق موقّعة مشفرة، واستجابات موحدة تمنع استكشاف الحسابات.
 
 ---
 
@@ -253,10 +276,11 @@ php artisan serve --host=0.0.0.0
 | `POST` | `/api/v1/complaints/{id}/like` | تأييد البلاغ العام بالإعجاب مع معالجة التزامن بقفل السجلات | مصادقة (`auth:sanctum`) |
 | `DELETE` | `/api/v1/complaints/{id}/like` | إلغاء التأييد من البلاغ العام مع ضمان عدم النزول تحت الصفر | مصادقة (`auth:sanctum`) |
 | `GET` | `/api/v1/field-assignments` | استعراض قائمة المهام الميدانية المسندة للموظف | موظف ميداني / مشرف |
-| `PATCH` | `/api/v1/field-assignments/{id}/accept` | قبول المهمة الميدانية والانتقال لحالة `accepted` | الباحث الميداني المكلف |
-| `POST` | `/api/v1/field-assignments/{id}/start` | تسجيل بدء تنفيذ المعاينة الميدانية وتحديث حالة البلاغ | الباحث الميداني المكلف |
+| `PATCH` | `/api/v1/field-assignments/{id}/accept` | قبول المهمة الميدانية (مدعوم للتوافق، حيث تبدأ المهمة مباشرة بحالة `in_progress`) | الباحث الميداني المكلف |
+| `POST` | `/api/v1/field-assignments/{id}/start` | تسجيل بدء التنفيذ (مدعوم للتوافق، حيث تبدأ المهمة مباشرة بحالة `in_progress`) | الباحث الميداني المكلف |
 | `POST` | `/api/v1/field-assignments/{id}/verify-location` | التحقق الجغرافي اللحظي لموقع الباحث الميداني مقارنة بالبلاغ | الباحث الميداني المكلف |
 | `POST` | `/api/v1/field-assignments/{id}/complete` | إتمام المهمة، رفع أدلة الإنجاز، والتحقق الجغرافي الصارم | الباحث الميداني المكلف |
+| `GET` | `/internal/search/users` | بحث سريع ومقيد بالنطاقات عن حسابات المستخدمين مع تقييد المعدل وتأخير الإرسال | مصادقة (`auth:sanctum` + Scopes) |
 | `GET` | `/api/v1/projects` | استعراض المشاريع التنموية ونسب الإنجاز والمبالغ المحصلة | عام (Public) |
 | `GET` | `/api/v1/projects/{id}` | استعراض تفاصيل المشروع ومراحله والمساهمات المسجلة | عام (Public) |
 | `POST` | `/api/v1/projects/{id}/contribute` | تسجيل مساهمة مجتمعية افتراضية بمشروع بحسابات دقيقة | مصادقة (`auth:sanctum`) |
@@ -280,7 +304,7 @@ php artisan serve --host=0.0.0.0
 - [x] لوحة الإدارة المركزية والرقابة الوطنية للمدير العام (`/admin/*`).
 - [x] محطة العمل التشغيلية للوزارات والجهات الحكومية (`/ministry/*`).
 - [x] بناء واجهات الويب بنمط داكن متجاوب مع الهواتف وشريط جانبي ودعم كامل لـ RTL.
-- [x] جناح الاختبارات الآلية للواجهة الخلفية (100 اختبار Backend بنجاح 100% و 467 توكيداً).
+- [x] جناح الاختبارات الآلية للواجهة الخلفية (139 اختبار Backend بنجاح 100% و 608 توكيدات، تشمل اختبارات الميداني والهيكلية والبحث الذكي).
 - [x] شاشات الترحيب والتعريف بالنظام وتخزين الحالة الأولى (Flutter Onboarding Flow).
 - [x] نظام المصادقة لتطبيق الهاتف (تسجيل الدخول / التسجيل / تسجيل الخروج، وحراس GoRouter مع Riverpod).
 - [x] إثراء واجهات برمجة التطبيقات (Phase 01): الوزارات النشطة، التصنيفات المتسلسلة، قبول المهام، والتحقق الجغرافي.
@@ -295,6 +319,10 @@ php artisan serve --host=0.0.0.0
 - [x] حزمة التحقق من البريد واستعادة كلمة المرور (Phase 10): واجهات التحقق واستعادة كلمة المرور، الروابط الموقعة المشفرة، حظر استكشاف الحسابات، وتقييد معدل الطلبات.
 - [x] البنية التحتية الخلفية للتفاعل المجتمعي (Phase 11): جدول `complaint_likes`، حجب البيانات الشخصية، مسارات الإعجاب والتغذية العامة والخريطة، وأمر التسوية `complaints:reconcile-likes`.
 - [x] تطبيق الهاتف للتفاعل المجتمعي وبلاغات مجتمع بادر (Phase 12): صفحة البلاغات العامة، الترقيم اللحظي، الفلاتر والفرز، التحديث التفاؤلي الفوري للإعجاب مع التراجع الآلي، مفتاح الخصوصية في إنشاء البلاغ، ودبابيس الخريطة العامة (105 اختبارات Flutter بنجاح 100%).
+- [x] إدارة الكادر الميداني وسير العمل الانسيابي (Phase 13): لوحة إدارة الموظفين الميدانيين بالوزارة (`/ministry/workers`)، ترقية المواطنين بضوابط صارمة، الانتقال المباشر لحالة قيد التنفيذ (`in_progress`) عند إسناد المهمة، وإلزامية سبب الرفض للبلاغ (12 اختباراً و 54 توكيداً).
+- [x] اللامركزية الهيكلية وإدارة التصنيفات للوزارات (Phase 14): تمكين الوزارات من إنشاء الإدارات الخدمية (`/ministry/departments`) وتصنيفات الشكاوى (`/ministry/categories`) مع التوجيه الآلي، وتعيين مشرفي الوزارات والرمز التلقائي (`/admin/ministries`) (16 اختباراً و 51 توكيداً).
+- [x] منظومة البحث الموحد عالي الأداء والفهرسة (Phase 15): فهارس B-Tree لقاعدة البيانات، خدمة البحث المقيد بالنطاقات (`UserSearchService`)، متحكم محدد المعدل، ومكون Alpine.js التفاعلي (`<x-user-search-picker>`) لإلغاء تفريغ البيانات الضخم في الواجهات (11 اختباراً و 36 توكيداً).
+- [x] التحديث البصري لتطبيق الهاتف (Phase 16): إعادة تصميم شاشات الملف الشخصي وتعديل البيانات بالنقوش اليمنية التراثية وحقول الأمان المقفلة، وتطوير مركز الإشعارات بالبانر المنحني والكبسولات التفاعلية المقسمة.
 
 ---
 ---
@@ -352,12 +380,14 @@ Citizens can submit complaints through a cascading classification taxonomy with 
 
 * **Ministry Admin:**
   * Manage complaints within their ministry's scope and execute direct operational decisions (assigning tasks directly to field workers or rejecting complaints with a mandatory reason).
-  * Manage ministry field workforce: browse workers, promote registered citizen accounts to field workers, or demote them when free of active assignments.
-  * Dispatch complaints to field teams or re-route misdirected tickets to other ministries with logged transfer rationale.
+  * Administrative decentralization: Self-service creation and management of service departments and specialized complaint taxonomies with automated complaint routing.
+  * Manage ministry field workforce: Browse workers, promote registered citizen accounts to field workers via instant autocomplete search, or demote them when free of active assignments.
+  * Dispatch complaints directly to field teams in `in_progress` status or re-route misdirected tickets to other ministries with logged transfer rationale.
   * Monitor administrative alerts triggered by trending community complaints (Trending Alerts).
 
 * **Super Admin:**
   * Maintain comprehensive oversight across all ministries, departments, and user accounts.
+  * Manage ministries and central institutions, assigning responsible administrators via interactive instant search picker without requiring a mandatory ministry code.
   * Manage platform service taxonomies, categories, and system-wide configurations.
   * Review and approve developmental project listings and monitor nationwide performance indicators (KPIs).
 
@@ -403,6 +433,16 @@ Citizens can submit complaints through a cascading classification taxonomy with 
 * Lightweight map pins endpoint with Bounding Box (`bbox`) viewport filtering.
 * Scheduled Artisan reconciliation command (`complaints:reconcile-likes`) for periodic counter integrity verification.
 
+### 8. Institutional Structure & Field Workforce Management
+* **Ministerial Administrative Decentralization:** Self-service creation and management of departmental units and cascading complaint taxonomies (root and subcategories) with automated ticket routing.
+* **Field Workforce Governance:** Browsing workforce rosters, promoting active citizen accounts to field workers via instant search with strict qualification guards, and demotion gated by zero active tasks.
+* **Operational Fluidity:** Direct transition of assignments and complaints to `in_progress` immediately upon dispatch without intermediary acceptance steps, coupled with mandatory rejection reasons for ticket dismissal.
+
+### 9. High-Performance User Search & Database Indexing
+* **Advanced B-Tree Indexing:** Specialized database B-Tree indexes on name, phone, and compound active-department columns to eliminate full table scans and power fast prefix-based lookups.
+* **Scoped Search Engine (`UserSearchService`):** Centralized service utilizing index range scans with strict role-based scopes, result capping, and complete exclusion of sensitive authentication credentials.
+* **Unified Interactive Autocomplete (`<x-user-search-picker>`):** Lightweight Alpine.js picker with 300ms input debouncing, request cancellation via `AbortController`, and keyboard navigation, removing massive upfront DOM dumping.
+
 ---
 
 ## Web Dashboards & Portals
@@ -415,8 +455,15 @@ Web interfaces are built using **Laravel Blade**, **Livewire 3**, and **Tailwind
 | **Public Transparency Registry** | `/public/complaints` | Directory of public complaints with citizen identity masked | Public (No auth required) |
 | **Complaint Transparency Dossier** | `/public/complaints/{id}` | Detailed public audit timeline, proof of work, and resolution status | Public (No auth required) |
 | **Development Projects Directory** | `/public/projects` | Directory of public infrastructure projects with progress metrics | Public (No auth required) |
-| **Super Admin Global Dashboard** | `/admin/dashboard` | Nationwide KPI monitoring, ministry oversight, user and category management | Strict Middleware (`super_admin`) |
-| **Ministry Admin Workstation** | `/ministry/dashboard` | Department-scoped ticket processing, field worker dispatching, and transfers | Strict Middleware (`ministry_admin`) |
+| **Super Admin Global Dashboard** | `/admin/dashboard` | Nationwide KPI monitoring, ministry oversight, and strategic project tracking | Strict Middleware (`super_admin`) |
+| **Central Ministry Management** | `/admin/ministries` | Ministry registration with auto-generated codes, interactive supervisor assignment | Strict Middleware (`super_admin`) |
+| **System User Administration** | `/admin/users` | User directory with optimized prefix search, role assignments, and status controls | Strict Middleware (`super_admin`) |
+| **Ministry Admin Workstation** | `/ministry/dashboard` | Ministry-level KPI overview, trending alerts, and quick action triage | Strict Middleware (`ministry_admin`) |
+| **Ministry Complaints Operations** | `/ministry/complaints` | Ticket lifecycle management, direct field dispatch, inter-agency forwarding, and rejection | Strict Middleware (`ministry_admin`) |
+| **Ministry Service Departments** | `/ministry/departments` | Self-service creation and governance of specialized departmental divisions | Strict Middleware (`ministry_admin`) |
+| **Ministry Complaint Categories** | `/ministry/categories` | Hierarchical taxonomy builder (root and subcategories) linked to service departments | Strict Middleware (`ministry_admin`) |
+| **Field Workforce Management** | `/ministry/workers` | Field staff roster, citizen promotion via autocomplete search, and guarded demotion | Strict Middleware (`ministry_admin`) |
+| **Field Assignments Tracker** | `/ministry/assignments` | Operational tracking of field assignments, resolution proofs, and geospatial audits | Strict Middleware (`ministry_admin`) |
 
 ---
 
@@ -425,14 +472,16 @@ Web interfaces are built using **Laravel Blade**, **Livewire 3**, and **Tailwind
 * **Backend & API Architecture:**
   * Framework: Laravel 13 running on PHP 8.3+.
   * Authentication: Laravel Jetstream and Laravel Sanctum token management.
-  * API Layer: RESTful APIs versioned under `/api/v1`.
-  * Transactions & Authorization: Atomic operations via `DB::transaction` and granular Policy authorization.
+  * API Layer: RESTful APIs versioned under `/api/v1` and optimized internal search routes `/internal/search/*`.
+  * Transactions & Authorization: Atomic operations via `DB::transaction`, granular Policy authorization, and scoped search engines (`UserSearchService`).
 * **Database Management System:**
   * Database: MySQL 8+.
   * Schema: 18 normalized relational tables with foreign keys, composite indexes, and cascade deletion rules.
+  * Performance & Indexing: Specialized B-Tree indexes on frequent search columns (`name`, `phone`, `is_active`, `department_id`) enabling fast prefix scans and eliminating full table scans.
 * **Web Dashboards:**
   * Components: Laravel Blade, Livewire 3, Alpine.js, and Tailwind CSS.
-  * Layout: Responsive desktop sidebar / mobile touch drawer with full RTL support.
+  * Interactive Components: Unified reactive search picker (`<x-user-search-picker>`) featuring input debouncing and AbortController request cancellation.
+  * Layout: Responsive desktop sidebar / mobile touch drawer in an Obsidian Dark Theme with full RTL support.
 * **Mobile Application:**
   * Framework: Flutter (Dart SDK `^3.13.1`).
   * Architecture: Clean Architecture modularized by feature.
@@ -441,14 +490,16 @@ Web interfaces are built using **Laravel Blade**, **Livewire 3**, and **Tailwind
   * Secure Storage: `flutter_secure_storage` storing credentials in Android Keystore / iOS Keychain.
   * Routing: GoRouter with reactive authentication-driven route guards and zero-flicker session restoration.
   * Geospatial & GIS: `flutter_map ^8.3.2`, `latlong2`, and `geolocator` with CARTO CDN basemaps.
+  * Visual Identity & UX: Authentic Yemeni geometric patterns (`YemeniBorderPatterns`) across profile views, alongside curved header banners and segmented filter capsules in notifications.
 
 ---
 
 ## Technical Standards & Reliability
 * **Data Integrity & Auditability:** Camera-locked geocoding prevents spatial spoofing, field worker GPS verification (Geofencing) is enforced prior to completion, and all status transitions are logged in `complaint_timeline`.
 * **Concurrency Management:** Database transactions with row-level locks (`lockForUpdate`) and unique constraints eliminate race conditions and counter discrepancies.
+* **Query Efficiency & Indexed Search:** Utilizing B-Tree indexes for prefix lookups, eliminating full table scans, and capping query result sets to safeguard database and server performance.
 * **Privacy by Default:** Public publishing requires explicit citizen consent, and public feeds strictly redact personal phone numbers, names, and identifiers.
-* **Security & Rate Limiting:** Rate limiting (Throttle) guards sensitive auth routes, signed URLs secure email tokens, and generic error messages prevent user enumeration.
+* **Security & Rate Limiting:** Rate limiting (Throttle) guards sensitive auth and search routes, signed URLs secure email tokens, and generic error messages prevent user enumeration.
 
 ---
 
@@ -554,10 +605,11 @@ All platform endpoints are versioned under `/api/v1` and authenticated using San
 | `POST` | `/api/v1/complaints/{id}/like` | Upvote public complaint with row-level locking | Authenticated (`auth:sanctum`) |
 | `DELETE` | `/api/v1/complaints/{id}/like` | Remove upvote with non-negative counter guarantee | Authenticated (`auth:sanctum`) |
 | `GET` | `/api/v1/field-assignments` | List field assignments assigned to current worker | Field Worker / Admin |
-| `PATCH` | `/api/v1/field-assignments/{id}/accept` | Accept field assignment transitioning to `accepted` | Assigned Field Worker |
-| `POST` | `/api/v1/field-assignments/{id}/start` | Log on-site arrival and start assignment execution | Assigned Field Worker |
+| `PATCH` | `/api/v1/field-assignments/{id}/accept` | Accept field assignment (supported for backwards compatibility; tasks default directly to `in_progress`) | Assigned Field Worker |
+| `POST` | `/api/v1/field-assignments/{id}/start` | Start field execution (supported for backwards compatibility; tasks default directly to `in_progress`) | Assigned Field Worker |
 | `POST` | `/api/v1/field-assignments/{id}/verify-location` | Live GPS proximity check against incident coordinates | Assigned Field Worker |
 | `POST` | `/api/v1/field-assignments/{id}/complete` | Submit resolution report and evidence with strict geofencing | Assigned Field Worker |
+| `GET` | `/internal/search/users` | Scoped high-performance user search (candidates, promotions, workers) with strict rate limiting | Authenticated (`auth:sanctum` + Scopes) |
 | `GET` | `/api/v1/projects` | Browse active developmental projects and progress | Public |
 | `GET` | `/api/v1/projects/{id}` | View detailed project breakdown and contributions | Public |
 | `POST` | `/api/v1/projects/{id}/contribute` | Register simulated project contribution with precise arithmetic | Authenticated (`auth:sanctum`) |
@@ -581,7 +633,7 @@ All platform endpoints are versioned under `/api/v1` and authenticated using San
 - [x] Super Admin global oversight dashboard (`/admin/*`).
 - [x] Ministry Admin operational processing workstation (`/ministry/*`).
 - [x] Responsive web interface with dark theme, desktop sidebar, mobile drawer, and RTL support.
-- [x] Backend automated test suite (100 tests passing with 467 assertions).
+- [x] Backend automated test suite (139 backend tests passing 100% with 608 assertions covering field workflows, ministry structure, and optimized search).
 - [x] Mobile onboarding flow and first-launch persistence (Flutter Onboarding Flow).
 - [x] Mobile authentication system (Login, registration, logout, and GoRouter auth guards with Riverpod).
 - [x] API enrichment (Phase 01): Active ministries, cascading taxonomy categories, assignment acceptance, and GPS verification.
@@ -596,3 +648,7 @@ All platform endpoints are versioned under `/api/v1` and authenticated using San
 - [x] Email verification & password recovery suite (Phase 10): Verification and password reset screens, signed URLs, anti-enumeration, and rate limiting.
 - [x] Community engagement backend infrastructure (Phase 11): `complaint_likes` table, PII redaction, public feed/map endpoints, and reconciliation command `complaints:reconcile-likes`.
 - [x] Mobile community engagement & public feed (Phase 12): Community complaints page, infinite pagination, filtering/sorting, optimistic upvoting with auto-rollback, privacy switch, and public map pins (105 Flutter tests passing 100%).
+- [x] Field Workforce Management & Streamlined Workflow (Phase 13): Ministry field worker directory (`/ministry/workers`), guarded citizen promotion, direct transition to `in_progress` upon assignment, and mandatory complaint rejection reasons (12 tests, 54 assertions).
+- [x] Decentralized Ministry Structure & Category Management (Phase 14): Self-service service departments (`/ministry/departments`) and cascading complaint categories (`/ministry/categories`) with automated routing, supervisor assignment, and auto-generated ministry codes (`/admin/ministries`) (16 tests, 51 assertions).
+- [x] High-Performance Unified User Search & Indexing (Phase 15): Database B-Tree indexing, scoped search service (`UserSearchService`), rate-limited search API, and reusable Alpine.js autocomplete picker (`<x-user-search-picker>`) eliminating heavy DOM dumps (11 tests, 36 assertions).
+- [x] Mobile Visual Modernization (Phase 16): Redesigned profile and edit profile views featuring Yemeni cultural motifs and locked security rows, alongside curved-banner notification center with segmented filter capsules.

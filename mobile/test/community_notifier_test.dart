@@ -1,7 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mobile/core/network/api_exceptions.dart';
-import 'package:mobile/features/complaints/application/community_complaints_state.dart';
 import 'package:mobile/features/complaints/application/complaints_providers.dart';
 import 'package:mobile/features/complaints/domain/entities/category_entity.dart';
 import 'package:mobile/features/complaints/domain/entities/complaint_entity.dart';

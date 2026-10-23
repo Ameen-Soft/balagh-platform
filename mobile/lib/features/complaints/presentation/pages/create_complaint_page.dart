@@ -446,7 +446,7 @@ class _CreateComplaintPageState extends ConsumerState<CreateComplaintPage> {
                   ),
                   Switch.adaptive(
                     value: state.isPublic,
-                    activeColor: AppColors.yemenRed,
+                    activeTrackColor: AppColors.yemenRed,
                     onChanged: (val) => notifier.setIsPublic(val),
                   ),
                 ],

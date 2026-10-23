@@ -288,7 +288,7 @@ void main() {
 
   group('ComplaintCard Widget Tests', () {
     testWidgets(
-      'displays title, complaint number, priority, and responds to tap',
+      'displays title, location, status, date, and responds to tap',
       (tester) async {
         bool tapped = false;
         final testComplaint = ComplaintEntity(
@@ -319,14 +319,13 @@ void main() {
           ),
         );
 
-        expect(find.text('CMP-000042'), findsOneWidget);
         expect(find.text('تسرب مياه في الحي'), findsOneWidget);
-        expect(find.text('قيد التنفيذ'), findsOneWidget);
-        expect(find.text('طارئ'), findsOneWidget);
+        expect(find.text('قيد المعالجة'), findsOneWidget);
         expect(
-          find.text('وزارة المياه والبيئة • كسر في أنبوب رئيسي'),
+          find.text('وزارة المياه والبيئة - كسر في أنبوب رئيسي'),
           findsOneWidget,
         );
+        expect(find.text('2026/09/15'), findsOneWidget);
 
         await tester.tap(find.byType(ComplaintCard));
         expect(tapped, isTrue);

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/utils/app_date_formatter.dart';
 import '../../../auth/application/providers.dart';
@@ -42,8 +43,10 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
         actions: [
           TextButton(
             onPressed: () => Navigator.of(dialogContext).pop(),
-            child: const Text('إلغاء',
-                style: TextStyle(color: AppColors.textSecondary)),
+            child: const Text(
+              'إلغاء',
+              style: TextStyle(color: AppColors.textSecondary),
+            ),
           ),
           ElevatedButton(
             onPressed: () {
@@ -54,7 +57,8 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
               backgroundColor: AppColors.yemenRed,
               foregroundColor: Colors.white,
               shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(10)),
+                borderRadius: BorderRadius.circular(10),
+              ),
             ),
             child: const Text('تأكيد الخروج'),
           ),
@@ -71,14 +75,19 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
 
     return Scaffold(
       backgroundColor: AppColors.backgroundSubtle,
+      // تمديد الواجهة خلف الـ AppBar لرسم الخلفية الداكنة في الأعلى بسلاسة
+      extendBodyBehindAppBar: true,
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: Colors.transparent,
         elevation: 0,
-        scrolledUnderElevation: 1,
         centerTitle: true,
+        // زر العودة (Arrow forward context pop in RTL)
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new_rounded,
-              color: AppColors.yemenBlack, size: 20),
+          icon: const Icon(
+            Icons.arrow_back_ios_new_rounded,
+            color: Colors.white,
+            size: 20,
+          ),
           onPressed: () {
             if (context.canPop()) {
               context.pop();
@@ -90,31 +99,28 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
         title: const Text(
           'الملف الشخصي',
           style: TextStyle(
-            color: AppColors.yemenBlack,
+            color: Colors.white,
             fontWeight: FontWeight.w800,
             fontSize: 18,
           ),
         ),
         actions: [
-          if (user != null)
-            IconButton(
-              tooltip: 'تعديل الملف الشخصي',
-              icon: const Icon(Icons.edit_outlined, color: AppColors.yemenBlack),
-              onPressed: () => context.push('/profile/edit'),
-            ),
+          IconButton(
+            tooltip: 'الإعدادات',
+            icon: const Icon(Icons.settings_outlined, color: Colors.white),
+            onPressed: () => context.push('/profile/edit'),
+          ),
           const SizedBox(width: 8),
         ],
       ),
-      body: SafeArea(
-        child: RefreshIndicator(
-          color: AppColors.yemenRed,
-          onRefresh: () async {
-            await ref
-                .read(profileNotifierProvider.notifier)
-                .loadProfile(refresh: true);
-          },
-          child: _buildContent(state, user),
-        ),
+      body: RefreshIndicator(
+        color: AppColors.yemenRed,
+        onRefresh: () async {
+          await ref
+              .read(profileNotifierProvider.notifier)
+              .loadProfile(refresh: true);
+        },
+        child: _buildContent(state, user),
       ),
     );
   }
@@ -133,8 +139,11 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Icon(Icons.error_outline_rounded,
-                  size: 48, color: AppColors.yemenRed),
+              const Icon(
+                Icons.error_outline_rounded,
+                size: 48,
+                color: AppColors.yemenRed,
+              ),
               const SizedBox(height: 16),
               Text(
                 state.errorMessage ?? 'تعذر تحميل بيانات الملف الشخصي.',
@@ -166,9 +175,7 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
     }
 
     if (user == null) {
-      return const Center(
-        child: Text('لا توجد بيانات مستخدم متوفرة حالياً.'),
-      );
+      return const Center(child: Text('لا توجد بيانات مستخدم متوفرة حالياً.'));
     }
 
     final isFieldWorker = user.isFieldWorker;
@@ -176,200 +183,236 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
 
     return SingleChildScrollView(
       physics: const AlwaysScrollableScrollPhysics(),
-      padding: const EdgeInsets.all(16.0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          // 1. Header Profile Card
+          // 1. الجزء العلوي (Header)
           Container(
-            padding: const EdgeInsets.all(20),
-            decoration: BoxDecoration(
-              gradient: const LinearGradient(
-                colors: [
-                  AppColors.yemenBlackLight,
-                  AppColors.yemenBlack,
-                ],
-                begin: Alignment.topRight,
-                end: Alignment.bottomLeft,
+            width: double.infinity,
+            padding: const EdgeInsets.fromLTRB(16, 120, 16, 32),
+            decoration: const BoxDecoration(
+              borderRadius: BorderRadius.only(
+                bottomLeft: Radius.circular(32),
+                bottomRight: Radius.circular(32),
               ),
-              borderRadius: BorderRadius.circular(20),
-              boxShadow: [
-                BoxShadow(
-                  color: AppColors.yemenBlack.withValues(alpha: 0.15),
-                  blurRadius: 12,
-                  offset: const Offset(0, 5),
-                ),
-              ],
+              image: DecorationImage(
+                image: AssetImage('assets/images/profilepageImage .png'),
+                fit: BoxFit.cover,
+              ),
             ),
             child: Column(
               children: [
-                CircleAvatar(
-                  radius: 36,
-                  backgroundColor: Colors.white.withValues(alpha: 0.15),
-                  child: Icon(
-                    isFieldWorker
-                        ? Icons.engineering_rounded
-                        : Icons.person_rounded,
-                    color: Colors.white,
-                    size: 40,
+                // الصورة الشخصية / Avatar
+                Container(
+                  padding: const EdgeInsets.all(3),
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    border: Border.all(
+                      color: Colors.white.withValues(alpha: 0.2),
+                      width: 1.5,
+                    ),
+                  ),
+                  child: CircleAvatar(
+                    radius: 46,
+                    backgroundColor: Colors.white.withValues(alpha: 0.15),
+                    child: Icon(
+                      isFieldWorker
+                          ? Icons.engineering_rounded
+                          : Icons.person_rounded,
+                      color: Colors.white,
+                      size: 52,
+                    ),
                   ),
                 ),
                 const SizedBox(height: 14),
+                // الاسم
                 Text(
                   user.name,
                   style: const TextStyle(
                     color: Colors.white,
-                    fontSize: 20,
+                    fontSize: 22,
                     fontWeight: FontWeight.w800,
                   ),
                   textAlign: TextAlign.center,
                 ),
                 const SizedBox(height: 6),
+                // البريد الإلكتروني
                 Text(
                   user.email,
                   style: TextStyle(
-                    color: Colors.white.withValues(alpha: 0.8),
+                    color: Colors.white.withValues(alpha: 0.7),
                     fontSize: 13,
                   ),
                   textAlign: TextAlign.center,
                 ),
-                const SizedBox(height: 12),
+                const SizedBox(height: 14),
+                // دور المستخدم
                 Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 14, vertical: 5),
-                  decoration: BoxDecoration(
-                    color: roleColor,
-                    borderRadius: BorderRadius.circular(20),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 6,
                   ),
-                  child: Text(
-                    user.primaryRoleName,
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 12,
+                  decoration: BoxDecoration(
+                    color: AppColors.yemenRed, // مظهر أحمر العلم اليمني كلياً
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(
+                        Icons.person_outline_rounded,
+                        color: Colors.white,
+                        size: 14,
+                      ),
+                      const SizedBox(width: 6),
+                      Text(
+                        user.primaryRoleName,
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 12,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          // 2. الجزء السفلي (المعلومات والبطاقات)
+          Padding(
+            padding: const EdgeInsets.all(20.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                // بطاقة المعلومات الشخصية
+                _buildCard(
+                  title: 'المعلومات الشخصية',
+                  titleIcon: Icons.person_outline_rounded,
+                  children: [
+                    ProfileInfoItem(
+                      icon: Icons.person_outline_rounded,
+                      label: 'الاسم الكامل',
+                      value: user.name,
+                    ),
+                    const Divider(height: 1, color: AppColors.borderSubtle),
+                    ProfileInfoItem(
+                      icon: Icons.email_outlined,
+                      label: 'البريد الإلكتروني',
+                      value: user.email,
+                      isReadOnly: true,
+                    ),
+                    const Divider(height: 1, color: AppColors.borderSubtle),
+                    ProfileInfoItem(
+                      icon: Icons.phone_outlined,
+                      label: 'رقم الهاتف',
+                      value: (user.phone != null && user.phone!.isNotEmpty)
+                          ? user.phone!
+                          : 'غير مسجل',
+                    ),
+                    const Divider(height: 1, color: AppColors.borderSubtle),
+                    ProfileInfoItem(
+                      icon: Icons.badge_outlined,
+                      label: 'رقم الهوية الوطنية',
+                      value:
+                          (user.nationalId != null &&
+                              user.nationalId!.isNotEmpty)
+                          ? user.nationalId!
+                          : 'غير مسجل',
+                    ),
+                  ],
+                ),
+
+                const SizedBox(height: 16),
+
+                // بطاقة البيانات الوظيفية
+                _buildCard(
+                  title: 'البيانات الوظيفية',
+                  titleIcon: Icons.work_outline_rounded,
+                  children: [
+                    ProfileInfoItem(
+                      icon: Icons.verified_user_outlined,
+                      label: 'نوع الحساب',
+                      value: user.primaryRoleName,
+                      isReadOnly: true,
+                      iconColor: roleColor,
+                    ),
+                    if (user.department != null) ...[
+                      const Divider(height: 1, color: AppColors.borderSubtle),
+                      ProfileInfoItem(
+                        icon: Icons.apartment_rounded,
+                        label: 'الجهة التابعة',
+                        value: user.department!.name,
+                        isReadOnly: true,
+                      ),
+                    ],
+                    if (user.createdAt != null) ...[
+                      const Divider(height: 1, color: AppColors.borderSubtle),
+                      ProfileInfoItem(
+                        icon: Icons.calendar_today_outlined,
+                        label: 'تاريخ التسجيل',
+                        value: AppDateFormatter.formatDate(user.createdAt),
+                        isReadOnly: true,
+                      ),
+                    ],
+                  ],
+                ),
+
+                const SizedBox(height: 24),
+
+                // 3. الأزرار (تعديل - تسجيل خروج)
+                ElevatedButton.icon(
+                  onPressed: () => context.push('/profile/edit'),
+                  icon: const Icon(Icons.edit_note_rounded, size: 20),
+                  label: const Text(
+                    'تعديل البيانات الشخصية',
+                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                  ),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.yemenBlack,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                    elevation: 0,
+                  ),
+                ),
+
+                const SizedBox(height: 12),
+
+                OutlinedButton.icon(
+                  onPressed: () => _showLogoutDialog(context, ref),
+                  icon: const Icon(
+                    Icons.logout_rounded,
+                    size: 18,
+                    color: AppColors.yemenRed,
+                  ),
+                  label: const Text(
+                    'تسجيل الخروج من المنصة',
+                    style: TextStyle(
                       fontWeight: FontWeight.bold,
+                      fontSize: 14,
+                      color: AppColors.yemenRed,
+                    ),
+                  ),
+                  style: OutlinedButton.styleFrom(
+                    side: const BorderSide(
+                      color: AppColors.yemenRed,
+                      width: 1.2,
+                    ),
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(14),
                     ),
                   ),
                 ),
+
+                const SizedBox(height: 24),
               ],
             ),
           ),
-
-          const SizedBox(height: 20),
-
-          // 2. Personal Information Card
-          _buildCard(
-            title: 'المعلومات الشخصية',
-            children: [
-              ProfileInfoItem(
-                icon: Icons.person_outline_rounded,
-                label: 'الاسم الكامل',
-                value: user.name,
-              ),
-              const Divider(height: 1, color: AppColors.borderSubtle),
-              ProfileInfoItem(
-                icon: Icons.email_outlined,
-                label: 'البريد الإلكتروني',
-                value: user.email,
-                isReadOnly: true,
-              ),
-              const Divider(height: 1, color: AppColors.borderSubtle),
-              ProfileInfoItem(
-                icon: Icons.phone_outlined,
-                label: 'رقم الهاتف',
-                value: (user.phone != null && user.phone!.isNotEmpty)
-                    ? user.phone!
-                    : 'غير مسجل',
-              ),
-              const Divider(height: 1, color: AppColors.borderSubtle),
-              ProfileInfoItem(
-                icon: Icons.badge_outlined,
-                label: 'رقم الهوية الوطنية',
-                value: (user.nationalId != null && user.nationalId!.isNotEmpty)
-                    ? user.nationalId!
-                    : 'غير مسجل',
-              ),
-            ],
-          ),
-
-          const SizedBox(height: 16),
-
-          // 3. System & Role Details Card
-          _buildCard(
-            title: 'بيانات الصلاحيات والنظام',
-            children: [
-              ProfileInfoItem(
-                icon: Icons.verified_user_outlined,
-                label: 'نوع الحساب / الدور',
-                value: user.primaryRoleName,
-                isReadOnly: true,
-                iconColor: roleColor,
-              ),
-              if (user.department != null) ...[
-                const Divider(height: 1, color: AppColors.borderSubtle),
-                ProfileInfoItem(
-                  icon: Icons.apartment_rounded,
-                  label: 'الجهة التابعة',
-                  value: user.department!.name,
-                  isReadOnly: true,
-                ),
-              ],
-              if (user.createdAt != null) ...[
-                const Divider(height: 1, color: AppColors.borderSubtle),
-                ProfileInfoItem(
-                  icon: Icons.calendar_today_outlined,
-                  label: 'تاريخ التسجيل بالمنصة',
-                  value: AppDateFormatter.formatDate(user.createdAt),
-                  isReadOnly: true,
-                ),
-              ],
-            ],
-          ),
-
-          const SizedBox(height: 20),
-
-          // 4. Action Buttons
-          ElevatedButton.icon(
-            onPressed: () => context.push('/profile/edit'),
-            icon: const Icon(Icons.edit_note_rounded, size: 20),
-            label: const Text(
-              'تعديل بيانات الملف الشخصي',
-              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
-            ),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.deepBlack,
-              foregroundColor: Colors.white,
-              padding: const EdgeInsets.symmetric(vertical: 14),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(14),
-              ),
-              elevation: 0,
-            ),
-          ),
-
-          const SizedBox(height: 12),
-
-          OutlinedButton.icon(
-            onPressed: () => _showLogoutDialog(context, ref),
-            icon: const Icon(Icons.logout_rounded,
-                size: 20, color: AppColors.yemenRed),
-            label: const Text(
-              'تسجيل الخروج من المنصة',
-              style: TextStyle(
-                fontWeight: FontWeight.bold,
-                fontSize: 14,
-                color: AppColors.yemenRed,
-              ),
-            ),
-            style: OutlinedButton.styleFrom(
-              side: const BorderSide(color: AppColors.yemenRed, width: 1.2),
-              padding: const EdgeInsets.symmetric(vertical: 14),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(14),
-              ),
-            ),
-          ),
-
-          const SizedBox(height: 24),
         ],
       ),
     );
@@ -377,34 +420,43 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
 
   Widget _buildCard({
     required String title,
+    required IconData titleIcon,
     required List<Widget> children,
   }) {
     return Container(
       padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.borderSubtle),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: AppColors.borderSubtle.withValues(alpha: 0.5)),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.02),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
+            color: Colors.black.withValues(alpha: 0.015),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
           ),
         ],
       ),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Text(
-            title,
-            style: const TextStyle(
-              fontSize: 15,
-              fontWeight: FontWeight.w700,
-              color: AppColors.yemenBlack,
-            ),
+          // رأس البطاقة (Title & Icon on the far right RTL)
+          Row(
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: [
+              Text(
+                title,
+                style: const TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w800,
+                  color: AppColors.yemenBlack,
+                ),
+              ),
+              const SizedBox(width: 8),
+              Icon(titleIcon, color: AppColors.yemenRed, size: 20),
+            ],
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 16),
           ...children,
         ],
       ),
