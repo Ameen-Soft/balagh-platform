@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\Project;
 use App\Models\ProjectContribution;
+use App\Models\ProjectPhase;
 use App\Models\User;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Http\UploadedFile;
@@ -148,5 +149,79 @@ class ProjectService
         $data['status'] = $data['status'] ?? 'active';
 
         return Project::create($data)->load(['department.ministry', 'createdBy']);
+    }
+
+    /**
+     * Update an existing developmental project.
+     *
+     * @param  array<string, mixed>  $data
+     */
+    public function updateProject(Project $project, array $data, ?UploadedFile $image = null): Project
+    {
+        if ($image) {
+            if ($project->image_path) {
+                $this->fileUploadService->delete($project->image_path);
+            }
+            $uploaded = $this->fileUploadService->upload($image, 'projects');
+            $data['image_path'] = $uploaded['file_path'];
+        }
+
+        $project->update($data);
+
+        return $project->load(['department.ministry', 'createdBy', 'phases']);
+    }
+
+    /**
+     * Delete a developmental project and its image.
+     */
+    public function deleteProject(Project $project): bool
+    {
+        if ($project->image_path) {
+            $this->fileUploadService->delete($project->image_path);
+        }
+
+        return (bool) $project->delete();
+    }
+
+    /**
+     * Create an executive phase for a project.
+     *
+     * @param  array<string, mixed>  $data
+     */
+    public function createPhase(Project $project, array $data): ProjectPhase
+    {
+        $data['project_id'] = $project->id;
+        $data['description'] = $data['description'] ?? '';
+        $data['completion_percentage'] = (int) ($data['completion_percentage'] ?? 0);
+        $data['status'] = $data['status'] ?? 'pending';
+
+        return ProjectPhase::create($data);
+    }
+
+    /**
+     * Update an executive phase.
+     *
+     * @param  array<string, mixed>  $data
+     */
+    public function updatePhase(ProjectPhase $phase, array $data): ProjectPhase
+    {
+        if (isset($data['completion_percentage'])) {
+            $data['completion_percentage'] = (int) $data['completion_percentage'];
+        }
+        if (array_key_exists('description', $data) && $data['description'] === null) {
+            $data['description'] = '';
+        }
+
+        $phase->update($data);
+
+        return $phase;
+    }
+
+    /**
+     * Delete an executive phase.
+     */
+    public function deletePhase(ProjectPhase $phase): bool
+    {
+        return (bool) $phase->delete();
     }
 }

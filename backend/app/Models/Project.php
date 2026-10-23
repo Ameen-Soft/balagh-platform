@@ -91,7 +91,7 @@ class Project extends Model
 
     public function phases()
     {
-        return $this->hasMany(ProjectPhase::class);
+        return $this->hasMany(ProjectPhase::class)->orderBy('start_date', 'asc')->orderBy('id', 'asc');
     }
 
     public function contributions()

@@ -1,6 +1,8 @@
 import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
 import '../../../../core/constants/app_colors.dart';
 import '../../application/complaints_providers.dart';
 
@@ -11,226 +13,159 @@ class ComplaintReviewCard extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final state = ref.watch(createComplaintNotifierProvider);
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        // Summary Card
-        Container(
-          padding: const EdgeInsets.all(18),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(18),
-            border: Border.all(color: AppColors.borderSubtle),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.03),
-                blurRadius: 10,
-                offset: const Offset(0, 3),
-              ),
-            ],
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppColors.borderSubtle, width: 0.8),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.015),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
           ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Header
-              Row(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                      color: AppColors.yemenRedLight,
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: const Icon(
-                      Icons.assignment_turned_in_rounded,
-                      color: AppColors.yemenRed,
-                      size: 20,
-                    ),
-                  ),
-                  const SizedBox(width: 10),
-                  const Text(
-                    'ملخص بيانات البلاغ',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w800,
-                      color: AppColors.yemenBlack,
-                    ),
-                  ),
-                ],
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          // Top Image Preview (if available)
+          if (state.imagePath != null)
+            ClipRRect(
+              borderRadius: const BorderRadius.vertical(
+                top: Radius.circular(15),
               ),
-              const Divider(height: 24),
+              child: Image.file(
+                File(state.imagePath!),
+                height: 165,
+                width: double.infinity,
+                fit: BoxFit.cover,
+              ),
+            ),
 
-              // Ministry & Category
-              _buildReviewRow(
-                icon: Icons.account_balance_outlined,
-                label: 'الجهة / الوزارة',
-                value: state.selectedMinistry?.name ?? 'غير محدد',
-              ),
-              const SizedBox(height: 12),
-              _buildReviewRow(
-                icon: Icons.category_outlined,
-                label: 'التصنيف المعتمد',
-                value: state.selectedCategory?.name ?? 'غير محدد',
-              ),
-              const SizedBox(height: 12),
-              _buildReviewRow(
-                icon: Icons.flag_outlined,
-                label: 'درجة الأولوية',
-                value: _getPriorityArabic(state.priority),
-                valueColor: _getPriorityColor(state.priority),
-              ),
-              const Divider(height: 24),
-
-              // Title & Description
-              const Text(
-                'عنوان البلاغ',
-                style: TextStyle(
-                  fontSize: 12,
-                  color: AppColors.textSecondary,
-                ),
-              ),
-              const SizedBox(height: 4),
-              Text(
-                state.title,
-                style: const TextStyle(
-                  fontSize: 15,
-                  fontWeight: FontWeight.w700,
-                  color: AppColors.yemenBlack,
-                ),
-              ),
-              const SizedBox(height: 12),
-              const Text(
-                'تفاصيل المشكلة',
-                style: TextStyle(
-                  fontSize: 12,
-                  color: AppColors.textSecondary,
-                ),
-              ),
-              const SizedBox(height: 4),
-              Text(
-                state.description,
-                style: const TextStyle(
-                  fontSize: 13,
-                  color: AppColors.textPrimary,
-                  height: 1.5,
-                ),
-              ),
-            ],
-          ),
-        ),
-
-        const SizedBox(height: 16),
-
-        // Photo and Location Summary Card
-        Container(
-          padding: const EdgeInsets.all(18),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(18),
-            border: Border.all(color: AppColors.borderSubtle),
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Text(
-                'التوثيق البصري والمكاني',
-                style: TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w700,
-                  color: AppColors.yemenBlack,
-                ),
-              ),
-              const SizedBox(height: 14),
-              Row(
-                children: [
-                  // Photo Thumbnail
-                  if (state.imagePath != null)
-                    ClipRRect(
-                      borderRadius: BorderRadius.circular(10),
-                      child: Image.file(
-                        File(state.imagePath!),
-                        width: 70,
-                        height: 70,
-                        fit: BoxFit.cover,
-                      ),
-                    )
-                  else
+          Padding(
+            padding: const EdgeInsets.all(18),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Priority Badge & Coordinates Row
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
                     Container(
-                      width: 70,
-                      height: 70,
-                      decoration: BoxDecoration(
-                        color: AppColors.backgroundSubtle,
-                        borderRadius: BorderRadius.circular(10),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 4,
                       ),
-                      child: const Icon(Icons.broken_image_rounded,
-                          color: AppColors.textMuted),
-                    ),
-                  const SizedBox(width: 14),
-                  // Coordinates details
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          children: [
-                            const Icon(Icons.location_on_rounded,
-                                size: 16, color: AppColors.yemenEmerald),
-                            const SizedBox(width: 4),
-                            Text(
-                              '${state.latitude?.toStringAsFixed(5) ?? "-"}, ${state.longitude?.toStringAsFixed(5) ?? "-"}',
-                              style: const TextStyle(
-                                fontSize: 13,
-                                fontWeight: FontWeight.w700,
-                                fontFamily: 'monospace',
-                                color: AppColors.yemenBlack,
-                              ),
-                            ),
-                          ],
+                      decoration: BoxDecoration(
+                        color: _getPriorityColor(state.priority)
+                            .withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: Text(
+                        'الأهمية: ${_getPriorityArabic(state.priority)}',
+                        style: TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w700,
+                          color: _getPriorityColor(state.priority),
                         ),
-                        const SizedBox(height: 4),
-                        const Text(
-                          'تم تثبيت وتشفير إحداثيات الموقع عبر الأقمار الاصطناعية',
-                          style: TextStyle(
-                            fontSize: 11,
-                            color: AppColors.textSecondary,
+                      ),
+                    ),
+                    if (state.latitude != null && state.longitude != null)
+                      Row(
+                        children: [
+                          const Icon(
+                            Icons.location_on_rounded,
+                            size: 14,
+                            color: AppColors.yemenEmerald,
                           ),
-                        ),
-                      ],
-                    ),
+                          const SizedBox(width: 4),
+                          Text(
+                            '${state.latitude!.toStringAsFixed(4)}, ${state.longitude!.toStringAsFixed(4)}',
+                            style: const TextStyle(
+                              fontSize: 11.5,
+                              fontWeight: FontWeight.w600,
+                              color: AppColors.textSecondary,
+                              fontFamily: 'monospace',
+                            ),
+                          ),
+                        ],
+                      ),
+                  ],
+                ),
+
+                const SizedBox(height: 14),
+
+                // Title
+                Text(
+                  state.title,
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w800,
+                    color: AppColors.yemenBlack,
                   ),
-                ],
-              ),
-            ],
+                ),
+                const SizedBox(height: 6),
+
+                // Description
+                Text(
+                  state.description,
+                  style: const TextStyle(
+                    fontSize: 13,
+                    color: AppColors.textSecondary,
+                    height: 1.55,
+                  ),
+                ),
+
+                const Padding(
+                  padding: EdgeInsets.symmetric(vertical: 14),
+                  child: Divider(height: 1, color: AppColors.borderSubtle),
+                ),
+
+                // Clean Metadata Rows
+                _buildInfoRow(
+                  label: 'الجهة المختصة',
+                  value: state.selectedMinistry?.name ?? '-',
+                ),
+                const SizedBox(height: 10),
+                _buildInfoRow(
+                  label: 'التصنيف',
+                  value: state.selectedCategory?.name ?? '-',
+                ),
+                const SizedBox(height: 10),
+                _buildInfoRow(
+                  label: 'النشر على الخريطة العامة',
+                  value: state.isPublic ? 'مفعل' : 'خاص',
+                ),
+              ],
+            ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 
-  Widget _buildReviewRow({
-    required IconData icon,
-    required String label,
-    required String value,
-    Color? valueColor,
-  }) {
+  Widget _buildInfoRow({required String label, required String value}) {
     return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Icon(icon, size: 18, color: AppColors.textSecondary),
-        const SizedBox(width: 8),
         Text(
           label,
           style: const TextStyle(
-            fontSize: 13,
+            fontSize: 12.5,
             color: AppColors.textSecondary,
           ),
         ),
-        const Spacer(),
-        Text(
-          value,
-          style: TextStyle(
-            fontSize: 13,
-            fontWeight: FontWeight.w700,
-            color: valueColor ?? AppColors.textPrimary,
+        const SizedBox(width: 12),
+        Flexible(
+          child: Text(
+            value,
+            textAlign: TextAlign.left,
+            style: const TextStyle(
+              fontSize: 12.5,
+              fontWeight: FontWeight.w700,
+              color: AppColors.yemenBlack,
+            ),
           ),
         ),
       ],
@@ -242,9 +177,9 @@ class ComplaintReviewCard extends ConsumerWidget {
       case 'low':
         return 'منخفض';
       case 'high':
-        return 'مرتفع';
+        return 'عاجل';
       case 'urgent':
-        return 'عاجل جداً';
+        return 'طارئ';
       case 'medium':
       default:
         return 'عادي';

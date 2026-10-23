@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
 import '../../../../core/constants/app_colors.dart';
 import '../../application/complaints_providers.dart';
 import '../../domain/entities/category_entity.dart';
@@ -12,224 +13,187 @@ class CategorySelector extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final complaintState = ref.watch(createComplaintNotifierProvider);
     final notifier = ref.read(createComplaintNotifierProvider.notifier);
-
     final ministriesAsync = ref.watch(ministriesProvider);
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        // 1. Ministry Section
-        _buildSectionHeader(
-          stepNumber: '1',
-          title: 'اختر الجهة / الوزارة المعنية',
-          subtitle: 'حدد الجهة الحكومية ذات الاختصاص بموضوع البلاغ',
-        ),
-        const SizedBox(height: 12),
-        ministriesAsync.when(
-          data: (ministries) {
-            if (ministries.isEmpty) {
-              return _buildEmptyBox('لا توجد وزارات متاحة حالياً.');
-            }
-            return _buildDropdown<MinistryEntity>(
-              hintText: 'اضغط لاختيار الوزارة...',
-              icon: Icons.account_balance_outlined,
-              selectedValue: complaintState.selectedMinistry,
-              items: ministries,
-              itemLabel: (m) => m.name,
-              onChanged: (selected) {
-                if (selected != null) {
-                  notifier.selectMinistry(selected);
-                }
-              },
-            );
-          },
-          loading: () => _buildLoadingField('جارٍ تحميل قائمة الوزارات...'),
-          error: (err, _) => _buildErrorField(
-            'تعذر تحميل الوزارات. اضغط لإعادة المحاولة',
-            () => ref.refresh(ministriesProvider),
-          ),
-        ),
-
-        const SizedBox(height: 24),
-
-        // 2. Main Category Section (shown after ministry is selected)
-        if (complaintState.selectedMinistry != null) ...[
-          _buildSectionHeader(
-            stepNumber: '2',
-            title: 'التصنيف الرئيسي',
-            subtitle: 'اختر القطاع أو المجال الذي يندرج تحته البلاغ',
-          ),
-          const SizedBox(height: 12),
-          Consumer(
-            builder: (context, ref, child) {
-              final parentCatsAsync = ref.watch(
-                parentCategoriesProvider(complaintState.selectedMinistry!.id),
-              );
-
-              return parentCatsAsync.when(
-                data: (categories) {
-                  if (categories.isEmpty) {
-                    return _buildEmptyBox('لا توجد تصنيفات رئيسية مسجلة لهذه الوزارة.');
-                  }
-                  return _buildDropdown<CategoryEntity>(
-                    hintText: 'اختر التصنيف الرئيسي...',
-                    icon: Icons.grid_view_rounded,
-                    selectedValue: complaintState.selectedParentCategory,
-                    items: categories,
-                    itemLabel: (c) => c.name,
-                    onChanged: (selected) {
-                      if (selected != null) {
-                        notifier.selectParentCategory(selected);
-                      }
-                    },
-                  );
-                },
-                loading: () => _buildLoadingField('جارٍ تحميل التصنيفات...'),
-                error: (err, _) => _buildErrorField(
-                  'تعذر تحميل التصنيفات الرئيسية. اضغط لإعادة المحاولة',
-                  () => ref.refresh(
-                    parentCategoriesProvider(complaintState.selectedMinistry!.id),
-                  ),
-                ),
-              );
-            },
-          ),
-          const SizedBox(height: 24),
-        ],
-
-        // 3. Sub-Category Section (shown if parent category has children)
-        if (complaintState.selectedParentCategory != null &&
-            complaintState.selectedParentCategory!.hasChildren) ...[
-          _buildSectionHeader(
-            stepNumber: '3',
-            title: 'التصنيف الفرعي الدقيق',
-            subtitle: 'حدد نوع المشكلة بدقة لتسريع التوجيه والمعالجة',
-          ),
-          const SizedBox(height: 12),
-          Consumer(
-            builder: (context, ref, child) {
-              final subCatsAsync = ref.watch(
-                subCategoriesProvider(complaintState.selectedParentCategory!.id),
-              );
-
-              return subCatsAsync.when(
-                data: (subCategories) {
-                  if (subCategories.isEmpty) {
-                    return _buildEmptyBox('لا توجد تصنيفات فرعية.');
-                  }
-                  return _buildDropdown<CategoryEntity>(
-                    hintText: 'اختر التصنيف الفرعي...',
-                    icon: Icons.subdirectory_arrow_left_rounded,
-                    selectedValue: complaintState.selectedCategory,
-                    items: subCategories,
-                    itemLabel: (c) => c.name,
-                    onChanged: (selected) {
-                      if (selected != null) {
-                        notifier.selectCategory(selected);
-                      }
-                    },
-                  );
-                },
-                loading: () => _buildLoadingField('جارٍ تحميل التصنيفات الفرعية...'),
-                error: (err, _) => _buildErrorField(
-                  'تعذر تحميل التصنيفات الفرعية. اضغط للمحاولة',
-                  () => ref.refresh(
-                    subCategoriesProvider(complaintState.selectedParentCategory!.id),
-                  ),
-                ),
-              );
-            },
+    return Container(
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppColors.borderSubtle, width: 0.8),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.015),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
           ),
         ],
-
-        // Selection confirmation pill
-        if (complaintState.selectedCategory != null) ...[
-          const SizedBox(height: 20),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-            decoration: BoxDecoration(
-              color: AppColors.yemenEmeraldLight,
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(
-                color: AppColors.yemenEmerald.withValues(alpha: 0.3),
-              ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          // 1. Ministry Dropdown
+          _buildFieldLabel('الجهة المختصة'),
+          const SizedBox(height: 8),
+          ministriesAsync.when(
+            data: (ministries) {
+              if (ministries.isEmpty) {
+                return _buildEmptyBox('لا توجد جهات متاحة حالياً.');
+              }
+              return _buildDropdown<MinistryEntity>(
+                hintText: 'اختر الوزارة أو الجهة...',
+                icon: Icons.account_balance_outlined,
+                selectedValue: complaintState.selectedMinistry,
+                items: ministries,
+                itemLabel: (m) => m.name,
+                onChanged: (selected) {
+                  if (selected != null) {
+                    notifier.selectMinistry(selected);
+                  }
+                },
+              );
+            },
+            loading: () => _buildLoadingField('جارٍ تحميل الجهات...'),
+            error: (err, _) => _buildErrorField(
+              'تعذر التحميل. اضغط للمحاولة',
+              () => ref.refresh(ministriesProvider),
             ),
-            child: Row(
-              children: [
-                const Icon(
-                  Icons.check_circle_rounded,
-                  color: AppColors.yemenEmerald,
-                  size: 20,
-                ),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: Text(
-                    'التصنيف المعتمد: ${complaintState.selectedCategory!.name}',
-                    style: const TextStyle(
-                      color: AppColors.yemenEmerald,
-                      fontWeight: FontWeight.w700,
-                      fontSize: 13,
+          ),
+
+          // 2. Main Category Dropdown
+          if (complaintState.selectedMinistry != null) ...[
+            const SizedBox(height: 18),
+            _buildFieldLabel('التصنيف الرئيسي'),
+            const SizedBox(height: 8),
+            Consumer(
+              builder: (context, ref, child) {
+                final parentCatsAsync = ref.watch(
+                  parentCategoriesProvider(complaintState.selectedMinistry!.id),
+                );
+
+                return parentCatsAsync.when(
+                  data: (categories) {
+                    if (categories.isEmpty) {
+                      return _buildEmptyBox('لا توجد تصنيفات مسجلة.');
+                    }
+                    return _buildDropdown<CategoryEntity>(
+                      hintText: 'اختر القطاع...',
+                      icon: Icons.grid_view_rounded,
+                      selectedValue: complaintState.selectedParentCategory,
+                      items: categories,
+                      itemLabel: (c) => c.name,
+                      onChanged: (selected) {
+                        if (selected != null) {
+                          notifier.selectParentCategory(selected);
+                        }
+                      },
+                    );
+                  },
+                  loading: () => _buildLoadingField('جارٍ تحميل التصنيفات...'),
+                  error: (err, _) => _buildErrorField(
+                    'تعذر التحميل. اضغط للمحاولة',
+                    () => ref.refresh(
+                      parentCategoriesProvider(
+                        complaintState.selectedMinistry!.id,
+                      ),
                     ),
                   ),
-                ),
-              ],
+                );
+              },
             ),
-          ),
+          ],
+
+          // 3. Sub-Category Dropdown
+          if (complaintState.selectedParentCategory != null &&
+              complaintState.selectedParentCategory!.hasChildren) ...[
+            const SizedBox(height: 18),
+            _buildFieldLabel('نوع المشكلة'),
+            const SizedBox(height: 8),
+            Consumer(
+              builder: (context, ref, child) {
+                final subCatsAsync = ref.watch(
+                  subCategoriesProvider(
+                    complaintState.selectedParentCategory!.id,
+                  ),
+                );
+
+                return subCatsAsync.when(
+                  data: (subCategories) {
+                    if (subCategories.isEmpty) {
+                      return _buildEmptyBox('لا توجد تصنيفات فرعية.');
+                    }
+                    return _buildDropdown<CategoryEntity>(
+                      hintText: 'حدد نوع المشكلة...',
+                      icon: Icons.tune_rounded,
+                      selectedValue: complaintState.selectedCategory,
+                      items: subCategories,
+                      itemLabel: (c) => c.name,
+                      onChanged: (selected) {
+                        if (selected != null) {
+                          notifier.selectCategory(selected);
+                        }
+                      },
+                    );
+                  },
+                  loading: () =>
+                      _buildLoadingField('جارٍ تحميل التصنيفات الفرعية...'),
+                  error: (err, _) => _buildErrorField(
+                    'تعذر التحميل. اضغط للمحاولة',
+                    () => ref.refresh(
+                      subCategoriesProvider(
+                        complaintState.selectedParentCategory!.id,
+                      ),
+                    ),
+                  ),
+                );
+              },
+            ),
+          ],
+
+          // Subtle Selection Indicator
+          if (complaintState.selectedCategory != null) ...[
+            const SizedBox(height: 18),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+              decoration: BoxDecoration(
+                color: AppColors.yemenEmeraldLight,
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Row(
+                children: [
+                  const Icon(
+                    Icons.check_circle_rounded,
+                    color: AppColors.yemenEmerald,
+                    size: 16,
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      complaintState.selectedCategory!.name,
+                      style: const TextStyle(
+                        color: AppColors.yemenEmerald,
+                        fontWeight: FontWeight.w700,
+                        fontSize: 12.5,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
         ],
-      ],
+      ),
     );
   }
 
-  Widget _buildSectionHeader({
-    required String stepNumber,
-    required String title,
-    required String subtitle,
-  }) {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Container(
-          width: 26,
-          height: 26,
-          alignment: Alignment.center,
-          decoration: BoxDecoration(
-            color: AppColors.yemenBlack,
-            borderRadius: BorderRadius.circular(8),
-          ),
-          child: Text(
-            stepNumber,
-            style: const TextStyle(
-              color: Colors.white,
-              fontWeight: FontWeight.bold,
-              fontSize: 13,
-            ),
-          ),
-        ),
-        const SizedBox(width: 12),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                title,
-                style: const TextStyle(
-                  fontSize: 15,
-                  fontWeight: FontWeight.w800,
-                  color: AppColors.yemenBlack,
-                ),
-              ),
-              const SizedBox(height: 2),
-              Text(
-                subtitle,
-                style: const TextStyle(
-                  fontSize: 12,
-                  color: AppColors.textSecondary,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ],
+  Widget _buildFieldLabel(String label) {
+    return Text(
+      label,
+      style: const TextStyle(
+        fontSize: 13,
+        fontWeight: FontWeight.w700,
+        color: AppColors.yemenBlack,
+      ),
     );
   }
 
@@ -241,39 +205,41 @@ class CategorySelector extends ConsumerWidget {
     required String Function(T) itemLabel,
     required ValueChanged<T?> onChanged,
   }) {
+    final hasSelection = selectedValue != null && items.contains(selectedValue);
+
     return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12),
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(14),
+        color: AppColors.backgroundSubtle,
+        borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: selectedValue != null
-              ? AppColors.yemenRed
+          color: hasSelection
+              ? AppColors.yemenBlack.withValues(alpha: 0.25)
               : AppColors.borderSubtle,
-          width: selectedValue != null ? 1.5 : 1.0,
+          width: 0.8,
         ),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.02),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
-          ),
-        ],
       ),
       child: DropdownButtonHideUnderline(
         child: DropdownButton<T>(
           isExpanded: true,
-          value: items.contains(selectedValue) ? selectedValue : null,
+          value: hasSelection ? selectedValue : null,
+          icon: const Icon(
+            Icons.keyboard_arrow_down_rounded,
+            color: AppColors.textSecondary,
+            size: 20,
+          ),
+          borderRadius: BorderRadius.circular(12),
+          dropdownColor: Colors.white,
           hint: Row(
             children: [
-              const SizedBox(width: 14),
-              Icon(icon, size: 20, color: AppColors.textMuted),
-              const SizedBox(width: 12),
+              Icon(icon, size: 17, color: AppColors.textMuted),
+              const SizedBox(width: 10),
               Expanded(
                 child: Text(
                   hintText,
                   style: const TextStyle(
                     color: AppColors.textSecondary,
-                    fontSize: 14,
+                    fontSize: 13,
                   ),
                 ),
               ),
@@ -285,20 +251,25 @@ class CategorySelector extends ConsumerWidget {
               value: item,
               child: Row(
                 children: [
-                  const SizedBox(width: 14),
                   Icon(
                     icon,
-                    size: 20,
-                    color: isSelected ? AppColors.yemenRed : AppColors.textSecondary,
+                    size: 17,
+                    color: isSelected
+                        ? AppColors.yemenRed
+                        : AppColors.textSecondary,
                   ),
-                  const SizedBox(width: 12),
+                  const SizedBox(width: 10),
                   Expanded(
                     child: Text(
                       itemLabel(item),
                       style: TextStyle(
-                        fontSize: 14,
-                        fontWeight: isSelected ? FontWeight.w700 : FontWeight.normal,
-                        color: isSelected ? AppColors.yemenRed : AppColors.textPrimary,
+                        fontSize: 13.5,
+                        fontWeight: isSelected
+                            ? FontWeight.w700
+                            : FontWeight.w500,
+                        color: isSelected
+                            ? AppColors.yemenBlack
+                            : AppColors.textPrimary,
                       ),
                     ),
                   ),
@@ -314,27 +285,27 @@ class CategorySelector extends ConsumerWidget {
 
   Widget _buildLoadingField(String message) {
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: AppColors.borderSubtle),
+        color: AppColors.backgroundSubtle,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: AppColors.borderSubtle, width: 0.8),
       ),
       child: Row(
         children: [
           const SizedBox(
-            width: 18,
-            height: 18,
+            width: 15,
+            height: 15,
             child: CircularProgressIndicator(
-              strokeWidth: 2,
+              strokeWidth: 1.8,
               color: AppColors.yemenRed,
             ),
           ),
-          const SizedBox(width: 14),
+          const SizedBox(width: 12),
           Text(
             message,
             style: const TextStyle(
-              fontSize: 13,
+              fontSize: 12.5,
               color: AppColors.textSecondary,
             ),
           ),
@@ -344,49 +315,55 @@ class CategorySelector extends ConsumerWidget {
   }
 
   Widget _buildErrorField(String message, VoidCallback onRetry) {
-    return Container(
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: AppColors.yemenRedLight,
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: AppColors.yemenRedTint),
-      ),
-      child: Row(
-        children: [
-          const Icon(Icons.error_outline_rounded, color: AppColors.yemenRed, size: 20),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Text(
-              message,
-              style: const TextStyle(
-                color: AppColors.yemenRed,
-                fontSize: 13,
-                fontWeight: FontWeight.w600,
+    return InkWell(
+      onTap: onRetry,
+      borderRadius: BorderRadius.circular(12),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+        decoration: BoxDecoration(
+          color: AppColors.yemenRedLight,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: AppColors.yemenRed.withValues(alpha: 0.2),
+            width: 0.8,
+          ),
+        ),
+        child: Row(
+          children: [
+            const Icon(
+              Icons.refresh_rounded,
+              color: AppColors.yemenRed,
+              size: 18,
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Text(
+                message,
+                style: const TextStyle(
+                  color: AppColors.yemenRed,
+                  fontSize: 12.5,
+                  fontWeight: FontWeight.w600,
+                ),
               ),
             ),
-          ),
-          IconButton(
-            icon: const Icon(Icons.refresh_rounded, color: AppColors.yemenRed, size: 20),
-            onPressed: onRetry,
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
 
   Widget _buildEmptyBox(String text) {
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
         color: AppColors.backgroundSubtle,
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: AppColors.borderSubtle),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: AppColors.borderSubtle, width: 0.8),
       ),
-      child: Center(
-        child: Text(
-          text,
-          style: const TextStyle(fontSize: 13, color: AppColors.textSecondary),
-        ),
+      child: Text(
+        text,
+        textAlign: TextAlign.center,
+        style: const TextStyle(fontSize: 12.5, color: AppColors.textSecondary),
       ),
     );
   }
