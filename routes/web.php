@@ -75,7 +75,14 @@ Route::middleware([
     // Development Projects Management
     Route::get('/projects', [ProjectManagementController::class, 'index'])->name('projects.index');
     Route::post('/projects', [ProjectManagementController::class, 'store'])->name('projects.store');
+    Route::match(['put', 'post'], '/projects/{project}', [ProjectManagementController::class, 'update'])->name('projects.update');
+    Route::delete('/projects/{project}', [ProjectManagementController::class, 'destroy'])->name('projects.destroy');
     Route::post('/projects/{project}/update-progress', [ProjectManagementController::class, 'updateProgress'])->name('projects.update_progress');
+
+    // Project Phases Management
+    Route::post('/projects/{project}/phases', [ProjectManagementController::class, 'storePhase'])->name('projects.phases.store');
+    Route::match(['put', 'post'], '/projects/{project}/phases/{phase}', [ProjectManagementController::class, 'updatePhase'])->name('projects.phases.update');
+    Route::delete('/projects/{project}/phases/{phase}', [ProjectManagementController::class, 'destroyPhase'])->name('projects.phases.destroy');
 });
 
 /*
@@ -121,7 +128,14 @@ Route::middleware([
     // Developmental Projects Management
     Route::get('/projects', [MinistryProjectController::class, 'index'])->name('projects.index');
     Route::post('/projects', [MinistryProjectController::class, 'store'])->name('projects.store');
+    Route::match(['put', 'post'], '/projects/{project}', [MinistryProjectController::class, 'update'])->name('projects.update');
+    Route::delete('/projects/{project}', [MinistryProjectController::class, 'destroy'])->name('projects.destroy');
     Route::post('/projects/{project}/update-progress', [MinistryProjectController::class, 'updateProgress'])->name('projects.update_progress');
+
+    // Project Phases Management
+    Route::post('/projects/{project}/phases', [MinistryProjectController::class, 'storePhase'])->name('projects.phases.store');
+    Route::match(['put', 'post'], '/projects/{project}/phases/{phase}', [MinistryProjectController::class, 'updatePhase'])->name('projects.phases.update');
+    Route::delete('/projects/{project}/phases/{phase}', [MinistryProjectController::class, 'destroyPhase'])->name('projects.phases.destroy');
 });
 
 /*
