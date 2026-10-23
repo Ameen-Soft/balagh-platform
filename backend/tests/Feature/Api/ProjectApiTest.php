@@ -183,6 +183,37 @@ class ProjectApiTest extends TestCase
         Storage::disk('public')->assertExists($createdProject->image_path);
     }
 
+    public function test_ministry_admin_can_create_project_with_in_progress_status(): void
+    {
+        $ministryAdmin = User::factory()->create([
+            'is_active' => true,
+            'department_id' => $this->department->id,
+        ]);
+        $ministryAdmin->roles()->attach(Role::where('name', 'Ministry Admin')->first()->id);
+
+        $payload = [
+            'title' => 'مشروع رصف الطرق الداخلية',
+            'description' => 'مشروع تأهيل ورصف الطرق.',
+            'department_id' => $this->department->id,
+            'target_amount' => 500000.00,
+            'latitude' => 15.3693936,
+            'longitude' => 44.1910065,
+            'status' => 'in_progress',
+        ];
+
+        $response = $this->actingAs($ministryAdmin, 'sanctum')
+            ->postJson('/api/v1/projects', $payload);
+
+        $response->assertStatus(201)
+            ->assertJsonPath('success', true)
+            ->assertJsonPath('data.status', 'in_progress');
+
+        $this->assertDatabaseHas('projects', [
+            'title' => $payload['title'],
+            'status' => 'in_progress',
+        ]);
+    }
+
     public function test_citizen_cannot_create_project(): void
     {
         $payload = [

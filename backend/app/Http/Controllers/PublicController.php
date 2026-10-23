@@ -59,7 +59,7 @@ class PublicController extends Controller
         $status = $request->get('status');
         $query = Project::with('creator');
 
-        if ($status && in_array($status, ['planning', 'in_progress', 'completed', 'halted'])) {
+        if ($status && in_array($status, ['planning', 'in_progress', 'active', 'published', 'completed', 'halted', 'suspended'])) {
             $query->where('status', $status);
         }
 

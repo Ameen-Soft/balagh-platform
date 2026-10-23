@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
+
 import '../../../../core/constants/app_colors.dart';
 import '../../domain/entities/project_entity.dart';
 
@@ -117,7 +118,7 @@ class _ContributionDialogState extends State<ContributionDialog> {
         padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
         decoration: const BoxDecoration(
           color: Colors.white,
-          borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+          borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
         ),
         child: SafeArea(
           top: false,
@@ -128,27 +129,46 @@ class _ContributionDialogState extends State<ContributionDialog> {
               // Drag handle
               Center(
                 child: Container(
-                  width: 40,
-                  height: 4,
+                  width: 44,
+                  height: 5,
                   decoration: BoxDecoration(
                     color: AppColors.borderSubtle,
-                    borderRadius: BorderRadius.circular(2),
+                    borderRadius: BorderRadius.circular(3),
                   ),
                 ),
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: 18),
 
               // Header
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text(
-                    _isReviewStep ? 'مراجعة وتأكيد المساهمة' : 'تسجيل مساهمة مجتمعية',
-                    style: const TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w800,
-                      color: AppColors.yemenBlack,
-                    ),
+                  Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: AppColors.yemenRed.withValues(alpha: 0.1),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: const Icon(
+                          Icons.volunteer_activism_rounded,
+                          color: AppColors.yemenRed,
+                          size: 22,
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      Text(
+                        _isReviewStep
+                            ? 'مراجعة وتأكيد المساهمة'
+                            : 'تسجيل مساهمة مجتمعية',
+                        style: const TextStyle(
+                          fontSize: 17,
+                          fontWeight: FontWeight.w900,
+                          color: AppColors.yemenBlack,
+                        ),
+                      ),
+                    ],
                   ),
                   IconButton(
                     onPressed: _isSubmitting
@@ -161,36 +181,46 @@ class _ContributionDialogState extends State<ContributionDialog> {
                             }
                           },
                     icon: Icon(
-                      _isReviewStep ? Icons.arrow_back_rounded : Icons.close_rounded,
+                      _isReviewStep
+                          ? Icons.arrow_forward_ios_rounded
+                          : Icons.close_rounded,
+                      size: 20,
                       color: AppColors.textSecondary,
                     ),
                   ),
                 ],
               ),
-              const SizedBox(height: 4),
+              const SizedBox(height: 12),
 
               // Educational Simulation Disclaimer Badge
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                decoration: BoxDecoration(
-                  color: AppColors.yemenGoldLight,
-                  borderRadius: BorderRadius.circular(10),
-                  border: Border.all(
-                      color: AppColors.yemenGold.withValues(alpha: 0.3)),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 10,
                 ),
-                child: Row(
+                decoration: BoxDecoration(
+                  color: const Color(0xFFFFFBEB),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(
+                    color: AppColors.yemenGold.withValues(alpha: 0.35),
+                  ),
+                ),
+                child: const Row(
                   children: [
-                    const Icon(Icons.info_outline_rounded,
-                        color: AppColors.yemenGold, size: 18),
-                    const SizedBox(width: 8),
-                    const Expanded(
+                    Icon(
+                      Icons.info_outline_rounded,
+                      color: AppColors.yemenGold,
+                      size: 18,
+                    ),
+                    SizedBox(width: 8),
+                    Expanded(
                       child: Text(
                         'هذه مساهمة محاكاة أكاديمية تهدف لتفعيل التمويل التشاركي، دون خصم مالي حقيقي.',
                         style: TextStyle(
                           fontSize: 11.5,
                           fontWeight: FontWeight.w600,
                           color: AppColors.yemenBlack,
-                          height: 1.3,
+                          height: 1.35,
                         ),
                       ),
                     ),
@@ -201,20 +231,21 @@ class _ContributionDialogState extends State<ContributionDialog> {
 
               if (_errorMessage != null) ...[
                 Container(
-                  padding: const EdgeInsets.all(10),
+                  padding: const EdgeInsets.all(12),
                   margin: const EdgeInsets.only(bottom: 12),
                   decoration: BoxDecoration(
                     color: AppColors.yemenRedLight,
-                    borderRadius: BorderRadius.circular(8),
+                    borderRadius: BorderRadius.circular(12),
                     border: Border.all(
-                        color: AppColors.yemenRed.withValues(alpha: 0.3)),
+                      color: AppColors.yemenRed.withValues(alpha: 0.3),
+                    ),
                   ),
                   child: Text(
                     _errorMessage!,
                     style: const TextStyle(
                       fontSize: 12,
                       color: AppColors.yemenRed,
-                      fontWeight: FontWeight.w600,
+                      fontWeight: FontWeight.w700,
                     ),
                   ),
                 ),
@@ -227,63 +258,119 @@ class _ContributionDialogState extends State<ContributionDialog> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                        widget.project.title,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.bold,
+                      const Text(
+                        'حدد قيمة المساهمة السريعة أو أدخل المبلغ:',
+                        style: TextStyle(
+                          fontSize: 12.5,
+                          fontWeight: FontWeight.w700,
                           color: AppColors.textSecondary,
                         ),
                       ),
-                      const SizedBox(height: 14),
+                      const SizedBox(height: 10),
 
-                      // Amount Input
-                      const Text(
-                        'المبلغ المراد المساهمة به (ريال يمني)',
-                        style: TextStyle(
-                          fontSize: 13,
-                          fontWeight: FontWeight.bold,
-                          color: AppColors.yemenBlack,
-                        ),
+                      // Quick Selection Pills
+                      Row(
+                        children: _presetAmounts.map((amount) {
+                          final isSelected = _parsedAmount == amount;
+                          return Expanded(
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 4,
+                              ),
+                              child: InkWell(
+                                borderRadius: BorderRadius.circular(12),
+                                onTap: () {
+                                  setState(() {
+                                    _amountController.text = amount
+                                        .toStringAsFixed(0);
+                                  });
+                                },
+                                child: AnimatedContainer(
+                                  duration: const Duration(milliseconds: 180),
+                                  padding: const EdgeInsets.symmetric(
+                                    vertical: 10,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: isSelected
+                                        ? AppColors.yemenBlack
+                                        : const Color(0xFFF9FAFB),
+                                    borderRadius: BorderRadius.circular(12),
+                                    border: Border.all(
+                                      color: isSelected
+                                          ? AppColors.yemenBlack
+                                          : AppColors.borderSubtle,
+                                    ),
+                                  ),
+                                  child: Center(
+                                    child: Text(
+                                      currencyFormatter.format(amount),
+                                      style: TextStyle(
+                                        fontSize: 12.5,
+                                        fontWeight: FontWeight.w800,
+                                        color: isSelected
+                                            ? Colors.white
+                                            : AppColors.yemenBlack,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          );
+                        }).toList(),
                       ),
-                      const SizedBox(height: 8),
+                      const SizedBox(height: 16),
+
+                      // Custom Amount Input
                       TextFormField(
                         controller: _amountController,
-                        keyboardType:
-                            const TextInputType.numberWithOptions(decimal: true),
+                        onChanged: (_) => setState(() {}),
+                        keyboardType: const TextInputType.numberWithOptions(
+                          decimal: true,
+                        ),
                         inputFormatters: [
                           FilteringTextInputFormatter.allow(
-                              RegExp(r'^\d+\.?\d{0,2}')),
+                            RegExp(r'^\d+\.?\d{0,2}'),
+                          ),
                         ],
-                        textAlign: TextAlign.start,
+                        textAlign: TextAlign.center,
                         style: const TextStyle(
-                          fontSize: 20,
-                          fontWeight: FontWeight.w800,
+                          fontSize: 22,
+                          fontWeight: FontWeight.w900,
                           color: AppColors.yemenBlack,
                         ),
                         decoration: InputDecoration(
-                          hintText: '0.00',
-                          suffixText: 'ريال',
+                          hintText: '0',
+                          suffixText: 'ريال يمني',
                           suffixStyle: const TextStyle(
-                            fontSize: 14,
+                            fontSize: 13,
                             fontWeight: FontWeight.bold,
-                            color: AppColors.textSecondary,
+                            color: AppColors.yemenRed,
                           ),
                           filled: true,
-                          fillColor: AppColors.backgroundSubtle,
+                          fillColor: const Color(0xFFF9FAFB),
                           contentPadding: const EdgeInsets.symmetric(
-                              horizontal: 16, vertical: 14),
+                            horizontal: 18,
+                            vertical: 16,
+                          ),
                           border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
-                            borderSide:
-                                const BorderSide(color: AppColors.borderSubtle),
+                            borderRadius: BorderRadius.circular(16),
+                            borderSide: const BorderSide(
+                              color: AppColors.borderSubtle,
+                            ),
+                          ),
+                          enabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(16),
+                            borderSide: const BorderSide(
+                              color: AppColors.borderSubtle,
+                            ),
                           ),
                           focusedBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
+                            borderRadius: BorderRadius.circular(16),
                             borderSide: const BorderSide(
-                                color: AppColors.yemenRed, width: 1.5),
+                              color: AppColors.yemenRed,
+                              width: 1.8,
+                            ),
                           ),
                         ),
                         validator: (value) {
@@ -300,60 +387,28 @@ class _ContributionDialogState extends State<ContributionDialog> {
                           return null;
                         },
                       ),
-                      const SizedBox(height: 12),
-
-                      // Quick Selection Chips
-                      SingleChildScrollView(
-                        scrollDirection: Axis.horizontal,
-                        child: Row(
-                          children: _presetAmounts.map((amount) {
-                            return Padding(
-                              padding: const EdgeInsets.only(left: 8),
-                              child: ActionChip(
-                                label: Text(
-                                  '+ ${currencyFormatter.format(amount)} ريال',
-                                  style: const TextStyle(
-                                    fontSize: 12,
-                                    fontWeight: FontWeight.w600,
-                                    color: AppColors.yemenBlack,
-                                  ),
-                                ),
-                                backgroundColor: AppColors.backgroundSubtle,
-                                side: const BorderSide(
-                                    color: AppColors.borderSubtle),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(20),
-                                ),
-                                onPressed: () {
-                                  setState(() {
-                                    _amountController.text =
-                                        amount.toStringAsFixed(0);
-                                  });
-                                },
-                              ),
-                            );
-                          }).toList(),
-                        ),
-                      ),
-                      const SizedBox(height: 20),
+                      const SizedBox(height: 22),
 
                       // Next Button
-                      ElevatedButton(
-                        onPressed: _proceedToReview,
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: AppColors.yemenRed,
-                          foregroundColor: Colors.white,
-                          padding: const EdgeInsets.symmetric(vertical: 14),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
+                      SizedBox(
+                        width: double.infinity,
+                        child: ElevatedButton(
+                          onPressed: _proceedToReview,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: AppColors.yemenRed,
+                            foregroundColor: Colors.white,
+                            padding: const EdgeInsets.symmetric(vertical: 15),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(14),
+                            ),
+                            elevation: 0,
                           ),
-                          elevation: 0,
-                        ),
-                        child: const Text(
-                          'متابعة إلى التأكيد',
-                          style: TextStyle(
-                            fontSize: 15,
-                            fontWeight: FontWeight.bold,
+                          child: const Text(
+                            'متابعة إلى التأكيد',
+                            style: TextStyle(
+                              fontSize: 15,
+                              fontWeight: FontWeight.w800,
+                            ),
                           ),
                         ),
                       ),
@@ -361,12 +416,12 @@ class _ContributionDialogState extends State<ContributionDialog> {
                   ),
                 ),
               ] else ...[
-                // STEP 2: Review & Confirm
+                // STEP 2: Review & Confirm Receipt Card
                 Container(
-                  padding: const EdgeInsets.all(16),
+                  padding: const EdgeInsets.all(18),
                   decoration: BoxDecoration(
-                    color: AppColors.backgroundSubtle,
-                    borderRadius: BorderRadius.circular(14),
+                    color: const Color(0xFFF9FAFB),
+                    borderRadius: BorderRadius.circular(16),
                     border: Border.all(color: AppColors.borderSubtle),
                   ),
                   child: Column(
@@ -377,8 +432,12 @@ class _ContributionDialogState extends State<ContributionDialog> {
                           const Text(
                             'المشروع المستهدف:',
                             style: TextStyle(
-                                fontSize: 13, color: AppColors.textSecondary),
+                              fontSize: 12.5,
+                              color: AppColors.textSecondary,
+                              fontWeight: FontWeight.w600,
+                            ),
                           ),
+                          const SizedBox(width: 12),
                           Flexible(
                             child: Text(
                               widget.project.title,
@@ -386,46 +445,52 @@ class _ContributionDialogState extends State<ContributionDialog> {
                               overflow: TextOverflow.ellipsis,
                               style: const TextStyle(
                                 fontSize: 13,
-                                fontWeight: FontWeight.bold,
+                                fontWeight: FontWeight.w800,
                                 color: AppColors.yemenBlack,
                               ),
                             ),
                           ),
                         ],
                       ),
-                      const Divider(height: 20, color: AppColors.borderSubtle),
+                      const Divider(height: 24, color: AppColors.borderSubtle),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           const Text(
                             'قيمة المساهمة:',
                             style: TextStyle(
-                                fontSize: 13, color: AppColors.textSecondary),
+                              fontSize: 12.5,
+                              color: AppColors.textSecondary,
+                              fontWeight: FontWeight.w600,
+                            ),
                           ),
                           Text(
                             '${currencyFormatter.format(_parsedAmount ?? 0)} ريال يمني',
                             style: const TextStyle(
-                              fontSize: 16,
+                              fontSize: 17,
                               fontWeight: FontWeight.w900,
-                              color: AppColors.yemenEmerald,
+                              color: AppColors.yemenRed,
                             ),
                           ),
                         ],
                       ),
-                      const Divider(height: 20, color: AppColors.borderSubtle),
-                      Row(
+                      const Divider(height: 24, color: AppColors.borderSubtle),
+                      const Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: const [
+                        children: [
                           Text(
-                            'طريقة المساهمة:',
+                            'آلية الدفع:',
                             style: TextStyle(
-                                fontSize: 13, color: AppColors.textSecondary),
+                              fontSize: 12.5,
+                              color: AppColors.textSecondary,
+                              fontWeight: FontWeight.w600,
+                            ),
                           ),
                           Text(
                             'محاكاة دعم مجتمعي (Simulated)',
                             style: TextStyle(
-                              fontSize: 13,
-                              fontWeight: FontWeight.bold,
+                              fontSize: 12.5,
+                              fontWeight: FontWeight.w800,
                               color: AppColors.yemenBlack,
                             ),
                           ),
@@ -437,32 +502,39 @@ class _ContributionDialogState extends State<ContributionDialog> {
                 const SizedBox(height: 20),
 
                 // Submit Button
-                ElevatedButton(
+                ElevatedButton.icon(
                   onPressed: _isSubmitting ? null : _submitContribution,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.yemenEmerald,
+                    backgroundColor: AppColors.yemenBlack,
                     foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    padding: const EdgeInsets.symmetric(vertical: 15),
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
+                      borderRadius: BorderRadius.circular(14),
                     ),
                     elevation: 0,
                   ),
-                  child: _isSubmitting
+                  icon: _isSubmitting
+                      ? const SizedBox.shrink()
+                      : const Icon(
+                          Icons.check_circle_outline_rounded,
+                          size: 20,
+                        ),
+                  label: _isSubmitting
                       ? const SizedBox(
                           height: 20,
                           width: 20,
                           child: CircularProgressIndicator(
                             strokeWidth: 2,
-                            valueColor:
-                                AlwaysStoppedAnimation<Color>(Colors.white),
+                            valueColor: AlwaysStoppedAnimation<Color>(
+                              Colors.white,
+                            ),
                           ),
                         )
                       : const Text(
                           'تأكيد وتسجيل المساهمة الآن',
                           style: TextStyle(
                             fontSize: 15,
-                            fontWeight: FontWeight.bold,
+                            fontWeight: FontWeight.w800,
                           ),
                         ),
                 ),

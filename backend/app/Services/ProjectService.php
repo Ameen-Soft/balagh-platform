@@ -87,7 +87,7 @@ class ProjectService
             // Pessimistic locking to avoid race conditions on financial totals
             $lockedProject = Project::where('id', $project->id)->lockForUpdate()->first();
 
-            if (! $lockedProject || ! in_array($lockedProject->status, ['active', 'published'])) {
+            if (! $lockedProject || ! in_array($lockedProject->status, ['active', 'published', 'in_progress'])) {
                 throw ValidationException::withMessages([
                     'project' => ['المشروع غير متاح لقبول مساهمات جديدة حالياً.'],
                 ]);

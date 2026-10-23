@@ -44,7 +44,7 @@ class StoreProjectRequest extends BaseApiRequest
             'target_amount' => ['required', 'numeric', 'min:0'],
             'latitude' => ['required', 'numeric', 'between:-90,90'],
             'longitude' => ['required', 'numeric', 'between:-180,180'],
-            'status' => ['nullable', 'string', 'in:draft,published,active,completed,suspended,planning,in_progress'],
+            'status' => ['nullable', 'string', 'in:draft,published,active,completed,suspended,planning,in_progress,halted'],
             'image' => ['nullable', 'file', 'image', 'mimes:jpeg,png,jpg,webp', 'max:5120'],
         ];
     }

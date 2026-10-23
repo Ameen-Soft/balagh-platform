@@ -21,92 +21,89 @@ class ProjectProgressBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final currencyFormatter = NumberFormat('#,##0.##', 'ar');
-    final validPercentage = progressPercentage.isNaN || progressPercentage.isInfinite
-        ? 0.0
-        : progressPercentage.clamp(0.0, 100.0);
+    final validPercentage =
+        progressPercentage.isNaN || progressPercentage.isInfinite
+            ? 0.0
+            : progressPercentage.clamp(0.0, 100.0);
     final ratio = (validPercentage / 100.0).clamp(0.0, 1.0);
 
-    // Color tone depending on completion
-    final progressColor = validPercentage >= 100
-        ? AppColors.yemenEmerald
-        : (validPercentage >= 50 ? AppColors.yemenGold : AppColors.yemenRed);
+    final isCompleted = validPercentage >= 100;
+    final primaryColor =
+        isCompleted ? AppColors.yemenEmerald : AppColors.yemenRed;
+    final secondaryColor =
+        isCompleted ? const Color(0xFF059669) : const Color(0xFFEA580C);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       mainAxisSize: MainAxisSize.min,
       children: [
-        if (showAmounts) ...[
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  const Icon(Icons.monetization_on_outlined,
-                      size: 16, color: AppColors.textSecondary),
-                  const SizedBox(width: 4),
-                  Text(
-                    'تم جمع: ${currencyFormatter.format(currentAmount)} ريال',
-                    style: const TextStyle(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w700,
-                      color: AppColors.yemenBlack,
-                    ),
-                  ),
-                ],
-              ),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                decoration: BoxDecoration(
-                  color: progressColor.withValues(alpha: 0.12),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Text(
-                  '${validPercentage.toStringAsFixed(1)}%',
-                  style: TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w800,
-                    color: progressColor,
-                  ),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 8),
-        ],
-        // Progress Bar
+        // Modern Thick Capsule Progress Bar with Embedded/Floating Percentage
         Container(
-          height: isCompact ? 8 : 12,
+          height: isCompact ? 10 : 28,
           decoration: BoxDecoration(
-            color: AppColors.borderSubtle,
-            borderRadius: BorderRadius.circular(10),
+            color: const Color(0xFFF1F5F9),
+            borderRadius: BorderRadius.circular(isCompact ? 8 : 12),
           ),
           clipBehavior: Clip.antiAlias,
           child: LayoutBuilder(
             builder: (context, constraints) {
+              final fillWidth =
+                  (constraints.maxWidth * ratio).clamp(0.0, constraints.maxWidth);
+
               return Stack(
+                alignment: Alignment.centerRight,
                 children: [
+                  // Animated Gradient Fill
                   AnimatedContainer(
-                    duration: const Duration(milliseconds: 500),
+                    duration: const Duration(milliseconds: 600),
                     curve: Curves.easeOutCubic,
-                    width: constraints.maxWidth * ratio,
+                    width: fillWidth,
+                    height: double.infinity,
                     decoration: BoxDecoration(
                       gradient: LinearGradient(
+                        begin: Alignment.centerRight,
+                        end: Alignment.centerLeft,
                         colors: [
-                          progressColor.withValues(alpha: 0.85),
-                          progressColor,
+                          primaryColor,
+                          secondaryColor,
                         ],
                       ),
-                      borderRadius: BorderRadius.circular(10),
+                      borderRadius: BorderRadius.circular(isCompact ? 8 : 12),
                     ),
                   ),
+
+                  // Percentage Label inside bar (when not compact)
+                  if (!isCompact)
+                    Positioned(
+                      left: 12,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 8, vertical: 2),
+                        decoration: BoxDecoration(
+                          color: ratio > 0.82
+                              ? Colors.black.withValues(alpha: 0.25)
+                              : Colors.white.withValues(alpha: 0.9),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Text(
+                          '${validPercentage.toStringAsFixed(1)}%',
+                          style: TextStyle(
+                            fontSize: 11.5,
+                            fontWeight: FontWeight.w900,
+                            color: ratio > 0.82 ? Colors.white : primaryColor,
+                          ),
+                        ),
+                      ),
+                    ),
                 ],
               );
             },
           ),
         ),
-        if (showAmounts && targetAmount > 0) ...[
-          const SizedBox(height: 6),
+
+        // Optional amounts row (used in list cards)
+        if (showAmounts) ...[
+          const SizedBox(height: 8),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
@@ -114,24 +111,26 @@ class ProjectProgressBar extends StatelessWidget {
                 'الهدف: ${currencyFormatter.format(targetAmount)} ريال',
                 style: const TextStyle(
                   fontSize: 12,
-                  color: AppColors.textSecondary,
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.yemenBlack,
                 ),
               ),
-              if (currentAmount >= targetAmount)
+              if (currentAmount >= targetAmount && targetAmount > 0)
                 const Text(
-                  'تم اكتمال التمويل بنجاح 🎉',
+                  'مكتمل التمويل 🎉',
                   style: TextStyle(
-                    fontSize: 11,
-                    fontWeight: FontWeight.w700,
+                    fontSize: 11.5,
+                    fontWeight: FontWeight.w800,
                     color: AppColors.yemenEmerald,
                   ),
                 )
               else
                 Text(
-                  'المتبقي: ${currencyFormatter.format((targetAmount - currentAmount).clamp(0, double.infinity))} ريال',
+                  'تم جمع: ${currencyFormatter.format(currentAmount)} ريال',
                   style: const TextStyle(
-                    fontSize: 11,
-                    color: AppColors.textMuted,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.textSecondary,
                   ),
                 ),
             ],

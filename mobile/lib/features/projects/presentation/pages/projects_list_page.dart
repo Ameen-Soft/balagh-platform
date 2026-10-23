@@ -1,8 +1,12 @@
 import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:cached_network_image/cached_network_image.dart';
+
 import '../../../../core/constants/app_colors.dart';
+import '../../../../core/network/media_url_resolver.dart';
 import '../../../../core/widgets/app_empty_state.dart';
 import '../../../../core/widgets/app_error_state.dart';
 import '../../../home/presentation/widgets/home_bottom_bar.dart';
@@ -60,9 +64,14 @@ class _ProjectsListPageState extends ConsumerState<ProjectsListPage> {
   Widget build(BuildContext context) {
     final state = ref.watch(projectsNotifierProvider);
 
+    final featuredBannerUrl = state.projects
+        .map((p) => MediaUrlResolver.resolve(p.imageUrl ?? p.imagePath))
+        .where((url) => url != null && url.isNotEmpty)
+        .firstOrNull;
+
     return Scaffold(
       key: _scaffoldKey,
-      backgroundColor: const Color(0xFFF8F9FA),
+      backgroundColor: AppColors.backgroundSubtle,
       drawer: const HomeDrawer(),
       bottomNavigationBar: HomeBottomBar(
         currentTab: HomeBottomBarTab.none,
@@ -72,194 +81,196 @@ class _ProjectsListPageState extends ConsumerState<ProjectsListPage> {
         onComplaintsTap: () => context.push('/my-complaints'),
         onMoreTap: () => _scaffoldKey.currentState?.openDrawer(),
       ),
-      body: SafeArea(
-        top: false,
-        child: Column(
-          children: [
-            // 1. Top Header Banner with ProjectsPageImage, navigation icons, search bar & filter chips
-            _buildHeader(context, state.selectedStatus),
+      body: Column(
+        children: [
+          // 1. Modern Curved Header with Overlapping Search Bar & Filter Chips
+          _buildHeader(
+            context,
+            state.selectedStatus,
+            bannerImageUrl: featuredBannerUrl,
+          ),
 
-            // 2. Main Projects Content List with Pull-To-Refresh
-            Expanded(
-              child: RefreshIndicator(
-                color: AppColors.yemenRed,
-                onRefresh: () async {
-                  try {
-                    await ref.read(projectsNotifierProvider.notifier).refresh();
-                  } catch (e) {
-                    if (context.mounted) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: const Text('تعذر تحديث المشاريع، تم الاحتفاظ بالبيانات السابقة.'),
-                          backgroundColor: AppColors.deepBlack,
-                          behavior: SnackBarBehavior.floating,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(10),
-                          ),
+          // 2. Main Projects Content List with Pull-To-Refresh
+          Expanded(
+            child: RefreshIndicator(
+              color: AppColors.yemenRed,
+              onRefresh: () async {
+                try {
+                  await ref.read(projectsNotifierProvider.notifier).refresh();
+                } catch (e) {
+                  if (context.mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: const Text(
+                          'تعذر تحديث المشاريع، تم الاحتفاظ بالبيانات السابقة.',
                         ),
-                      );
-                    }
+                        backgroundColor: AppColors.deepBlack,
+                        behavior: SnackBarBehavior.floating,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                      ),
+                    );
                   }
-                },
-                child: _buildBodyContent(state),
-              ),
+                }
+              },
+              child: _buildBodyContent(state),
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
 
-  Widget _buildHeader(BuildContext context, String? selectedStatus) {
+  Widget _buildHeader(
+    BuildContext context,
+    String? selectedStatus, {
+    String? bannerImageUrl,
+  }) {
     final topPadding = MediaQuery.of(context).padding.top;
 
-    return Stack(
-      children: [
-        // Heritage Background Image Banner
-        Positioned(
-          top: 0,
-          left: 0,
-          right: 0,
-          height: topPadding + 145,
-          child: Image.asset(
-            'assets/images/ProjectsPageImage.png',
-            fit: BoxFit.cover,
-            alignment: Alignment.topCenter,
-          ),
-        ),
-
-        // Gradient fade to blend softly into page background
-        Positioned(
-          top: topPadding + 95,
-          left: 0,
-          right: 0,
-          height: 55,
-          child: Container(
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-                colors: [
-                  Colors.white.withValues(alpha: 0.0),
-                  const Color(0xFFF8F9FA),
-                ],
-              ),
-            ),
-          ),
-        ),
-
-        // Foreground Header Contents
-        Padding(
-          padding: EdgeInsets.only(top: topPadding + 6),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
+    return Container(
+      color: AppColors.backgroundSubtle,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Stack(
+            clipBehavior: Clip.none,
             children: [
-              // Top Bar: Back button & Title on right (in RTL), Hamburger on left
-              _buildTopBar(context),
+              // Curved Dark / Heritage Banner
+              Container(
+                width: double.infinity,
+                clipBehavior: Clip.antiAlias,
+                decoration: const BoxDecoration(
+                  color: AppColors.yemenBlack,
+                  borderRadius: BorderRadius.only(
+                    bottomLeft: Radius.circular(28),
+                    bottomRight: Radius.circular(28),
+                  ),
+                ),
+                child: Stack(
+                  children: [
+                    // Background Image (Real Project Image or Default Heritage Banner)
+                    Positioned.fill(
+                      child: bannerImageUrl != null && bannerImageUrl.isNotEmpty
+                          ? CachedNetworkImage(
+                              imageUrl: bannerImageUrl,
+                              fit: BoxFit.cover,
+                              errorWidget: (context, url, error) => Image.asset(
+                                'assets/images/ProjectsPageImage.png',
+                                fit: BoxFit.cover,
+                              ),
+                            )
+                          : Image.asset(
+                              'assets/images/ProjectsPageImage.png',
+                              fit: BoxFit.cover,
+                            ),
+                    ),
+                    // Dark / Heritage Overlay
+                    Positioned.fill(
+                      child: Container(
+                        color: AppColors.yemenBlack.withValues(alpha: 0.68),
+                      ),
+                    ),
+                    // Header Content
+                    Padding(
+                      padding: EdgeInsets.fromLTRB(16, topPadding + 10, 16, 42),
+                      child: _buildTopBar(context),
+                    ),
+                  ],
+                ),
+              ),
 
-              const SizedBox(height: 12),
-
-              // Search Bar
-              _buildSearchBar(),
-
-              const SizedBox(height: 12),
-
-              // Filter Chips
-              _buildFilterChips(selectedStatus),
-
-              const SizedBox(height: 6),
+              // Overlapping Floating Search Bar
+              Positioned(
+                bottom: -24,
+                left: 16,
+                right: 16,
+                child: _buildSearchBar(),
+              ),
             ],
           ),
-        ),
-      ],
+
+          const SizedBox(height: 36),
+
+          // Horizontal Status Filter Pills
+          _buildFilterChips(selectedStatus),
+
+          const SizedBox(height: 8),
+        ],
+      ),
     );
   }
 
   Widget _buildTopBar(BuildContext context) {
     return Directionality(
       textDirection: TextDirection.rtl,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            // Right Side: Back Chevron + Title & Subtitle
-            Row(
-              children: [
-                GestureDetector(
-                  onTap: () {
-                    if (context.canPop()) {
-                      context.pop();
-                    } else {
-                      context.go('/home');
-                    }
-                  },
-                  child: Container(
-                    padding: const EdgeInsets.all(6),
-                    decoration: BoxDecoration(
-                      color: Colors.black.withValues(alpha: 0.22),
-                      shape: BoxShape.circle,
-                    ),
-                    child: const Icon(
-                      Icons.arrow_forward_ios_rounded,
-                      color: Colors.white,
-                      size: 16,
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 10),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text(
-                      'المشاريع التنموية',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 19,
-                        fontWeight: FontWeight.w900,
-                        letterSpacing: 0.2,
-                        shadows: [
-                          Shadow(
-                            color: Colors.black54,
-                            blurRadius: 4,
-                            offset: Offset(0, 1),
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 2),
-                    Text(
-                      'معاً نبني مستقبلاً أفضل',
-                      style: TextStyle(
-                        color: Colors.white.withValues(alpha: 0.92),
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
-                        shadows: const [
-                          Shadow(
-                            color: Colors.black45,
-                            blurRadius: 3,
-                            offset: Offset(0, 1),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          // Right Side: Back Button
+          _buildGlassIconButton(
+            icon: Icons.arrow_back_ios_new_rounded,
+            onTap: () {
+              if (context.canPop()) {
+                context.pop();
+              } else {
+                context.go('/home');
+              }
+            },
+          ),
 
-            // Left Side: Drawer Hamburger Button
-            IconButton(
-              icon: const Icon(
-                Icons.menu_rounded,
-                color: Colors.white,
-                size: 26,
+          // Center: Title & Subtitle
+          Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Text(
+                'المشاريع التنموية',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 19,
+                  fontWeight: FontWeight.w900,
+                ),
               ),
-              onPressed: () => _scaffoldKey.currentState?.openDrawer(),
-              tooltip: 'القائمة',
-            ),
-          ],
+              const SizedBox(height: 2),
+              Text(
+                'معاً نبني مستقبلاً أفضل',
+                style: TextStyle(
+                  color: Colors.white.withValues(alpha: 0.8),
+                  fontSize: 11.5,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ],
+          ),
+
+          // Left Side: Drawer Hamburger Button
+          _buildGlassIconButton(
+            icon: Icons.menu_rounded,
+            size: 22,
+            onTap: () => _scaffoldKey.currentState?.openDrawer(),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildGlassIconButton({
+    required IconData icon,
+    required VoidCallback onTap,
+    double size = 18,
+  }) {
+    return Material(
+      color: Colors.white.withValues(alpha: 0.14),
+      shape: const CircleBorder(),
+      clipBehavior: Clip.antiAlias,
+      child: InkWell(
+        onTap: onTap,
+        child: SizedBox(
+          width: 40,
+          height: 40,
+          child: Icon(icon, color: Colors.white, size: size),
         ),
       ),
     );
@@ -267,17 +278,16 @@ class _ProjectsListPageState extends ConsumerState<ProjectsListPage> {
 
   Widget _buildSearchBar() {
     return Container(
-      height: 48,
-      margin: const EdgeInsets.symmetric(horizontal: 16),
+      height: 50,
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(26),
-        border: Border.all(color: const Color(0xFFE2E8F0), width: 1.0),
+        borderRadius: BorderRadius.circular(25),
+        border: Border.all(color: AppColors.borderSubtle, width: 1.2),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 3),
+            color: Colors.black.withValues(alpha: 0.06),
+            blurRadius: 14,
+            offset: const Offset(0, 4),
           ),
         ],
       ),
@@ -293,23 +303,26 @@ class _ProjectsListPageState extends ConsumerState<ProjectsListPage> {
           ref.read(projectsNotifierProvider.notifier).search(val.trim());
         },
         style: const TextStyle(
-          fontSize: 13,
-          fontWeight: FontWeight.w600,
+          fontSize: 13.5,
+          fontWeight: FontWeight.w700,
           color: AppColors.yemenBlack,
         ),
         decoration: InputDecoration(
-          hintText: 'ابحث في المشاريع التنموية...',
+          hintText: 'البحث في المشاريع التنموية...',
           hintStyle: const TextStyle(
-            color: Color(0xFF94A3B8),
+            color: AppColors.textMuted,
             fontSize: 13,
             fontWeight: FontWeight.w500,
           ),
           hintTextDirection: TextDirection.rtl,
           border: InputBorder.none,
-          contentPadding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
+          contentPadding: const EdgeInsets.symmetric(
+            horizontal: 18,
+            vertical: 13,
+          ),
           prefixIcon: const Icon(
             Icons.search_rounded,
-            color: Color(0xFF94A3B8),
+            color: AppColors.textSecondary,
             size: 22,
           ),
           suffixIcon: _searchController.text.isNotEmpty
@@ -317,7 +330,7 @@ class _ProjectsListPageState extends ConsumerState<ProjectsListPage> {
                   icon: const Icon(
                     Icons.close_rounded,
                     size: 18,
-                    color: Color(0xFF94A3B8),
+                    color: AppColors.textSecondary,
                   ),
                   onPressed: () {
                     _searchController.clear();
@@ -334,15 +347,15 @@ class _ProjectsListPageState extends ConsumerState<ProjectsListPage> {
 
   Widget _buildFilterChips(String? selectedStatus) {
     final List<Map<String, dynamic>> filters = [
-      {'label': 'الكل', 'status': null, 'icon': Icons.grid_view_rounded},
-      {'label': 'نشطة ومتاحة', 'status': 'active', 'icon': Icons.apartment_rounded},
-      {'label': 'قيد التنفيذ', 'status': 'in_progress', 'icon': Icons.engineering_rounded},
-      {'label': 'منشورة', 'status': 'published', 'icon': Icons.campaign_outlined},
-      {'label': 'مكتملة التمويل', 'status': 'completed', 'icon': Icons.check_circle_outline_rounded},
+      {'label': 'الكل', 'status': null},
+      {'label': 'نشطة ومتاحة', 'status': 'active'},
+      {'label': 'منشورة', 'status': 'published'},
+      {'label': 'قيد التنفيذ', 'status': 'in_progress'},
+      {'label': 'مكتملة', 'status': 'completed'},
     ];
 
     return SizedBox(
-      height: 42,
+      height: 38,
       child: Directionality(
         textDirection: TextDirection.rtl,
         child: ListView.separated(
@@ -354,50 +367,52 @@ class _ProjectsListPageState extends ConsumerState<ProjectsListPage> {
             final filter = filters[index];
             final status = filter['status'] as String?;
             final label = filter['label'] as String;
-            final icon = filter['icon'] as IconData;
             final isSelected = selectedStatus == status;
 
-            return InkWell(
+            return GestureDetector(
               onTap: () {
-                ref.read(projectsNotifierProvider.notifier).filterByStatus(status);
+                ref
+                    .read(projectsNotifierProvider.notifier)
+                    .filterByStatus(status);
               },
-              borderRadius: BorderRadius.circular(24),
               child: AnimatedContainer(
                 duration: const Duration(milliseconds: 200),
-                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 18,
+                  vertical: 8,
+                ),
                 decoration: BoxDecoration(
                   color: isSelected ? AppColors.yemenBlack : Colors.white,
-                  borderRadius: BorderRadius.circular(24),
+                  borderRadius: BorderRadius.circular(20),
                   border: Border.all(
-                    color: isSelected ? AppColors.yemenBlack : const Color(0xFFE2E8F0),
-                    width: 1.1,
+                    color: isSelected
+                        ? AppColors.yemenBlack
+                        : AppColors.borderSubtle,
+                    width: 1.2,
                   ),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withValues(alpha: isSelected ? 0.08 : 0.02),
+                      color: Colors.black.withValues(
+                        alpha: isSelected ? 0.08 : 0.015,
+                      ),
                       blurRadius: 6,
                       offset: const Offset(0, 2),
                     ),
                   ],
                 ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(
-                      icon,
-                      size: 15,
-                      color: isSelected ? Colors.white : const Color(0xFF64748B),
+                child: Center(
+                  child: Text(
+                    label,
+                    style: TextStyle(
+                      fontSize: 12.5,
+                      fontWeight: isSelected
+                          ? FontWeight.w800
+                          : FontWeight.w600,
+                      color: isSelected
+                          ? Colors.white
+                          : AppColors.textSecondary,
                     ),
-                    const SizedBox(width: 6),
-                    Text(
-                      label,
-                      style: TextStyle(
-                        fontSize: 12,
-                        fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
-                        color: isSelected ? Colors.white : const Color(0xFF475569),
-                      ),
-                    ),
-                  ],
+                  ),
                 ),
               ),
             );
@@ -415,7 +430,8 @@ class _ProjectsListPageState extends ConsumerState<ProjectsListPage> {
     }
 
     if (state.isError) {
-      final isNetwork = state.errorMessage?.contains('اتصال') == true ||
+      final isNetwork =
+          state.errorMessage?.contains('اتصال') == true ||
           state.errorMessage?.contains('الإنترنت') == true ||
           state.errorMessage?.contains('شبكة') == true;
       return ListView(
@@ -425,7 +441,8 @@ class _ProjectsListPageState extends ConsumerState<ProjectsListPage> {
           AppErrorState(
             message: state.errorMessage,
             isNetworkError: isNetwork,
-            onRetry: () => ref.read(projectsNotifierProvider.notifier).refresh(),
+            onRetry: () =>
+                ref.read(projectsNotifierProvider.notifier).refresh(),
           ),
         ],
       );
@@ -439,7 +456,8 @@ class _ProjectsListPageState extends ConsumerState<ProjectsListPage> {
           const AppEmptyState(
             icon: Icons.construction_rounded,
             title: 'لا توجد مشاريع تنموية مطابقة',
-            description: 'لم يتم العثور على مشاريع وفق معايير البحث أو الفلتر المحدد.',
+            description:
+                'لم يتم العثور على مشاريع وفق معايير البحث أو الفلتر المحدد.',
           ),
         ],
       );
@@ -448,7 +466,7 @@ class _ProjectsListPageState extends ConsumerState<ProjectsListPage> {
     return ListView.builder(
       controller: _scrollController,
       physics: const AlwaysScrollableScrollPhysics(),
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      padding: const EdgeInsets.fromLTRB(16, 6, 16, 24),
       itemCount: state.projects.length + (state.isLoadingMore ? 1 : 0),
       itemBuilder: (context, index) {
         if (index == state.projects.length) {
@@ -456,7 +474,7 @@ class _ProjectsListPageState extends ConsumerState<ProjectsListPage> {
             padding: EdgeInsets.symmetric(vertical: 16),
             child: Center(
               child: CircularProgressIndicator(
-                strokeWidth: 2,
+                strokeWidth: 2.5,
                 color: AppColors.yemenRed,
               ),
             ),
