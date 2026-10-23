@@ -18,13 +18,7 @@ return new class extends Migration
             $table->foreignId('department_id')->constrained()->restrictOnDelete();
             $table->decimal('target_amount', 12, 2);
             $table->decimal('current_amount', 12, 2)->default(0);
-            $table->enum('status', [
-                'draft',
-                'published',
-                'active',
-                'completed',
-                'suspended',
-            ])->default('draft');
+            $table->string('status', 30)->default('active');
             $table->decimal('latitude', 10, 7);
             $table->decimal('longitude', 10, 7);
             $table->foreignId('created_by')->constrained('users')->restrictOnDelete();

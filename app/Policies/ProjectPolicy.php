@@ -71,6 +71,6 @@ class ProjectPolicy
     {
         $canContribute = $user->hasPermission('projects.contribute') || $user->hasRole('Citizen');
 
-        return $canContribute && in_array($project->status, ['active', 'published']);
+        return $canContribute && in_array($project->status, ['active', 'published', 'in_progress']);
     }
 }

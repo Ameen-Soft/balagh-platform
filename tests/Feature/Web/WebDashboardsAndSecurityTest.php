@@ -156,6 +156,28 @@ class WebDashboardsAndSecurityTest extends TestCase
             ->assertSee('50,000,000');
     }
 
+    public function test_ministry_admin_can_create_project_with_in_progress_status_via_web(): void
+    {
+        $response = $this->actingAs($this->ministryAdmin)->post('/ministry/projects', [
+            'title' => 'مشروع إنارة الأحياء السكنية',
+            'department_id' => $this->department->id,
+            'description' => 'تركيب 200 كشاف طاقة شمسية في الشوارع الفرعية.',
+            'target_amount' => 500000,
+            'latitude' => 15.3693936,
+            'longitude' => 44.1910065,
+            'status' => 'in_progress',
+        ]);
+
+        $response->assertRedirect();
+        $response->assertSessionHas('success');
+
+        $this->assertDatabaseHas('projects', [
+            'title' => 'مشروع إنارة الأحياء السكنية',
+            'status' => 'in_progress',
+            'created_by' => $this->ministryAdmin->id,
+        ]);
+    }
+
     public function test_guest_is_redirected_to_login_when_accessing_admin_or_ministry_dashboards(): void
     {
         $this->get(route('admin.dashboard'))->assertRedirect('/login');
