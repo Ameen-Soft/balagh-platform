@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
-    <title>{{ $title ?? 'تسجيل الدخول - منصة بادر الوطنية' }}</title>
+    <x-site-head :title="$title ?? 'تسجيل الدخول'" />
 
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -36,5 +36,8 @@
     </div>
 
     @livewireScripts
+    @if(setting('custom_footer_scripts'))
+        {!! setting('custom_footer_scripts') !!}
+    @endif
 </body>
 </html>

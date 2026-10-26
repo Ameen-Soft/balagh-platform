@@ -20,8 +20,11 @@ class CommunityInteractionApiTest extends TestCase
     use RefreshDatabase;
 
     protected User $citizen;
+
     protected User $citizenTwo;
+
     protected User $admin;
+
     protected Category $category;
 
     protected function setUp(): void

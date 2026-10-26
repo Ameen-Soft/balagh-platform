@@ -20,7 +20,9 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //
+        if (file_exists($file = app_path('Helpers/settings.php'))) {
+            require_once $file;
+        }
     }
 
     /**

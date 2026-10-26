@@ -19,10 +19,15 @@ class FieldAndTransferApiTest extends TestCase
     use RefreshDatabase;
 
     protected User $citizen;
+
     protected User $ministryAdmin;
+
     protected User $fieldWorker;
+
     protected Category $category;
+
     protected Department $department1;
+
     protected Department $department2;
 
     protected function setUp(): void

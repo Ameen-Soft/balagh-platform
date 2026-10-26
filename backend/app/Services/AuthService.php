@@ -4,9 +4,12 @@ namespace App\Services;
 
 use App\Models\Role;
 use App\Models\User;
+use Illuminate\Auth\Events\PasswordReset;
+use Illuminate\Auth\Events\Verified;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 
@@ -39,7 +42,7 @@ class AuthService
         try {
             $user->sendEmailVerificationNotification();
         } catch (\Throwable $e) {
-            Log::warning('Failed to send verification email upon registration: ' . $e->getMessage());
+            Log::warning('Failed to send verification email upon registration: '.$e->getMessage());
         }
 
         $token = $user->createToken('auth_token')->plainTextToken;
@@ -101,9 +104,7 @@ class AuthService
     /**
      * Update authenticated user profile details.
      *
-     * @param  User  $user
      * @param  array<string, mixed>  $data
-     * @return User
      */
     public function updateProfile(User $user, array $data): User
     {
@@ -130,7 +131,7 @@ class AuthService
                 'id_token' => $idToken,
             ]);
         } catch (\Throwable $e) {
-            Log::error('Google token verification connection failed: ' . $e->getMessage());
+            Log::error('Google token verification connection failed: '.$e->getMessage());
             throw ValidationException::withMessages([
                 'id_token' => ['تعذر الاتصال بخوادم Google للتحقق من الحساب، يرجى المحاولة لاحقاً.'],
             ]);
@@ -234,7 +235,7 @@ class AuthService
         try {
             $user->sendEmailVerificationNotification();
         } catch (\Throwable $e) {
-            Log::error('Failed to resend verification email: ' . $e->getMessage());
+            Log::error('Failed to resend verification email: '.$e->getMessage());
             throw ValidationException::withMessages([
                 'email' => ['تعذر إرسال رسالة التحقق حالياً، يرجى المحاولة بعد قليل.'],
             ]);
@@ -266,7 +267,7 @@ class AuthService
         }
 
         $user->markEmailAsVerified();
-        event(new \Illuminate\Auth\Events\Verified($user));
+        event(new Verified($user));
 
         return [
             'user' => $user,
@@ -283,10 +284,10 @@ class AuthService
 
         if ($user && $user->is_active) {
             try {
-                $token = \Illuminate\Support\Facades\Password::broker()->createToken($user);
+                $token = Password::broker()->createToken($user);
                 $user->sendPasswordResetNotification($token);
             } catch (\Throwable $e) {
-                Log::error('Failed to send password reset email: ' . $e->getMessage());
+                Log::error('Failed to send password reset email: '.$e->getMessage());
             }
         }
     }
@@ -300,7 +301,7 @@ class AuthService
      */
     public function resetPassword(array $credentials): void
     {
-        $status = \Illuminate\Support\Facades\Password::broker()->reset(
+        $status = Password::broker()->reset(
             $credentials,
             function (User $user, string $password) {
                 $user->forceFill([
@@ -308,15 +309,14 @@ class AuthService
                     'remember_token' => Str::random(60),
                 ])->save();
 
-                event(new \Illuminate\Auth\Events\PasswordReset($user));
+                event(new PasswordReset($user));
             }
         );
 
-        if ($status !== \Illuminate\Support\Facades\Password::PASSWORD_RESET) {
+        if ($status !== Password::PASSWORD_RESET) {
             throw ValidationException::withMessages([
                 'email' => [__($status)],
             ]);
         }
     }
 }
-

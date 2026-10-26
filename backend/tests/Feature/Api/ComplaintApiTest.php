@@ -18,7 +18,9 @@ class ComplaintApiTest extends TestCase
     use RefreshDatabase;
 
     protected User $citizen;
+
     protected User $ministryAdmin;
+
     protected Category $category;
 
     protected function setUp(): void
@@ -231,4 +233,3 @@ class ComplaintApiTest extends TestCase
             ->assertJsonPath('data.0.status', 'reopened');
     }
 }
-

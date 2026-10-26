@@ -17,12 +17,19 @@ class ProjectManagementAndPhasesTest extends TestCase
     use RefreshDatabase;
 
     protected User $superAdmin;
+
     protected User $ministryAdmin;
+
     protected User $otherMinistryAdmin;
+
     protected Ministry $ministry;
+
     protected Department $department;
+
     protected Ministry $otherMinistry;
+
     protected Department $otherDepartment;
+
     protected Project $project;
 
     protected function setUp(): void

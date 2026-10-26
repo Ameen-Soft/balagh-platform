@@ -8,6 +8,7 @@ use App\Models\ComplaintTimeline;
 use App\Models\FieldAssignment;
 use App\Models\User;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
@@ -282,7 +283,7 @@ class FieldWorkService
     /**
      * Complete a field assignment with report, geolocation verification, evidence uploads, and atomic resolution.
      *
-     * @param  array<\Illuminate\Http\UploadedFile>|null  $evidenceFiles
+     * @param  array<UploadedFile>|null  $evidenceFiles
      *
      * @throws ValidationException
      */

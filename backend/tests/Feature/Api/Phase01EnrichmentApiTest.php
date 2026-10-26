@@ -25,10 +25,15 @@ class Phase01EnrichmentApiTest extends TestCase
     use RefreshDatabase;
 
     protected User $citizen;
+
     protected User $ministryAdmin;
+
     protected User $fieldWorker;
+
     protected Department $department;
+
     protected Ministry $ministry;
+
     protected Category $category;
 
     protected function setUp(): void
@@ -97,7 +102,7 @@ class Phase01EnrichmentApiTest extends TestCase
      */
     public function test_can_fetch_categories_filtered_by_ministry(): void
     {
-        $response = $this->getJson('/api/v1/categories?ministry_id=' . $this->ministry->id);
+        $response = $this->getJson('/api/v1/categories?ministry_id='.$this->ministry->id);
 
         $response->assertStatus(200)
             ->assertJson([

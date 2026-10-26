@@ -24,18 +24,18 @@ class TransferOperationsController extends Controller
                 'toDepartment.ministry',
                 'transferredByUser:id,name',
             ])
-            ->where('from_department_id', $deptId)
-            ->latest()
-            ->paginate(15);
+                ->where('from_department_id', $deptId)
+                ->latest()
+                ->paginate(15);
         } else {
             $transfers = ComplaintTransfer::with([
                 'complaint:id,title,status',
                 'fromDepartment.ministry',
                 'transferredByUser:id,name',
             ])
-            ->where('to_department_id', $deptId)
-            ->latest()
-            ->paginate(15);
+                ->where('to_department_id', $deptId)
+                ->latest()
+                ->paginate(15);
         }
 
         return view('ministry.transfers.index', compact('transfers', 'type'));

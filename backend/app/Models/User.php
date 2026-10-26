@@ -2,8 +2,10 @@
 
 namespace App\Models;
 
-use Illuminate\Contracts\Auth\MustVerifyEmail;
+use App\Notifications\ResetPasswordNotification;
+use App\Notifications\VerifyEmailNotification;
 use Database\Factories\UserFactory;
+use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
@@ -148,6 +150,7 @@ class User extends Authenticatable implements MustVerifyEmail
         if ($this->relationLoaded('roles')) {
             return $this->roles->pluck('name')->intersect($roles)->isNotEmpty();
         }
+
         return $this->roles()->whereIn('name', $roles)->exists();
     }
 
@@ -156,6 +159,7 @@ class User extends Authenticatable implements MustVerifyEmail
         if ($this->relationLoaded('roles')) {
             return $this->roles->flatMap->permissions->pluck('name')->contains($permission);
         }
+
         return $this->roles()->whereHas('permissions', function ($query) use ($permission) {
             $query->where('name', $permission);
         })->exists();
@@ -166,7 +170,7 @@ class User extends Authenticatable implements MustVerifyEmail
      */
     public function sendEmailVerificationNotification(): void
     {
-        $this->notify(new \App\Notifications\VerifyEmailNotification());
+        $this->notify(new VerifyEmailNotification);
     }
 
     /**
@@ -174,6 +178,6 @@ class User extends Authenticatable implements MustVerifyEmail
      */
     public function sendPasswordResetNotification($token): void
     {
-        $this->notify(new \App\Notifications\ResetPasswordNotification($token));
+        $this->notify(new ResetPasswordNotification($token));
     }
 }

@@ -19,6 +19,7 @@ class DatabaseSeeder extends Seeder
             UserSeeder::class,
             ComplaintSeeder::class,
             ProjectSeeder::class,
+            SiteSettingsSeeder::class,
         ]);
 
         // General System Settings (Reference Data)

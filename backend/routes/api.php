@@ -8,6 +8,7 @@ use App\Http\Controllers\Api\V1\FieldAssignmentController;
 use App\Http\Controllers\Api\V1\MinistryController;
 use App\Http\Controllers\Api\V1\NotificationController;
 use App\Http\Controllers\Api\V1\ProjectController;
+use App\Http\Controllers\Api\V1\SiteSettingApiController;
 use App\Http\Controllers\Api\V1\TransferController;
 use Illuminate\Support\Facades\Route;
 
@@ -40,7 +41,8 @@ Route::prefix('v1')->group(function () {
         Route::post('/email/resend', [AuthController::class, 'resendVerification'])->middleware('throttle:6,1');
     });
 
-    // Reference Data: Ministries & Cascading Categories
+    // Reference Data: Ministries, Categories & Public Settings
+    Route::get('/settings', [SiteSettingApiController::class, 'index']);
     Route::get('/ministries', [MinistryController::class, 'index']);
     Route::get('/ministries/{ministry}', [MinistryController::class, 'show']);
     Route::get('/categories', [CategoryController::class, 'index']);

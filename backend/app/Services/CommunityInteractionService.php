@@ -59,10 +59,10 @@ class CommunityInteractionService
 
         // Keyword search
         if (! empty($filters['search'])) {
-            $searchTerm = '%' . trim((string) $filters['search']) . '%';
+            $searchTerm = '%'.trim((string) $filters['search']).'%';
             $query->where(function ($q) use ($searchTerm) {
                 $q->where('title', 'like', $searchTerm)
-                  ->orWhere('description', 'like', $searchTerm);
+                    ->orWhere('description', 'like', $searchTerm);
             });
         }
 
@@ -153,13 +153,13 @@ class CommunityInteractionService
                 $maxLng = (float) $bboxCoords[3];
 
                 $query->whereBetween('latitude', [$minLat, $maxLat])
-                      ->whereBetween('longitude', [$minLng, $maxLng]);
+                    ->whereBetween('longitude', [$minLng, $maxLng]);
             }
         } elseif (
             isset($filters['min_lat'], $filters['max_lat'], $filters['min_lng'], $filters['max_lng'])
         ) {
             $query->whereBetween('latitude', [(float) $filters['min_lat'], (float) $filters['max_lat']])
-                  ->whereBetween('longitude', [(float) $filters['min_lng'], (float) $filters['max_lng']]);
+                ->whereBetween('longitude', [(float) $filters['min_lng'], (float) $filters['max_lng']]);
         }
 
         if (! empty($filters['category_id'])) {
@@ -184,10 +184,10 @@ class CommunityInteractionService
             'current_department_id',
             'created_at',
         ])
-        ->with(['category:id,name'])
-        ->orderByDesc('likes_count')
-        ->limit($maxPins)
-        ->get();
+            ->with(['category:id,name'])
+            ->orderByDesc('likes_count')
+            ->limit($maxPins)
+            ->get();
     }
 
     /**

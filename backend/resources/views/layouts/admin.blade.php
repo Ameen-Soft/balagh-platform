@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
-    <title>{{ $title ?? 'لوحة الإدارة العامة والرقابة الوطنية' }} - منصة بادر</title>
+    <x-site-head :title="$title ?? 'لوحة الإدارة العامة والرقابة الوطنية'" />
 
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -43,14 +43,18 @@
                class="fixed inset-y-0 right-0 z-50 w-72 max-w-[85vw] bg-[#08080a] text-zinc-300 flex flex-col border-l border-zinc-800/80 shrink-0 transform transition-transform duration-300 ease-in-out lg:static lg:sticky lg:top-1.5 lg:h-[calc(100vh-6px)] lg:overflow-y-auto lg:z-30 shadow-2xl lg:shadow-none">
             <!-- Brand -->
             <div class="p-5 sm:p-6 border-b border-zinc-800/80 flex items-center justify-between">
-                <div class="flex items-center gap-3">
-                    <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-red-600 to-black flex items-center justify-center text-white shadow-md shadow-red-900/30 shrink-0 border border-white/10">
-                        <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-                        </svg>
-                    </div>
-                    <div>
-                        <h1 class="text-base font-black text-white leading-tight">منصة بــــادر</h1>
+                <div class="flex items-center gap-3 min-w-0">
+                    @if(setting_url('site_logo'))
+                        <img src="{{ setting_url('site_logo') }}" alt="{{ setting('site_name', 'بــــادر') }}" class="w-12 h-12 object-contain rounded-xl bg-white p-1 border border-white/10 shrink-0">
+                    @else
+                        <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-red-600 to-black flex items-center justify-center text-white shadow-md shadow-red-900/30 shrink-0 border border-white/10">
+                            <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                            </svg>
+                        </div>
+                    @endif
+                    <div class="min-w-0">
+                        <h1 class="text-base font-black text-white leading-tight truncate">{{ setting('site_name', 'منصة بــــادر') }}</h1>
                         <span class="text-[11px] font-bold text-red-500 uppercase tracking-wide">الإدارة العامة والرقابة</span>
                     </div>
                 </div>
@@ -118,6 +122,16 @@
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
                     </svg>
                     <span>المشاريع التنموية</span>
+                </a>
+
+                <a href="{{ route('admin.settings.index') }}" 
+                   @click="sidebarOpen = false"
+                   class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-bold transition {{ request()->routeIs('admin.settings.*') ? 'bg-red-600 text-white shadow-sm' : 'text-zinc-400 hover:text-white hover:bg-zinc-900' }}">
+                    <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                    </svg>
+                    <span>إعدادات المنصة والهوية</span>
                 </a>
             </nav>
 
@@ -194,5 +208,8 @@
     </div>
 
     @livewireScripts
+    @if(setting('custom_footer_scripts'))
+        {!! setting('custom_footer_scripts') !!}
+    @endif
 </body>
 </html>

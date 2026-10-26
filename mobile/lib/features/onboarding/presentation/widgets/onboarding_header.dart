@@ -26,13 +26,16 @@ class OnboardingHeader extends StatelessWidget {
             gradient: const LinearGradient(
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
-              colors: [AppColors.yemenWhite, AppColors.yemenBlack],
+              colors: [
+                AppColors.yemenWhite,
+                Color.fromARGB(255, 139, 139, 139),
+              ],
             ),
             borderRadius: BorderRadius.circular(8),
           ),
           child: Center(
             child: Transform.scale(
-              scale: 1.8,
+              scale: 2.8,
               child: Image.asset(
                 AppAssets.logoHorizontal,
                 fit: BoxFit.contain,

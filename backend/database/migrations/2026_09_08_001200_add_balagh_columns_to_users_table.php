@@ -15,7 +15,7 @@ return new class extends Migration
             $table->string('phone')->nullable()->after('email');
             $table->string('national_id')->nullable()->unique()->after('phone');
             $table->foreignId('department_id')->nullable()->after('national_id')
-                  ->constrained()->nullOnDelete();
+                ->constrained()->nullOnDelete();
             $table->boolean('is_active')->default(true)->after('department_id');
         });
     }

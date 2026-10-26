@@ -4,8 +4,6 @@ namespace Tests\Feature\Api;
 
 use App\Models\Category;
 use App\Models\Complaint;
-use App\Models\Department;
-use App\Models\FieldAssignment;
 use App\Models\Project;
 use App\Models\Role;
 use App\Models\User;

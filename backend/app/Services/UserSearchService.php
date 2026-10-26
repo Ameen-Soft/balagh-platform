@@ -11,9 +11,6 @@ class UserSearchService
     /**
      * Search users with optimized indexing, field selection, and strict authorization scoping.
      *
-     * @param  string  $query
-     * @param  string  $scope
-     * @param  User  $authUser
      * @param  array<string, mixed>  $filters
      * @return Collection<int, array<string, mixed>>
      */
@@ -120,12 +117,14 @@ class UserSearchService
                 $q->where('phone', 'like', "{$term}%")
                     ->orWhere('national_id', 'like', "{$term}%");
             });
+
             return;
         }
 
         // Email search (contains @)
         if (str_contains($term, '@')) {
             $query->where('email', 'like', "{$term}%");
+
             return;
         }
 

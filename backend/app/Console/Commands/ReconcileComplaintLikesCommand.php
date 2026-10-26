@@ -6,7 +6,6 @@ use App\Models\Complaint;
 use App\Models\ComplaintLike;
 use App\Services\CommunityEngagementService;
 use Illuminate\Console\Command;
-use Illuminate\Support\Facades\DB;
 
 class ReconcileComplaintLikesCommand extends Command
 {
@@ -35,6 +34,7 @@ class ReconcileComplaintLikesCommand extends Command
             $complaint = Complaint::find($specificId);
             if (! $complaint) {
                 $this->error("Complaint #{$specificId} not found.");
+
                 return Command::FAILURE;
             }
 
@@ -42,6 +42,7 @@ class ReconcileComplaintLikesCommand extends Command
             $newCount = $engagementService->reconcileLikesCount((int) $complaint->id);
 
             $this->info("Complaint #{$complaint->id} reconciled: {$oldCount} -> {$newCount}");
+
             return Command::SUCCESS;
         }
 
