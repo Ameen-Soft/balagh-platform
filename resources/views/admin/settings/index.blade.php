@@ -177,6 +177,54 @@
                         </div>
                     </div>
                 </div>
+
+                <!-- Android APK File Upload -->
+                <div class="bg-white rounded-2xl border border-slate-200/80 p-6 shadow-xs">
+                    <h3 class="text-sm font-bold text-slate-900 mb-4 pb-3 border-b border-slate-100 flex items-center gap-2">
+                        <span class="w-2.5 h-2.5 rounded-full bg-emerald-600"></span>
+                        تطبيق الهاتف (Android APK)
+                    </h3>
+
+                    <div class="flex flex-col sm:flex-row items-center justify-between gap-6 p-4 rounded-xl border border-slate-200 bg-slate-50/50">
+                        <div class="flex items-center gap-4">
+                            <div class="w-14 h-14 rounded-2xl bg-emerald-100 text-emerald-600 flex items-center justify-center shrink-0">
+                                <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                                </svg>
+                            </div>
+                            <div>
+                                <h4 class="text-xs font-bold text-slate-800">حزمة تطبيق أندرويد (.apk)</h4>
+                                @if ($settings->get('app_apk_file'))
+                                    <div class="mt-2 flex items-center gap-3 flex-wrap">
+                                        <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-emerald-100 text-emerald-800 text-[10px] font-bold">
+                                            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                                            التطبيق مرفوع ومتوفر للتحميل
+                                        </span>
+                                        <a href="{{ asset('storage/' . $settings->get('app_apk_file')) }}" download class="text-[11px] font-bold text-slate-700 hover:text-black flex items-center gap-1 underline">
+                                            <svg class="w-3.5 h-3.5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+                                            تحميل النسخة الحالية
+                                        </a>
+                                        <button type="submit" form="delete-apk-form" onclick="return confirm('هل أنت متأكد من رغبتك في حذف ملف تطبيق الأندرويد نهائياً من الموقع؟')" class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-red-100 text-red-700 hover:bg-red-200 text-[10px] font-bold transition cursor-pointer">
+                                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                                            <span>حذف التطبيق</span>
+                                        </button>
+                                    </div>
+                                @else
+                                    <div class="mt-2">
+                                        <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-amber-100 text-amber-800 text-[10px] font-bold">
+                                            لم يتم رفع ملف APK حتى الآن
+                                        </span>
+                                    </div>
+                                @endif
+                            </div>
+                        </div>
+
+                        <div class="w-full sm:w-auto shrink-0">
+                            <label class="block text-[11px] font-bold text-slate-700 mb-1">رفع ملف APK جديد:</label>
+                            <input type="file" name="app_apk_file" accept=".apk" class="text-xs file:mr-2 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-emerald-600 file:text-white hover:file:bg-emerald-700 w-full text-slate-500 cursor-pointer">
+                        </div>
+                    </div>
+                </div>
             </div>
 
             <!-- Tab 2: SEO & Meta Tags -->
@@ -424,6 +472,12 @@
                         <span>حفظ التعديلات وتحديث وسوم Head</span>
                     </button>
                 </div>
+        </form>
+
+        <!-- Separate Delete Form for APK (triggered via button form attribute) -->
+        <form id="delete-apk-form" method="POST" action="{{ route('admin.settings.delete_apk') }}" class="hidden">
+            @csrf
+            @method('DELETE')
         </form>
     </div>
 </x-admin-layout>

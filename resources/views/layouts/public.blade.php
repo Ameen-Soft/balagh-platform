@@ -205,10 +205,17 @@
                     <p class="text-xs text-slate-400 leading-relaxed mb-3">
                         يمكن للمواطنين والفرق الميدانية تقديم البلاغات ومتابعتها عبر تطبيق الهاتف الذكي بالـGPS ودون انقطاع.
                     </p>
-                    <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-zinc-900 border border-zinc-800 text-xs text-zinc-300">
-                        <svg class="w-4 h-4 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg>
-                        <span>تطبيق بادر (Flutter)</span>
-                    </div>
+                    @if(setting_url('app_apk_file'))
+                        <a href="{{ setting_url('app_apk_file') }}" download class="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-red-600 hover:bg-red-700 text-xs text-white font-bold transition shadow-md shadow-red-900/30 hover:scale-105 active:scale-95 group">
+                            <svg class="w-4 h-4 text-white group-hover:translate-y-0.5 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+                            <span>تنزيل التطبيق (APK)</span>
+                        </a>
+                    @else
+                        <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-zinc-900 border border-zinc-800 text-xs text-zinc-300">
+                            <svg class="w-4 h-4 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg>
+                            <span>تنزيل التطبيق</span>
+                        </div>
+                    @endif
                 </div>
             </div>
 

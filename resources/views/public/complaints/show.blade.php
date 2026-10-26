@@ -36,13 +36,6 @@
     </div>
 
     <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
-        <!-- Privacy Notice Banner -->
-        <div class="p-4 rounded-xl bg-slate-100 border border-slate-200 text-xs text-slate-600 font-semibold mb-8 flex items-center gap-2">
-            <svg class="w-5 h-5 text-slate-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
-            </svg>
-            <span>حماية الخصوصية: تم حجب البيانات الشخصية للمواطن (الاسم، الهاتف، الرقم الوطني) في بوابة الشفافية العامة.</span>
-        </div>
 
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
             <!-- Main Content -->

@@ -19,6 +19,7 @@ class SiteSettingsSeeder extends Seeder
             ['key' => 'site_logo', 'value' => null, 'group' => 'general'],
             ['key' => 'site_favicon', 'value' => null, 'group' => 'general'],
             ['key' => 'site_apple_icon', 'value' => null, 'group' => 'general'],
+            ['key' => 'app_apk_file', 'value' => null, 'group' => 'general'],
 
             // SEO & Head Meta
             ['key' => 'meta_title', 'value' => 'منصة بادر - البوابة الوطنية الموحدة للبلاغات والشكاوى التنموية', 'group' => 'seo'],
