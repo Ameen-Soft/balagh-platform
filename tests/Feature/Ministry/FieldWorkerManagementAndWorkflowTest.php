@@ -22,12 +22,19 @@ class FieldWorkerManagementAndWorkflowTest extends TestCase
     use RefreshDatabase;
 
     protected User $ministryAdmin;
+
     protected User $otherMinistryAdmin;
+
     protected User $fieldWorker;
+
     protected User $otherFieldWorker;
+
     protected User $citizen;
+
     protected Department $department;
+
     protected Department $otherDepartment;
+
     protected Category $category;
 
     protected function setUp(): void

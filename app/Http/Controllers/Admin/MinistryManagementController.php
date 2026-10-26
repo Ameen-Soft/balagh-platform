@@ -64,7 +64,7 @@ class MinistryManagementController extends Controller
             }
         }
 
-        $code = $validated['code'] ?? ('MIN-' . strtoupper(Str::random(6)));
+        $code = $validated['code'] ?? ('MIN-'.strtoupper(Str::random(6)));
 
         $ministry = Ministry::create([
             'name' => $validated['name'],

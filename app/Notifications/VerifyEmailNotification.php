@@ -32,7 +32,7 @@ class VerifyEmailNotification extends Notification
 
         return (new MailMessage)
             ->subject('منصة بادر - التحقق من البريد الإلكتروني')
-            ->greeting('مرحباً بك ' . $notifiable->name . ' في منصة بادر!')
+            ->greeting('مرحباً بك '.$notifiable->name.' في منصة بادر!')
             ->line('نشكرك على انضمامك إلى منصة بادر الوطنية لإدارة البلاغات ومتابعة المشاريع التنموية.')
             ->line('يرجى الضغط على الزر أدناه لتأكيد صحة بريدك الإلكتروني وتفعيل حسابك بالكامل:')
             ->action('التحقق من بريدي الإلكتروني', $verificationUrl)

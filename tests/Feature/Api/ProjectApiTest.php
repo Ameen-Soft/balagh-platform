@@ -18,7 +18,9 @@ class ProjectApiTest extends TestCase
     use RefreshDatabase;
 
     protected User $citizen;
+
     protected Department $department;
+
     protected Project $project;
 
     protected function setUp(): void

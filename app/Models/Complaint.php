@@ -44,7 +44,7 @@ class Complaint extends Model
 
     public function getComplaintNumberAttribute(): string
     {
-        return 'CMP-' . str_pad((string) $this->id, 6, '0', STR_PAD_LEFT);
+        return 'CMP-'.str_pad((string) $this->id, 6, '0', STR_PAD_LEFT);
     }
 
     public function getPriorityArabicAttribute(): string

@@ -68,6 +68,7 @@ class Project extends Model
         }
 
         $disk = config('balagh.storage.disk', 'public');
+
         return Storage::disk($disk)->url($this->image_path);
     }
 
@@ -81,6 +82,7 @@ class Project extends Model
         if ($this->target_amount > 0) {
             return (int) min(100, round((($this->current_amount ?? 0) / $this->target_amount) * 100));
         }
+
         return 0;
     }
 

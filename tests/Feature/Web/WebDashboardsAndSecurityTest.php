@@ -22,10 +22,15 @@ class WebDashboardsAndSecurityTest extends TestCase
     use RefreshDatabase;
 
     protected User $superAdmin;
+
     protected User $ministryAdmin;
+
     protected User $citizen;
+
     protected Ministry $ministry;
+
     protected Department $department;
+
     protected Category $category;
 
     protected function setUp(): void
@@ -119,7 +124,7 @@ class WebDashboardsAndSecurityTest extends TestCase
         $responseIndex = $this->get(route('public.complaints.index'));
         $responseIndex->assertStatus(200)
             ->assertSee('حفرة عميقة في شارع الستين')
-            ->assertSee('#' . $complaint->complaint_number);
+            ->assertSee('#'.$complaint->complaint_number);
 
         // 2. Show
         $responseShow = $this->get(route('public.complaints.show', $complaint->id));

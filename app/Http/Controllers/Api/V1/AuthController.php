@@ -8,6 +8,7 @@ use App\Http\Requests\Auth\LoginRequest;
 use App\Http\Requests\Auth\RegisterRequest;
 use App\Http\Requests\Auth\UpdateProfileRequest;
 use App\Http\Resources\UserResource;
+use App\Models\User;
 use App\Services\AuthService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -118,7 +119,7 @@ class AuthController extends Controller
         $user = $request->user();
 
         if (! $user && $request->filled('email')) {
-            $user = \App\Models\User::where('email', $request->input('email'))->first();
+            $user = User::where('email', $request->input('email'))->first();
         }
 
         if ($user) {
@@ -237,7 +238,7 @@ class AuthController extends Controller
      */
     protected function renderVerificationHtml(string $title, string $message, bool $isSuccess, string $status): string
     {
-        $deepLink = "bader://verify-email?status=" . urlencode($status);
+        $deepLink = 'bader://verify-email?status='.urlencode($status);
         $badgeBg = $isSuccess ? '#059669' : '#CE1126';
         $badgeIcon = $isSuccess ? '&#10003;' : '&#10007;';
 
@@ -352,10 +353,10 @@ HTML;
     protected function renderResetPasswordHtml(string $token, string $email): string
     {
         $encodedEmail = urlencode($email);
-        $deepLink = "bader://reset-password?token=" . urlencode($token) . "&email=" . $encodedEmail;
+        $deepLink = 'bader://reset-password?token='.urlencode($token).'&email='.$encodedEmail;
         $escapedToken = htmlspecialchars($token, ENT_QUOTES, 'UTF-8');
         $escapedEmail = htmlspecialchars($email, ENT_QUOTES, 'UTF-8');
-        $emailReadonlyAttr = !empty($email) ? 'readonly' : '';
+        $emailReadonlyAttr = ! empty($email) ? 'readonly' : '';
         $apiResetUrl = url('/api/v1/auth/reset-password');
 
         return <<<HTML
@@ -656,4 +657,3 @@ HTML;
 HTML;
     }
 }
-

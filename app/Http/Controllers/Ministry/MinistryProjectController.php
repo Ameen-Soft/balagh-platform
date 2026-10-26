@@ -31,9 +31,9 @@ class MinistryProjectController extends Controller
                 $query->where('ministry_id', $ministryId);
             }
         })
-        ->with(['creator', 'department.ministry', 'phases'])
-        ->latest()
-        ->paginate(15);
+            ->with(['creator', 'department.ministry', 'phases'])
+            ->latest()
+            ->paginate(15);
 
         $departments = Department::where('ministry_id', $ministryId)->get();
         if ($departments->isEmpty() && $user->department) {

@@ -16,7 +16,7 @@ class FileUploadService
     public function upload(UploadedFile $file, string $folder = 'general', ?string $disk = null): array
     {
         $disk = $disk ?? config('balagh.storage.disk', 'public');
-        $fileName = Str::random(20) . '_' . time() . '.' . $file->getClientOriginalExtension();
+        $fileName = Str::random(20).'_'.time().'.'.$file->getClientOriginalExtension();
         $filePath = $file->storeAs($folder, $fileName, $disk);
 
         return [

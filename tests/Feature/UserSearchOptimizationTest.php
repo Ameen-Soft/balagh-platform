@@ -17,12 +17,19 @@ class UserSearchOptimizationTest extends TestCase
     use RefreshDatabase;
 
     protected User $superAdmin;
+
     protected User $ministryAdmin;
+
     protected User $otherMinistryAdmin;
+
     protected User $fieldWorker;
+
     protected User $otherFieldWorker;
+
     protected User $citizen;
+
     protected Department $department;
+
     protected Department $otherDepartment;
 
     protected function setUp(): void
@@ -156,7 +163,7 @@ class UserSearchOptimizationTest extends TestCase
 
         $data = $response->json('data');
         $this->assertNotEmpty($data);
-        
+
         // Super admin must never appear in ministry candidates
         $ids = collect($data)->pluck('id');
         $this->assertNotContains($this->superAdmin->id, $ids);
@@ -272,8 +279,8 @@ class UserSearchOptimizationTest extends TestCase
             $u = User::factory()->create([
                 'name' => "مستخدم اختباري {$i}",
                 'email' => "bulk_test_{$i}@example.test",
-                'phone' => "7799999" . sprintf('%03d', $i),
-                'national_id' => "2000000" . sprintf('%03d', $i),
+                'phone' => '7799999'.sprintf('%03d', $i),
+                'national_id' => '2000000'.sprintf('%03d', $i),
                 'is_active' => true,
             ]);
             $u->roles()->sync([$citizenRole->id]);

@@ -39,7 +39,7 @@ class CategoryManagementController extends Controller
             'description' => 'nullable|string|max:500',
         ]);
 
-        $validated['level'] = !empty($validated['parent_id']) ? 2 : 1;
+        $validated['level'] = ! empty($validated['parent_id']) ? 2 : 1;
 
         Category::create($validated);
 

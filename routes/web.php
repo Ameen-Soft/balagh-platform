@@ -5,6 +5,7 @@ use App\Http\Controllers\Admin\ComplaintMonitoringController;
 use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
 use App\Http\Controllers\Admin\MinistryManagementController;
 use App\Http\Controllers\Admin\ProjectManagementController;
+use App\Http\Controllers\Admin\SiteSettingController;
 use App\Http\Controllers\Admin\UserManagementController;
 use App\Http\Controllers\Ministry\ComplaintOperationsController;
 use App\Http\Controllers\Ministry\DashboardController as MinistryDashboardController;
@@ -83,6 +84,10 @@ Route::middleware([
     Route::post('/projects/{project}/phases', [ProjectManagementController::class, 'storePhase'])->name('projects.phases.store');
     Route::match(['put', 'post'], '/projects/{project}/phases/{phase}', [ProjectManagementController::class, 'updatePhase'])->name('projects.phases.update');
     Route::delete('/projects/{project}/phases/{phase}', [ProjectManagementController::class, 'destroyPhase'])->name('projects.phases.destroy');
+
+    // Platform Identity & Head Settings
+    Route::get('/settings', [SiteSettingController::class, 'index'])->name('settings.index');
+    Route::post('/settings', [SiteSettingController::class, 'update'])->name('settings.update');
 });
 
 /*
@@ -156,6 +161,7 @@ Route::middleware([
         if ($user->hasRole('Ministry Admin')) {
             return redirect()->route('ministry.dashboard');
         }
+
         return view('dashboard');
     })->name('dashboard');
 

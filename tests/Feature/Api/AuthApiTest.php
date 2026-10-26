@@ -3,8 +3,14 @@
 namespace Tests\Feature\Api;
 
 use App\Models\User;
+use App\Notifications\ResetPasswordNotification;
+use App\Notifications\VerifyEmailNotification;
 use Database\Seeders\RolePermissionSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Notification;
+use Illuminate\Support\Facades\Password;
+use Illuminate\Support\Facades\URL;
 use Tests\TestCase;
 
 class AuthApiTest extends TestCase
@@ -105,7 +111,7 @@ class AuthApiTest extends TestCase
         $user = User::factory()->create();
         $token = $user->createToken('test_token')->plainTextToken;
 
-        $response = $this->withHeader('Authorization', 'Bearer ' . $token)
+        $response = $this->withHeader('Authorization', 'Bearer '.$token)
             ->postJson('/api/v1/auth/logout');
 
         $response->assertStatus(200)
@@ -227,7 +233,7 @@ class AuthApiTest extends TestCase
 
     public function test_can_request_email_verification_notification(): void
     {
-        \Illuminate\Support\Facades\Notification::fake();
+        Notification::fake();
 
         $user = User::factory()->create([
             'email_verified_at' => null,
@@ -239,9 +245,9 @@ class AuthApiTest extends TestCase
         $response->assertStatus(200)
             ->assertJsonPath('success', true);
 
-        \Illuminate\Support\Facades\Notification::assertSentTo(
+        Notification::assertSentTo(
             $user,
-            \App\Notifications\VerifyEmailNotification::class
+            VerifyEmailNotification::class
         );
     }
 
@@ -251,7 +257,7 @@ class AuthApiTest extends TestCase
             'email_verified_at' => null,
         ]);
 
-        $verificationUrl = \Illuminate\Support\Facades\URL::temporarySignedRoute(
+        $verificationUrl = URL::temporarySignedRoute(
             'verification.verify',
             now()->addMinutes(60),
             [
@@ -283,7 +289,7 @@ class AuthApiTest extends TestCase
 
     public function test_forgot_password_returns_generic_success_without_leaking_user_existence(): void
     {
-        \Illuminate\Support\Facades\Notification::fake();
+        Notification::fake();
 
         $user = User::factory()->create([
             'email' => 'citizen.exists@balagh.gov.ye',
@@ -298,9 +304,9 @@ class AuthApiTest extends TestCase
         $response1->assertStatus(200)
             ->assertJsonPath('success', true);
 
-        \Illuminate\Support\Facades\Notification::assertSentTo(
+        Notification::assertSentTo(
             $user,
-            \App\Notifications\ResetPasswordNotification::class
+            ResetPasswordNotification::class
         );
 
         // Request for non-existing user
@@ -321,7 +327,7 @@ class AuthApiTest extends TestCase
             'password' => bcrypt('OldPassword123!'),
         ]);
 
-        $token = \Illuminate\Support\Facades\Password::broker()->createToken($user);
+        $token = Password::broker()->createToken($user);
 
         $response = $this->postJson('/api/v1/auth/reset-password', [
             'token' => $token,
@@ -333,7 +339,7 @@ class AuthApiTest extends TestCase
         $response->assertStatus(200)
             ->assertJsonPath('success', true);
 
-        $this->assertTrue(\Illuminate\Support\Facades\Hash::check('NewPassword123!', $user->fresh()->password));
+        $this->assertTrue(Hash::check('NewPassword123!', $user->fresh()->password));
     }
 
     public function test_reset_password_page_can_be_rendered(): void
@@ -347,4 +353,3 @@ class AuthApiTest extends TestCase
         $response->assertSee('bader://reset-password');
     }
 }
-

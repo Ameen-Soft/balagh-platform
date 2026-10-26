@@ -24,7 +24,7 @@ class DuplicateDetectionService
 
         $targetLat = (float) $data['latitude'];
         $targetLon = (float) $data['longitude'];
-        $targetText = trim(($data['title'] ?? '') . ' ' . ($data['description'] ?? ''));
+        $targetText = trim(($data['title'] ?? '').' '.($data['description'] ?? ''));
 
         // Query active complaints within the recent time window in the same category
         $candidates = Complaint::where('category_id', $data['category_id'])
@@ -46,7 +46,7 @@ class DuplicateDetectionService
 
             // Must be within geographical proximity radius
             if ($distance <= $radius) {
-                $candidateText = trim($candidate->title . ' ' . $candidate->description);
+                $candidateText = trim($candidate->title.' '.$candidate->description);
                 similar_text($targetText, $candidateText, $textPercent);
 
                 // Geographic score component (0 to 100, where closer is higher)

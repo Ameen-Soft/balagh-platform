@@ -42,7 +42,7 @@ class ProjectService
         }
 
         if (! empty($filters['search'])) {
-            $search = '%' . $filters['search'] . '%';
+            $search = '%'.$filters['search'].'%';
             $query->where(function ($q) use ($search) {
                 $q->where('title', 'like', $search)
                     ->orWhere('description', 'like', $search);

@@ -55,7 +55,7 @@ class CommunityEngagementService
             if ($complaint->current_department_id) {
                 $adminQuery->where(function ($q) use ($complaint) {
                     $q->where('department_id', $complaint->current_department_id)
-                      ->orWhereNull('department_id');
+                        ->orWhereNull('department_id');
                 });
             }
 
@@ -90,7 +90,7 @@ class CommunityEngagementService
 
             return true;
         } catch (Throwable $e) {
-            Log::warning('Failed to trigger community trending alert: ' . $e->getMessage(), [
+            Log::warning('Failed to trigger community trending alert: '.$e->getMessage(), [
                 'complaint_id' => $complaint->id,
             ]);
 

@@ -22,6 +22,7 @@ class NotificationService
 
         return $query->latest('created_at')->latest('id')->paginate($perPage);
     }
+
     /**
      * Send a notification to a specific user.
      * Wrapped in try-catch to ensure notification side-effects never break primary transactions.
@@ -38,7 +39,7 @@ class NotificationService
                 'is_read' => false,
             ]);
         } catch (Throwable $e) {
-            Log::warning('Failed to send notification to user ' . $userId . ': ' . $e->getMessage(), [
+            Log::warning('Failed to send notification to user '.$userId.': '.$e->getMessage(), [
                 'type' => $type,
                 'title' => $title,
             ]);

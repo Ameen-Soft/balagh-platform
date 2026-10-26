@@ -7,6 +7,7 @@ use App\Models\ComplaintAttachment;
 use App\Models\ComplaintTimeline;
 use App\Models\User;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
@@ -25,7 +26,7 @@ class ComplaintService
      * atomic DB transaction, and post-commit notifications.
      *
      * @param  array<string, mixed>  $data
-     * @param  array<\Illuminate\Http\UploadedFile>|null  $uploadedFiles
+     * @param  array<UploadedFile>|null  $uploadedFiles
      */
     public function createComplaint(array $data, User $citizen, ?array $uploadedFiles = null): Complaint
     {
@@ -254,7 +255,7 @@ class ComplaintService
         }
 
         if (! empty($filters['search'])) {
-            $search = '%' . $filters['search'] . '%';
+            $search = '%'.$filters['search'].'%';
             $query->where(function ($q) use ($search) {
                 $q->where('title', 'like', $search)
                     ->orWhere('description', 'like', $search);

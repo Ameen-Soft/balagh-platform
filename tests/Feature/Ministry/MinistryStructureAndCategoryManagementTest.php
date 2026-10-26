@@ -18,12 +18,19 @@ class MinistryStructureAndCategoryManagementTest extends TestCase
     use RefreshDatabase;
 
     protected User $superAdmin;
+
     protected User $ministryAdmin;
+
     protected User $otherMinistryAdmin;
+
     protected User $citizen;
+
     protected Ministry $ministry;
+
     protected Ministry $otherMinistry;
+
     protected Department $department;
+
     protected Department $otherDepartment;
 
     protected function setUp(): void

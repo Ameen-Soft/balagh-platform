@@ -94,7 +94,7 @@ class UserManagementController extends Controller
             return back()->with('error', 'لا يمكنك تعطيل حسابك الشخصي الحالي.');
         }
 
-        $user->update(['is_active' => !$user->is_active]);
+        $user->update(['is_active' => ! $user->is_active]);
 
         return back()->with('success', 'تم تحديث حالة تفعيل الحساب بنجاح.');
     }
