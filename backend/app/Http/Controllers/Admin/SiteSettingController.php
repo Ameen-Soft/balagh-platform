@@ -42,6 +42,19 @@ class SiteSettingController extends Controller
             'site_logo' => 'nullable|file|mimes:jpeg,png,jpg,svg,webp|max:5120',
             'site_favicon' => 'nullable|file|mimes:ico,png,svg|max:2048',
             'site_apple_icon' => 'nullable|file|mimes:png,jpg,jpeg|max:2048',
+            'app_apk_file' => [
+                'nullable',
+                'file',
+                'max:153600',
+                function ($attribute, $value, $fail) {
+                    if ($value instanceof \Illuminate\Http\UploadedFile) {
+                        $ext = strtolower($value->getClientOriginalExtension());
+                        if ($ext !== 'apk') {
+                            $fail('يجب أن يكون الملف المرفوع بصيغة تطبيق أندرويد (.apk).');
+                        }
+                    }
+                },
+            ],
 
             // SEO & Head Meta
             'meta_title' => 'nullable|string|max:255',
@@ -80,6 +93,18 @@ class SiteSettingController extends Controller
         );
 
         return back()->with('success', 'تم حفظ وتحديث إعدادات الموقع وهوية وسوم Head بنجاح.');
+    }
+
+    /**
+     * Delete the uploaded APK file.
+     */
+    public function deleteApk(Request $request): RedirectResponse
+    {
+        $this->ensureSuperAdmin($request);
+
+        $this->settingService->deleteSettingFile('app_apk_file', $request->user());
+
+        return back()->with('success', 'تم حذف ملف تطبيق الأندرويد (APK) بنجاح.');
     }
 
     /**

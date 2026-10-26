@@ -17,12 +17,14 @@ class SiteSettingApiController extends Controller
 
         $logoPath = $settings->get('site_logo');
         $faviconPath = $settings->get('site_favicon');
+        $apkPath = $settings->get('app_apk_file');
 
         $data = [
             'site_name' => $settings->get('site_name', 'بــــادر'),
             'site_name_en' => $settings->get('site_name_en', 'Bader Platform'),
             'site_logo_url' => $logoPath ? asset('storage/'.ltrim($logoPath, '/')) : null,
             'site_favicon_url' => $faviconPath ? asset('storage/'.ltrim($faviconPath, '/')) : null,
+            'app_apk_url' => $apkPath ? asset('storage/'.ltrim($apkPath, '/')) : null,
             'support_hotline' => $settings->get('support_hotline', '8000888'),
             'support_email' => $settings->get('support_email', 'support@balagh.gov.ye'),
             'support_address' => $settings->get('support_address', 'صنعاء، الجمهورية اليمنية'),

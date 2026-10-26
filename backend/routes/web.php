@@ -88,6 +88,7 @@ Route::middleware([
     // Platform Identity & Head Settings
     Route::get('/settings', [SiteSettingController::class, 'index'])->name('settings.index');
     Route::post('/settings', [SiteSettingController::class, 'update'])->name('settings.update');
+    Route::delete('/settings/apk', [SiteSettingController::class, 'deleteApk'])->name('settings.delete_apk');
 });
 
 /*

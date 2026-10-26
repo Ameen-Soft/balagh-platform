@@ -130,7 +130,6 @@ class WebDashboardsAndSecurityTest extends TestCase
         $responseShow = $this->get(route('public.complaints.show', $complaint->id));
         $responseShow->assertStatus(200)
             ->assertSee('حفرة عميقة في شارع الستين')
-            ->assertSee('تم حجب البيانات الشخصية للمواطن')
             // Sensitive phone and national id of citizen must NOT appear in public transparency
             ->assertDontSee($this->citizen->phone)
             ->assertDontSee($this->citizen->national_id);

@@ -25,6 +25,7 @@ class SettingService
         'site_logo' => 'general',
         'site_favicon' => 'general',
         'site_apple_icon' => 'general',
+        'app_apk_file' => 'general',
 
         // SEO & Head Meta
         'meta_title' => 'seo',
@@ -66,6 +67,7 @@ class SettingService
         'site_favicon',
         'site_apple_icon',
         'og_image',
+        'app_apk_file',
     ];
 
     /**
@@ -138,6 +140,34 @@ class SettingService
                 'model_id' => 0,
                 'changes' => [
                     'updated_keys' => $modifiedKeys,
+                ],
+                'ip_address' => request()->ip(),
+            ]);
+        }
+    }
+
+    /**
+     * Delete an uploaded setting file and clear its setting value.
+     */
+    public function deleteSettingFile(string $key, ?User $user = null): void
+    {
+        $oldPath = Setting::get($key);
+        if ($oldPath && is_string($oldPath)) {
+            $this->fileUploadService->delete($oldPath);
+        }
+
+        $group = $this->keyGroupMap[$key] ?? 'general';
+        Setting::set($key, null, $group);
+        Setting::clearCache();
+
+        if ($user) {
+            ActivityLog::create([
+                'user_id' => $user->id,
+                'action' => 'delete_site_setting_file',
+                'model_type' => Setting::class,
+                'model_id' => 0,
+                'changes' => [
+                    'deleted_key' => $key,
                 ],
                 'ip_address' => request()->ip(),
             ]);
