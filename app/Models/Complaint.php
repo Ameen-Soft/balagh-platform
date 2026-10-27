@@ -158,7 +158,9 @@ class Complaint extends Model
         }
 
         if ($this->relationLoaded('likes')) {
-            return $this->likes->contains('user_id', $user->id);
+            return $this->likes->contains(function ($like) use ($user) {
+                return (int) $like->user_id === (int) $user->id;
+            });
         }
 
         return $this->likes()->where('user_id', $user->id)->exists();

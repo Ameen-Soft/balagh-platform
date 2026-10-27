@@ -25,6 +25,10 @@ class CommunityComplaintController extends Controller
     {
         $user = $request->user() ?? auth('sanctum')->user();
 
+        if ($user) {
+            $request->setUserResolver(fn () => $user);
+        }
+
         $paginator = $this->communityService->getPublicComplaints(
             $request->query(),
             $user
@@ -44,6 +48,10 @@ class CommunityComplaintController extends Controller
     {
         $user = $request->user() ?? auth('sanctum')->user();
 
+        if ($user) {
+            $request->setUserResolver(fn () => $user);
+        }
+
         $complaint = $this->communityService->getPublicComplaintDetails(
             $id,
             $user
@@ -60,7 +68,16 @@ class CommunityComplaintController extends Controller
      */
     public function map(Request $request): JsonResponse
     {
-        $pins = $this->communityService->getMapComplaints($request->query());
+        $user = $request->user() ?? auth('sanctum')->user();
+
+        if ($user) {
+            $request->setUserResolver(fn () => $user);
+        }
+
+        $pins = $this->communityService->getMapComplaints(
+            $request->query(),
+            $user
+        );
 
         return $this->successResponse(
             PublicComplaintMapResource::collection($pins),

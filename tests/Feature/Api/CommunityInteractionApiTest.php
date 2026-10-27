@@ -358,4 +358,71 @@ class CommunityInteractionApiTest extends TestCase
         $complaint->refresh();
         $this->assertEquals(2, $complaint->likes_count);
     }
+
+    public function test_public_feed_reflects_is_liked_by_me_with_bearer_token(): void
+    {
+        $complaintLiked = Complaint::create([
+            'citizen_id' => $this->citizen->id,
+            'category_id' => $this->category->id,
+            'current_department_id' => $this->category->department_id,
+            'title' => 'بلاغ تم الإعجاب به',
+            'description' => 'وصف البلاغ الذي أعجب به المواطن سمير',
+            'status' => 'in_progress',
+            'priority' => 'medium',
+            'latitude' => 15.350000,
+            'longitude' => 44.200000,
+            'is_public' => true,
+            'likes_count' => 1,
+        ]);
+
+        $complaintNotLiked = Complaint::create([
+            'citizen_id' => $this->citizen->id,
+            'category_id' => $this->category->id,
+            'current_department_id' => $this->category->department_id,
+            'title' => 'بلاغ لم يتم الإعجاب به',
+            'description' => 'وصف البلاغ الآخر الذي لم يعجب به أحد',
+            'status' => 'in_progress',
+            'priority' => 'low',
+            'latitude' => 15.360000,
+            'longitude' => 44.210000,
+            'is_public' => true,
+            'likes_count' => 0,
+        ]);
+
+        ComplaintLike::create([
+            'complaint_id' => $complaintLiked->id,
+            'user_id' => $this->citizenTwo->id,
+        ]);
+
+        // Generate Sanctum Bearer token for citizenTwo
+        $token = $this->citizenTwo->createToken('test-bearer-token')->plainTextToken;
+
+        // 1. Fetch public feed with Bearer token
+        $authResponse = $this->withToken($token)->getJson('/api/v1/complaints/public');
+        $authResponse->assertStatus(200);
+
+        $data = collect($authResponse->json('data'));
+        $likedItem = $data->firstWhere('id', $complaintLiked->id);
+        $notLikedItem = $data->firstWhere('id', $complaintNotLiked->id);
+
+        $this->assertNotNull($likedItem);
+        $this->assertNotNull($notLikedItem);
+        $this->assertTrue($likedItem['is_liked_by_me'], 'Public feed must reflect is_liked_by_me=true when user has liked the complaint');
+        $this->assertFalse($notLikedItem['is_liked_by_me'], 'Public feed must reflect is_liked_by_me=false when user has not liked the complaint');
+
+        // 2. Fetch single public complaint with Bearer token
+        $showResponse = $this->withToken($token)->getJson("/api/v1/complaints/public/{$complaintLiked->id}");
+        $showResponse->assertStatus(200);
+        $showResponse->assertJsonPath('data.is_liked_by_me', true);
+
+        // 3. Guest request (without token) must receive false for both
+        $this->flushHeaders();
+        auth('sanctum')->forgetUser();
+
+        $guestResponse = $this->getJson('/api/v1/complaints/public');
+        $guestResponse->assertStatus(200);
+        $guestData = collect($guestResponse->json('data'));
+        $guestLikedItem = $guestData->firstWhere('id', $complaintLiked->id);
+        $this->assertFalse($guestLikedItem['is_liked_by_me'], 'Guest request must receive is_liked_by_me=false');
+    }
 }
