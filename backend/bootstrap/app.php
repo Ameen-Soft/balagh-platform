@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Middleware\EnsureAccountIsActive;
 use App\Http\Middleware\EnsureMinistryAdmin;
 use App\Http\Middleware\EnsureSuperAdmin;
 use Illuminate\Foundation\Application;
@@ -19,6 +20,15 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'super_admin' => EnsureSuperAdmin::class,
             'ministry_admin' => EnsureMinistryAdmin::class,
+            'active_user' => EnsureAccountIsActive::class,
+        ]);
+
+        $middleware->appendToGroup('web', [
+            EnsureAccountIsActive::class,
+        ]);
+
+        $middleware->appendToGroup('api', [
+            EnsureAccountIsActive::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

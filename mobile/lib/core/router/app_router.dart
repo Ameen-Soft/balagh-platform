@@ -41,6 +41,18 @@ final onboardingStatusProvider =
       OnboardingStatusNotifier.new,
     );
 
+class SplashFinishedNotifier extends Notifier<bool> {
+  @override
+  bool build() => false;
+
+  void setFinished(bool value) => state = value;
+}
+
+final splashFinishedProvider =
+    NotifierProvider<SplashFinishedNotifier, bool>(
+      SplashFinishedNotifier.new,
+    );
+
 /// Listenable to trigger GoRouter re-evaluations when AuthState or OnboardingStatus changes
 class RouterListenable extends ChangeNotifier {
   final Ref _ref;
@@ -52,6 +64,10 @@ class RouterListenable extends ChangeNotifier {
     );
     _ref.listen<bool>(
       onboardingStatusProvider,
+      (previous, next) => notifyListeners(),
+    );
+    _ref.listen<bool>(
+      splashFinishedProvider,
       (previous, next) => notifyListeners(),
     );
   }
@@ -72,7 +88,34 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/splash',
         name: 'splash',
-        builder: (context, state) => const SplashPage(),
+        builder: (context, state) => SplashPage(
+          onFinished: () {
+            ref.read(splashFinishedProvider.notifier).setFinished(true);
+
+            final isOnboardingCompleted = ref.read(onboardingStatusProvider);
+            final authState = ref.read(authNotifierProvider);
+
+            if (!isOnboardingCompleted) {
+              context.go('/onboarding');
+              return;
+            }
+
+            if (authState.isAuthenticated) {
+              final user = authState.user;
+              if (user?.isEmailVerified == false) {
+                final emailParam = user?.email != null
+                    ? '?email=${Uri.encodeComponent(user!.email)}'
+                    : '';
+                context.go('/verify-email$emailParam');
+              } else {
+                context.go('/home');
+              }
+              return;
+            }
+
+            context.go('/login');
+          },
+        ),
       ),
       GoRoute(
         path: '/onboarding',
@@ -265,12 +308,18 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       }
 
       final isSplash = state.matchedLocation == '/splash';
+      final isSplashFinished = ref.read(splashFinishedProvider);
       final isLogin = state.matchedLocation == '/login';
       final isRegister = state.matchedLocation == '/register';
       final isForgotPassword = state.matchedLocation == '/forgot-password';
       final isResetPassword = state.matchedLocation == '/reset-password';
       final isVerifyEmail = state.matchedLocation == '/verify-email';
       final isOnboarding = state.matchedLocation == '/onboarding';
+
+      // 0. Stay on splash until its 3-second display and animation completes
+      if (isSplash && !isSplashFinished) {
+        return null;
+      }
 
       // 1. If onboarding is not completed, force /onboarding EXCEPT for password reset and verify email
       if (!isOnboardingCompleted) {

@@ -40,6 +40,7 @@ class User extends Authenticatable implements MustVerifyEmail
         'department_id',
         'is_active',
         'google_id',
+        'email_verified_at',
     ];
 
     /**

@@ -4,8 +4,10 @@ namespace App\Services;
 
 use App\Models\Role;
 use App\Models\User;
+use App\Services\GoogleTokenVerifierService;
 use Illuminate\Auth\Events\PasswordReset;
 use Illuminate\Auth\Events\Verified;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
@@ -15,6 +17,9 @@ use Illuminate\Validation\ValidationException;
 
 class AuthService
 {
+    public function __construct(
+        protected GoogleTokenVerifierService $googleVerifier
+    ) {}
     /**
      * Register a new citizen account and issue a Sanctum token.
      *
@@ -118,82 +123,72 @@ class AuthService
     }
 
     /**
-     * Authenticate or register a user using Google ID Token.
+     * Resolve and synchronize a user using Google ID Token with cryptographic verification
+     * and atomic account-linking / conflict policies.
      *
-     * @return array{user: User, token: string}
+     * @param  string  $idToken
+     * @param  string|array<int, string>  $expectedAudience
+     * @return User
      *
      * @throws ValidationException
      */
-    public function loginWithGoogle(string $idToken, ?string $deviceName = null): array
+    public function resolveGoogleUser(string $idToken, string|array $expectedAudience): User
     {
-        try {
-            $response = Http::timeout(10)->get('https://oauth2.googleapis.com/tokeninfo', [
-                'id_token' => $idToken,
-            ]);
-        } catch (\Throwable $e) {
-            Log::error('Google token verification connection failed: '.$e->getMessage());
-            throw ValidationException::withMessages([
-                'id_token' => ['تعذر الاتصال بخوادم Google للتحقق من الحساب، يرجى المحاولة لاحقاً.'],
-            ]);
-        }
+        $payload = $this->googleVerifier->verify($idToken, $expectedAudience);
 
-        if (! $response->successful()) {
-            throw ValidationException::withMessages([
-                'id_token' => ['رمز تسجيل الدخول من Google غير صالح أو منتهي الصلاحية.'],
-            ]);
-        }
-
-        $payload = $response->json();
-
-        $allowedClientIds = array_filter([
-            config('services.google.client_id'),
-            config('services.google.android_client_id'),
-        ]);
-
-        $tokenAud = $payload['aud'] ?? null;
-        $tokenAzp = $payload['azp'] ?? null;
-
-        $isValidAudience = empty($allowedClientIds) ||
-            in_array($tokenAud, $allowedClientIds, true) ||
-            in_array($tokenAzp, $allowedClientIds, true);
-
-        if (! $isValidAudience) {
-            throw ValidationException::withMessages([
-                'id_token' => ['رمز المصادقة غير مخصص لهذا التطبيق.'],
-            ]);
-        }
-
-        $email = $payload['email'] ?? null;
         $googleId = $payload['sub'] ?? null;
+        $email = $payload['email'] ?? null;
+        $emailVerified = $payload['email_verified'] ?? false;
 
-        if (! $email) {
+        if (! $googleId || ! $email) {
             throw ValidationException::withMessages([
-                'id_token' => ['لم يتم العثور على بريد إلكتروني صالح مرتبط بحساب Google.'],
+                'id_token' => ['بيانات الحساب المسترجعة من Google غير مكتملة.'],
             ]);
         }
 
-        $user = User::where('google_id', $googleId)
-            ->orWhere('email', $email)
-            ->first();
+        if ($emailVerified !== true && $emailVerified !== 'true' && $emailVerified !== 1) {
+            throw ValidationException::withMessages([
+                'email' => ['لم يتم التحقق من ملكية البريد الإلكتروني لدى Google.'],
+            ]);
+        }
 
-        if ($user) {
-            $updates = [];
-            if (empty($user->google_id)) {
-                $updates['google_id'] = $googleId;
-            }
-            if (empty($user->email_verified_at)) {
-                $updates['email_verified_at'] = now();
-            }
-            if (! empty($updates)) {
-                $user->update($updates);
-            }
+        return DB::transaction(function () use ($googleId, $email, $payload) {
+            // Lock records for update to prevent race conditions during concurrent authentication
+            $userByGoogle = User::where('google_id', $googleId)->lockForUpdate()->first();
+            $userByEmail = User::where('email', $email)->lockForUpdate()->first();
 
-            if (! $user->is_active) {
+            // Conflict Check: Google sub belongs to one user, but Google email matches another user
+            if ($userByGoogle && $userByEmail && $userByGoogle->id !== $userByEmail->id) {
+                Log::critical("Google identity conflict detected: sub {$googleId} belongs to user ID {$userByGoogle->id}, but email {$email} matches user ID {$userByEmail->id}");
                 throw ValidationException::withMessages([
-                    'email' => ['تم تعطيل هذا الحساب. يرجى التواصل مع إدارة المنصة.'],
+                    'email' => ['تعارض في بيانات الهوية الرقمية، يرجى التواصل مع الدعم الفني.'],
                 ]);
             }
-        } else {
+
+            // Case 1: Existing user with matching google_id
+            if ($userByGoogle) {
+                if (! $userByGoogle->is_active) {
+                    throw ValidationException::withMessages([
+                        'email' => ['تم تعطيل هذا الحساب. يرجى التواصل مع إدارة المنصة.'],
+                    ]);
+                }
+
+                if (empty($userByGoogle->email_verified_at)) {
+                    $userByGoogle->update(['email_verified_at' => now()]);
+                }
+
+                return $userByGoogle;
+            }
+
+            // Case 2: Existing user with matching email but NO google_id (or different google_id)
+            // Policy: Do NOT auto-link by email alone! User must authenticate with password first to link.
+            if ($userByEmail) {
+                throw ValidationException::withMessages([
+                    'email' => ['يوجد حساب مسجل بهذا البريد الإلكتروني. يرجى تسجيل الدخول بكلمة المرور أولاً ثم ربط حساب Google من الملف الشخصي.'],
+                ]);
+            }
+
+            // Case 3: Completely new user
             $name = $payload['name'] ?? explode('@', $email)[0];
             $user = User::create([
                 'name' => $name,
@@ -206,9 +201,29 @@ class AuthService
 
             $citizenRole = Role::where('name', 'Citizen')->first();
             if ($citizenRole) {
-                $user->roles()->attach($citizenRole->id);
+                $user->roles()->syncWithoutDetaching([$citizenRole->id]);
             }
-        }
+
+            return $user;
+        });
+    }
+
+    /**
+     * Authenticate or register a user using Google ID Token for API/Mobile.
+     *
+     * @return array{user: User, token: string}
+     *
+     * @throws ValidationException
+     */
+    public function loginWithGoogle(string $idToken, ?string $deviceName = null): array
+    {
+        $allowedAudiences = array_filter([
+            config('services.google.client_id'),
+            config('services.google.android_client_id'),
+            config('services.google.web_client_id'),
+        ]);
+
+        $user = $this->resolveGoogleUser($idToken, $allowedAudiences);
 
         $tokenName = $deviceName ?? 'google_auth_token';
         $token = $user->createToken($tokenName)->plainTextToken;

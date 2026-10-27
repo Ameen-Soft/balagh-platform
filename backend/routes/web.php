@@ -15,9 +15,19 @@ use App\Http\Controllers\Ministry\MinistryDepartmentController;
 use App\Http\Controllers\Ministry\MinistryProjectController;
 use App\Http\Controllers\Ministry\TransferOperationsController;
 use App\Http\Controllers\Ministry\WorkerManagementController;
+use App\Http\Controllers\Auth\GoogleWebAuthController;
 use App\Http\Controllers\PublicController;
 use App\Http\Controllers\UserSearchController;
 use Illuminate\Support\Facades\Route;
+
+/*
+|--------------------------------------------------------------------------
+| Web Authentication (Google Identity Services)
+|--------------------------------------------------------------------------
+*/
+Route::post('/login/google', [GoogleWebAuthController::class, 'handle'])
+    ->middleware(['guest', 'throttle:login'])
+    ->name('login.google');
 
 /*
 |--------------------------------------------------------------------------

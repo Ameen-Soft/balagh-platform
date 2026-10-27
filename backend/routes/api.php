@@ -59,10 +59,10 @@ Route::prefix('v1')->group(function () {
 
     /*
     |--------------------------------------------------------------------------
-    | Protected Routes (Requires Sanctum Token)
+    | Protected Routes (Requires Sanctum Token & Active Account)
     |--------------------------------------------------------------------------
     */
-    Route::middleware('auth:sanctum')->group(function () {
+    Route::middleware(['auth:sanctum', 'active_user'])->group(function () {
 
         // Authenticated User & Session
         Route::prefix('auth')->group(function () {

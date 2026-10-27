@@ -39,5 +39,6 @@
     @if(setting('custom_footer_scripts'))
         {!! setting('custom_footer_scripts') !!}
     @endif
+    @stack('scripts')
 </body>
 </html>
