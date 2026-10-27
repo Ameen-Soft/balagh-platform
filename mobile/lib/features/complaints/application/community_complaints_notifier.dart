@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/network/api_exceptions.dart';
+import '../../auth/application/providers.dart';
 import '../domain/entities/complaint_entity.dart';
 import '../domain/entities/complaint_like_result.dart';
 import '../domain/repositories/complaint_repository.dart';
@@ -8,9 +9,16 @@ import 'complaints_providers.dart';
 
 class CommunityComplaintsNotifier extends Notifier<CommunityComplaintsState> {
   ComplaintRepository get _repository => ref.read(complaintRepositoryProvider);
+  final Set<int> _likeInProgress = {};
 
   @override
   CommunityComplaintsState build() {
+    ref.listen(authNotifierProvider, (previous, next) {
+      if (previous?.user?.id != next.user?.id) {
+        loadInitial();
+      }
+    });
+
     Future.microtask(() => loadInitial());
     return CommunityComplaintsState.initial();
   }
@@ -160,8 +168,14 @@ class CommunityComplaintsNotifier extends Notifier<CommunityComplaintsState> {
 
   /// Optimistic like / unlike toggle with automatic rollback on network failure
   Future<void> toggleLike(int complaintId) async {
+    if (_likeInProgress.contains(complaintId)) return;
+    _likeInProgress.add(complaintId);
+
     final index = state.complaints.indexWhere((c) => c.id == complaintId);
-    if (index == -1) return;
+    if (index == -1) {
+      _likeInProgress.remove(complaintId);
+      return;
+    }
 
     final original = state.complaints[index];
     final wasLiked = original.isLikedByMe;
@@ -203,12 +217,17 @@ class CommunityComplaintsNotifier extends Notifier<CommunityComplaintsState> {
       if (rollbackIndex != -1) {
         final rollbackList = List<ComplaintEntity>.from(state.complaints);
         rollbackList[rollbackIndex] = original;
+        final message = e is ApiException
+            ? 'تعذر تسجيل التفاعل: ${e.message}'
+            : 'تعذر تسجيل التفاعل. يرجى التحقق من اتصال الشبكة.';
         state = state.copyWith(
           complaints: rollbackList,
-          errorMessage: 'تعذر تسجيل التفاعل. يرجى التحقق من اتصال الشبكة.',
+          errorMessage: message,
         );
       }
       rethrow;
+    } finally {
+      _likeInProgress.remove(complaintId);
     }
   }
 }

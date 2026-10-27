@@ -133,7 +133,7 @@ class CommunityInteractionService
      * @param  array<string, mixed>  $filters
      * @return Collection<int, Complaint>
      */
-    public function getMapComplaints(array $filters = []): Collection
+    public function getMapComplaints(array $filters = [], ?User $user = null): Collection
     {
         $query = Complaint::query()
             ->where('is_public', true)
@@ -168,6 +168,12 @@ class CommunityInteractionService
 
         if (! empty($filters['status']) && in_array($filters['status'], self::ALLOWED_STATUSES, true)) {
             $query->where('status', $filters['status']);
+        }
+
+        if ($user) {
+            $query->with(['likes' => function ($q) use ($user) {
+                $q->where('user_id', $user->id);
+            }]);
         }
 
         $maxPins = (int) config('balagh.community.max_map_pins', 150);

@@ -214,70 +214,41 @@ class CommunityComplaintCard extends StatelessWidget {
 
                   const SizedBox(width: 8),
 
-                  // Engagement Counts (Likes and Comments)
-                  Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      // Likes interactive button / count
-                      InkWell(
-                        onTap: onLikePressed,
-                        borderRadius: BorderRadius.circular(10),
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 4,
-                            vertical: 2,
-                          ),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Icon(
-                                isLiked
-                                    ? Icons.favorite_rounded
-                                    : Icons.favorite_border_rounded,
-                                size: 15,
-                                color: isLiked
-                                    ? AppColors.yemenRed
-                                    : const Color(0xFFEF4444),
-                              ),
-                              const SizedBox(width: 3),
-                              Text(
-                                '${complaint.likesCount}',
-                                style: TextStyle(
-                                  fontSize: 11.5,
-                                  fontWeight: FontWeight.w800,
-                                  color: isLiked
-                                      ? AppColors.yemenRed
-                                      : const Color(0xFF374151),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
+                  // Likes interactive button / count
+                  InkWell(
+                    onTap: onLikePressed,
+                    borderRadius: BorderRadius.circular(10),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 4,
+                        vertical: 2,
                       ),
-
-                      const SizedBox(width: 8),
-
-                      // Comments Count
-                      Row(
+                      child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          const Icon(
-                            Icons.chat_bubble_outline_rounded,
-                            size: 14,
-                            color: Color(0xFF9CA3AF),
+                          Icon(
+                            isLiked
+                                ? Icons.favorite_rounded
+                                : Icons.favorite_border_rounded,
+                            size: 15,
+                            color: isLiked
+                                ? AppColors.yemenRed
+                                : const Color(0xFFEF4444),
                           ),
                           const SizedBox(width: 3),
                           Text(
-                            '${complaint.timeline.length}',
-                            style: const TextStyle(
+                            '${complaint.likesCount}',
+                            style: TextStyle(
                               fontSize: 11.5,
-                              fontWeight: FontWeight.w700,
-                              color: Color(0xFF6B7280),
+                              fontWeight: FontWeight.w800,
+                              color: isLiked
+                                  ? AppColors.yemenRed
+                                  : const Color(0xFF374151),
                             ),
                           ),
                         ],
                       ),
-                    ],
+                    ),
                   ),
                 ],
               ),

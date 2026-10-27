@@ -275,6 +275,21 @@ void main() {
       expect(repository.likeCallsCount, 1);
     });
 
+    test('toggleLike ignores rapid duplicate clicks while request is in-flight', () async {
+      final notifier = container.read(communityComplaintsNotifierProvider.notifier);
+      await notifier.loadInitial();
+
+      // Trigger first like
+      final firstLike = notifier.toggleLike(1);
+      // Immediately trigger second like while first is in-flight
+      final secondLike = notifier.toggleLike(1);
+
+      await Future.wait([firstLike, secondLike]);
+
+      // Exactly 1 network call should have occurred
+      expect(repository.likeCallsCount, 1);
+    });
+
     test('toggleLike performs automatic rollback when network request fails', () async {
       final notifier = container.read(communityComplaintsNotifierProvider.notifier);
       await notifier.loadInitial();

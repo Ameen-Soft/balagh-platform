@@ -14,6 +14,8 @@ class PublicComplaintResource extends JsonResource
      */
     public function toArray(Request $request): array
     {
+        $user = $request->user() ?? auth('sanctum')->user();
+
         return [
             'id' => $this->id,
             'complaint_number' => $this->complaint_number,
@@ -26,7 +28,7 @@ class PublicComplaintResource extends JsonResource
             'latitude' => (float) $this->latitude,
             'longitude' => (float) $this->longitude,
             'likes_count' => (int) $this->likes_count,
-            'is_liked_by_me' => $request->user() ? $this->isLikedBy($request->user()) : false,
+            'is_liked_by_me' => $user ? $this->isLikedBy($user) : false,
             'category' => $this->whenLoaded('category', function () {
                 return [
                     'id' => $this->category->id,
