@@ -42,7 +42,8 @@
   * تقديم البلاغات مع التوثيق بالصور المباشرة وإحداثيات الموقع (GPS)، مع خيار صريح لتحديد البلاغ كعام أو خاص.
   * متابعة مسار معالجة البلاغ والخط الزمني التدقيقي له من التقديم حتى الإغلاق.
   * تصفح البلاغات العامة وتأييدها بالإعجاب.
-  * استعراض المشاريع التنموية وتسجيل المساهمات المالية الافتراضية.
+  * استعراض المشاريع التنموية وتسجيل المساهمات المالية الافتراضية ومتابعة مراحل التنفيذ.
+  * **استخدام مخصص للموبايل:** تجربة المواطن واستخدام المنظومة تتم حصرياً عبر تطبيق الهواتف الذكية (Flutter)، مع حظر تسجيل دخوله لبوابات الويب الإدارية وإلغاء تسجيل الويب العام (`/register` ← 404).
 
 * **الموظف الميداني (Field Worker):**
   * استعراض المهام الميدانية المسندة إليه وإدارتها (تبدأ المهمة بحالة قيد التنفيذ مباشرة دون الحاجة لخطوة قبول منفصلة).
@@ -54,13 +55,15 @@
   * اللامركزية الإدارية: إنشاء وإدارة الإدارات الخدمية التابعة للوزارة وتصنيفاتها التخصصية ذاتياً مع التوجيه الآلي للبلاغات.
   * إدارة الكادر الميداني للوزارة: استعراض الموظفين وترقية حسابات المواطنين إلى موظفين ميدانيين بالبحث اللحظي السريع، أو إلغاء تعيينهم عند خلو المهام النشطة.
   * إسناد البلاغات للفرق الميدانية مباشرة بحالة `قيد التنفيذ (in_progress)` أو تحويل البلاغات الواردة بالخطأ لوزارات أخرى مع تدوين السبب.
+  * إدارة مراحل المشاريع التنموية التابعة لنطاق الوزارة ومتابعة نسب إنجازها الميداني.
   * متابعة التنبيهات الإدارية للبلاغات المتصدرة مجتمعياً (Trending Alerts).
 
 * **المدير العام للنظام (Super Admin):**
   * الرقابة الإدارية الشاملة على كافة الوزارات والإدارات والمستخدمين.
   * إدارة الوزارات والمؤسسات المركزية وتعيين المشرفين المسؤولين عنها ببحث تفاعلي فوري دون الحاجة لرمز تعريفي إلزامي.
   * إدارة شجرة التصنيفات الخدمية والقطاعية العامة للنظام.
-  * مراجعة المشاريع التنموية واعتمادها ومتابعة مؤشرات الأداء العامة (KPIs).
+  * الإشراف الكامل على المشاريع التنموية وإدارة مراحل تنفيذها وأوزانها ونسب الإنجاز العامة.
+  * إدارة إعدادات المنظومة وهوية الموقع ورفع وإدارة ملف تطبيق الأندرويد (`app_apk_file`) ومتابعة مؤشرات الأداء (KPIs).
 
 ---
 
@@ -114,6 +117,21 @@
 * **خدمة بحث مركزية ومقيدة بالنطاق (`UserSearchService`):** استعلامات قائمة على البادئة (Prefix Index Scans) مع تطبيق قيود النطاق الصارمة (Scopes) لمنع تسريب البيانات وحجب كلمات المرور ورموز التوثيق.
 * **مكون واجهة تفاعلي موحد (`<x-user-search-picker>`):** مكون Alpine.js بمؤقت تأخير (Debounce 300ms)، وإلغاء الطلبات المتزامنة (AbortController)، ودعم التنقل بالأسهم واختيار الحسابات دون تفريغ مسبق للبيانات.
 
+### 10. وحدة إعدادات المنظومة وتخصيص الهوية (System Settings & Dynamic Branding)
+* **لوحة تحكم مركزية للإعدادات (`/admin/settings`):** تخصيص بيانات الموقع، الشعار الرسمي، أيقونة المتصفح (Favicon)، ورفع وإدارة ملف تطبيق الأندرويد (`app_apk_file`) للتحميل المباشر مع سجل تدقيق التعديلات.
+* **مكون الهيدر الديناميكي (`<x-head-tags>`):** حقن ديناميكي للوسوم الوصفية (SEO)، وبطاقات OpenGraph و Twitter، والأيقونات المخصصة، والأكواد التحليلية.
+* **واجهة برمجة عامة للإعدادات (`GET /api/v1/settings`):** تزويد التطبيقات بالبيانات العامة المسموح بها ورابط تحميل الـ APK المحدث مع كاش استجابة عالي السرعة.
+
+### 11. وحدة مراحل المشاريع التنموية (Developmental Project Phases)
+* **إدارة متكاملة لمراحل التنفيذ:** تتبع المراحل الزمنية للمشروع (تاريخ البدء والانتهاء، الوزن النسبي، ونسبة الإنجاز الفعلية) للإدارة المركزية ومشرفي الوزارات.
+* **الربط والتحول التشغيلي:** حالات قياسية للمراحل (`not_started`, `in_progress`, `completed`, `on_hold`) وضمان دقة وانسجام المخطط الزمني الشامل للمشروع.
+
+### 12. وحدة أمان الهوية الرقمية والتحقق المشفر (Cryptographic Google Auth & Web Security)
+* **التحقق المشفر محلياً من رموز Google JWT (`GoogleTokenVerifierService`):** تدقيق التوقيع المشفر لمفاتيح Google العامة (JWKs) دون طلبات شبكة بطيئة، مع تخزين المفاتيح الخام لتفادي أخطاء تسلسل OpenSSL في PHP 8.1+.
+* **معالجة التعارضات والربط الذري:** كشف تعارضات الهوية الرقمية ومنع الربط التلقائي غير الآمن عبر البريد الإلكتروني وحده، مع قفل السجلات لمنع تضارب المعاملات المتزامنة (`lockForUpdate`).
+* **عزل بوابات الويب الصارم:** حصر تسجيل الدخول للويب على الكوادر الإدارية (`Super Admin` و `Ministry Admin`)، وطرد أي مواطن فوراً من `/dashboard` وتوجيهه لتطبيق الهاتف الذكي مع توفير زر تنزيل الـ APK المباشر، وتعطيل مسار تسجيل الويب (`/register` ← 404).
+* **مصادقة Google للويب (GIS):** زر Google Identity Services مع رد نداء آمن (Callback)، وحماية CSRF، وصندوق رسائل أخطاء موحد أعلى بطاقة الدخول.
+
 ---
 
 ## بوابات الويب ولوحات التحكم
@@ -129,12 +147,19 @@
 | **لوحة الإدارة العامة** | `/admin/dashboard` | رقابة مركزية، مؤشرات الأداء، إدارة الوزارات والمستخدمين والمشاريع | محمي بـ Middleware (`super_admin`) |
 | **إدارة الوزارات المركزية** | `/admin/ministries` | تسجيل الوزارات برمز تلقائي، تعيين المشرفين ببحث تفاعلي، ومتابعة الهيكل | محمي بـ Middleware (`super_admin`) |
 | **إدارة مستخدمي النظام** | `/admin/users` | استعراض وتعديل المستخدمين والبحث المتقدم بالبادئة وتعيين الأدوار | محمي بـ Middleware (`super_admin`) |
+| **إعدادات المنظومة وهوية الموقع** | `/admin/settings` | إدارة إعدادات المنظومة وهوية الموقع ورفع ملف الـ APK ومتابعة سجل التعديلات | محمي بـ Middleware (`super_admin`) |
+| **مراحل المشاريع التنموية (عام)** | `/admin/projects/{project}/phases` | إدارة مراحل المشاريع التنموية وأوزانها ونسب الإنجاز المركزية | محمي بـ Middleware (`super_admin`) |
 | **بوابة مشرف الوزارة** | `/ministry/dashboard` | فرز الشكاوى، إحصائيات الوزارة، التنبيهات الإدارية، وإجراءات سريعة | محمي بـ Middleware (`ministry_admin`) |
 | **إدارة شكاوى الوزارة** | `/ministry/complaints` | معالجة الشكاوى، إسناد المهام للميدان، والتحويل البيني والرفض المسبب | محمي بـ Middleware (`ministry_admin`) |
 | **إدارات الوزارة الخدمية** | `/ministry/departments` | تسجيل وإدارة الإدارات الخدمية التابعة للوزارة ذاتياً | محمي بـ Middleware (`ministry_admin`) |
 | **تصنيفات بلاغات الوزارة** | `/ministry/categories` | بناء شجرة التصنيفات الخدمية (رئيسية وفرعية) وربطها التلقائي بالإدارات | محمي بـ Middleware (`ministry_admin`) |
 | **إدارة الكادر الميداني** | `/ministry/workers` | استعراض الموظفين وترقية المواطنين إلى موظفين ميدانيين ببحث فوري وإلغاء التعيين | محمي بـ Middleware (`ministry_admin`) |
 | **مهام العمل الميداني** | `/ministry/assignments` | متابعة المهام الميدانية والإنجاز والتحقق الجغرافي للفرق | محمي بـ Middleware (`ministry_admin`) |
+| **مراحل مشاريع الوزارة** | `/ministry/projects/{project}/phases` | إدارة وتحديث مراحل المشاريع التنموية التابعة لنطاق الوزارة | محمي بـ Middleware (`ministry_admin`) |
+| **مصادقة الهوية الرقمية (Google GIS)** | `/login/google` | تسجيل الدخول الإداري الآمن عبر Google Identity Services | عام / محدد المعدل (`throttle:login`) |
+
+> [!NOTE]
+> صفحة تسجيل الويب العامة (`/register`) معطلة ومحجوبة برمز `404 Not Found`؛ حيث تقتصر بوابات الويب على الكوادر الإدارية فقط، بينما يسجل المواطنون ويقدمون بلاغاتهم حصرياً عبر تطبيق الهواتف الذكية.
 
 ---
 
@@ -142,16 +167,17 @@
 
 * **الواجهة الخلفية (Backend):**
   * إطار العمل: Laravel 13 مع PHP 8.3+.
-  * إدارة المصادقة والجلسات: Laravel Jetstream و Laravel Sanctum.
+  * إدارة المصادقة والجلسات: Laravel Jetstream و Laravel Sanctum ومكتبة `firebase/php-jwt` للتحقق المشفر من مفاتيح Google JWKs محلياً.
   * طبقة واجهات البرمجة: RESTful APIs تحت البادئة `/api/v1` ومسارات بحث داخلية محسنة `/internal/search/*`.
   * المعاملات والسياسات: إدارة العمليات المتزامنة عبر `DB::transaction`، وسياسات التفويض (Policies)، وخدمات البحث المقيدة بالنطاقات (`UserSearchService`).
+  * طبقة الإعدادات والخدمات: خدمة `SiteSettingService` مع التخزين المؤقت الذكي للإعدادات وتوليد وسوم الـ Head ديناميكياً.
 * **قواعد البيانات (Database):**
   * نظام إدارة قواعد البيانات: MySQL 8+.
   * الهيكلية: 18 جدولاً مترابطاً مع قيود المفاتيح الأجنبية، الفهارس المركبة، وحذف البيانات التتابعي (Cascade).
   * تحسين الأداء والفهرسة: فهارس B-Tree على حقول البحث المتكرر (`name`, `phone`, `is_active`, `department_id`) لتسريع الاستعلامات بالبادئة ومنع المسح الشامل للجداول.
 * **بوابات الويب (Web UI):**
   * المكونات: Laravel Blade، Livewire 3، Alpine.js، و Tailwind CSS.
-  * المكونات التفاعلية: حقل اختيار وبحث المستخدمين الموحد (`<x-user-search-picker>`) مع تقنيات Debounce و AbortController.
+  * المكونات التفاعلية: حقل اختيار وبحث المستخدمين الموحد (`<x-user-search-picker>`) مع تقنيات Debounce و AbortController، ومكون الوسوم التعريفية الديناميكي (`<x-head-tags>`).
   * التصميم: واجهات متجاوبة بنمط Obsidian Dark مع شريط جانبي للشاشات الكبيرة ودرج منزلق للجوالات ودعم كامل لاتجاه RTL.
 * **تطبيق الهاتف المحمول (Mobile App):**
   * إطار العمل: Flutter (Dart SDK `^3.13.1`).
@@ -169,6 +195,7 @@
 * **سلامة البيانات والتتبع:** قفل إحداثيات الموقع عند التصوير، والتحقق الجغرافي للموظف الميداني (Geofencing) قبل إغلاق المهام، وتدوين كل حركة في جدول الخط الزمني (`complaint_timeline`).
 * **إدارة التزامن:** استخدام معاملات قاعدة البيانات مع قفل السجلات (`lockForUpdate`) والفهارس الفريدة لمنع التكرار وسباق البيانات.
 * **كفاءة الاستعلامات والبحث الذكي:** استخدام فهارس B-Tree للبحث بالبادئة، وتفادي المسح الشامل (Full Table Scans)، وتحديد سقف النتائج القصوى لمنع استنزاف موارد الخادم وقاعدة البيانات.
+* **عزل الواجهات والتحقق المشفر:** عزل بيئات الوصول بين المواطنين (عبر تطبيق الهاتف حصرياً) والإدارة (عبر بوابات الويب المؤمنة)، والتحقق من هوية Google محلياً بالتشفير غير المتماثل (Asymmetric Cryptography).
 * **حماية الخصوصية:** الخصوصية كإعداد افتراضي للبلاغات، وحجب بيانات الاتصال والهوية الشخصية في الموارد العامة.
 * **الأمان وتحديد المعدل:** حماية مسارات المصادقة والبحث عبر قيود المعدل (Throttle)، وروابط تحقق موقّعة مشفرة، واستجابات موحدة تمنع استكشاف الحسابات.
 
@@ -284,6 +311,7 @@ php artisan serve --host=0.0.0.0
 | `GET` | `/api/v1/projects` | استعراض المشاريع التنموية ونسب الإنجاز والمبالغ المحصلة | عام (Public) |
 | `GET` | `/api/v1/projects/{id}` | استعراض تفاصيل المشروع ومراحله والمساهمات المسجلة | عام (Public) |
 | `POST` | `/api/v1/projects/{id}/contribute` | تسجيل مساهمة مجتمعية افتراضية بمشروع بحسابات دقيقة | مصادقة (`auth:sanctum`) |
+| `GET` | `/api/v1/settings` | استعراض الإعدادات العامة وهوية الموقع ورابط تنزيل تطبيق APK المحدث | عام (Public) |
 
 ---
 
@@ -304,7 +332,7 @@ php artisan serve --host=0.0.0.0
 - [x] لوحة الإدارة المركزية والرقابة الوطنية للمدير العام (`/admin/*`).
 - [x] محطة العمل التشغيلية للوزارات والجهات الحكومية (`/ministry/*`).
 - [x] بناء واجهات الويب بنمط داكن متجاوب مع الهواتف وشريط جانبي ودعم كامل لـ RTL.
-- [x] جناح الاختبارات الآلية للواجهة الخلفية (139 اختبار Backend بنجاح 100% و 608 توكيدات، تشمل اختبارات الميداني والهيكلية والبحث الذكي).
+- [x] جناح الاختبارات الآلية للواجهة الخلفية (177 اختبار Backend بنجاح 100% و 794 توكيداً، تشمل كافة مسارات الأمان والتحقق والواجهات).
 - [x] شاشات الترحيب والتعريف بالنظام وتخزين الحالة الأولى (Flutter Onboarding Flow).
 - [x] نظام المصادقة لتطبيق الهاتف (تسجيل الدخول / التسجيل / تسجيل الخروج، وحراس GoRouter مع Riverpod).
 - [x] إثراء واجهات برمجة التطبيقات (Phase 01): الوزارات النشطة، التصنيفات المتسلسلة، قبول المهام، والتحقق الجغرافي.
@@ -323,6 +351,9 @@ php artisan serve --host=0.0.0.0
 - [x] اللامركزية الهيكلية وإدارة التصنيفات للوزارات (Phase 14): تمكين الوزارات من إنشاء الإدارات الخدمية (`/ministry/departments`) وتصنيفات الشكاوى (`/ministry/categories`) مع التوجيه الآلي، وتعيين مشرفي الوزارات والرمز التلقائي (`/admin/ministries`) (16 اختباراً و 51 توكيداً).
 - [x] منظومة البحث الموحد عالي الأداء والفهرسة (Phase 15): فهارس B-Tree لقاعدة البيانات، خدمة البحث المقيد بالنطاقات (`UserSearchService`)، متحكم محدد المعدل، ومكون Alpine.js التفاعلي (`<x-user-search-picker>`) لإلغاء تفريغ البيانات الضخم في الواجهات (11 اختباراً و 36 توكيداً).
 - [x] التحديث البصري لتطبيق الهاتف (Phase 16): إعادة تصميم شاشات الملف الشخصي وتعديل البيانات بالنقوش اليمنية التراثية وحقول الأمان المقفلة، وتطوير مركز الإشعارات بالبانر المنحني والكبسولات التفاعلية المقسمة.
+- [x] منظومة إعدادات الموقع وهوية المنصة وتوزيع الـ APK (Phase 17): إدارة الإعدادات والشعار والأيقونة، رفع وإدارة ملف الـ APK المباشر، المكون الديناميكي `<x-head-tags>` للوسوم التعريفية والـ SEO، وواجهة `GET /api/v1/settings` (8 اختبارات و 39 توكيداً).
+- [x] إدارة مراحل المشاريع التنموية ونسب الإنجاز التشغيلية (Phase 18): إدارة وتتبع مراحل المشاريع التنموية وأوزانها النسبية وتواريخها ونسب إنجازها للإدارة العامة والوزارات (7 اختبارات و 33 توكيداً).
+- [x] التحقق المشفر من هوية Google وتأمين بوابات الويب وعزل دخول المواطنين (Phase 19): خدمة `GoogleTokenVerifierService` بالتحقق المشفر المحلي مع حل خطأ OpenSSL، زر Google Identity Services بالويب، عزل جلسات الويب للكادر الإداري وطرد المواطنين فوراً من `/dashboard` مع إيقاف صفحة التسجيل للويب `/register` وتوحيد رسائل الأخطاء (10 اختبارات و 38 توكيداً).
 
 ---
 ---
@@ -371,7 +402,8 @@ Citizens can submit complaints through a cascading classification taxonomy with 
   * File complaints with mandatory camera photos and verified GPS metadata, with an explicit toggle for public or private visibility.
   * Track ticket progression through an audit timeline from submission to resolution.
   * Browse verified public complaints and express civic support through upvotes.
-  * Explore developmental projects and register simulated financial pledges.
+  * Explore developmental projects, register simulated financial pledges, and track execution milestones.
+  * **Dedicated Mobile Workflow:** Citizen access and participation is strictly confined to the mobile app (Flutter), with administrative web portals barred from citizen authentication and public web registration disabled (`/register` → 404).
 
 * **Field Worker:**
   * View and manage assigned field tasks (assignments transition directly to `in_progress` without requiring a separate acceptance step).
@@ -383,13 +415,15 @@ Citizens can submit complaints through a cascading classification taxonomy with 
   * Administrative decentralization: Self-service creation and management of service departments and specialized complaint taxonomies with automated complaint routing.
   * Manage ministry field workforce: Browse workers, promote registered citizen accounts to field workers via instant autocomplete search, or demote them when free of active assignments.
   * Dispatch complaints directly to field teams in `in_progress` status or re-route misdirected tickets to other ministries with logged transfer rationale.
+  * Manage developmental project execution phases and track physical completion within the ministry's domain.
   * Monitor administrative alerts triggered by trending community complaints (Trending Alerts).
 
 * **Super Admin:**
   * Maintain comprehensive oversight across all ministries, departments, and user accounts.
   * Manage ministries and central institutions, assigning responsible administrators via interactive instant search picker without requiring a mandatory ministry code.
   * Manage platform service taxonomies, categories, and system-wide configurations.
-  * Review and approve developmental project listings and monitor nationwide performance indicators (KPIs).
+  * Strategic oversight of developmental projects, with full control over execution phases, milestone weights, and progress rates.
+  * Govern system settings, customize visual branding, manage the direct Android APK binary upload (`app_apk_file`), and monitor system-wide KPIs.
 
 ---
 
@@ -443,6 +477,21 @@ Citizens can submit complaints through a cascading classification taxonomy with 
 * **Scoped Search Engine (`UserSearchService`):** Centralized service utilizing index range scans with strict role-based scopes, result capping, and complete exclusion of sensitive authentication credentials.
 * **Unified Interactive Autocomplete (`<x-user-search-picker>`):** Lightweight Alpine.js picker with 300ms input debouncing, request cancellation via `AbortController`, and keyboard navigation, removing massive upfront DOM dumping.
 
+### 10. System Settings & Dynamic Branding
+* **Centralized Settings Console (`/admin/settings`):** Customizing platform metadata, official branding logos, favicons, and hosting/managing the direct mobile APK download file (`app_apk_file`) with audit logging.
+* **Dynamic Head Component (`<x-head-tags>`):** Automated injection of SEO meta tags, OpenGraph / Twitter Cards, custom branding icons, and analytics scripts.
+* **Public Settings Endpoint (`GET /api/v1/settings`):** Exposing sanitized public configuration and mobile app download links with high-performance caching.
+
+### 11. Developmental Project Phases
+* **Comprehensive Phase Lifecycle Management:** Tracking temporal milestones, start/end dates, relative weights, and actual progress percentages for both Super Admins and Ministry Admins.
+* **Operational Synchronization:** Standardized transitions (`not_started`, `in_progress`, `completed`, `on_hold`) maintaining project timeline accuracy.
+
+### 12. Cryptographic Google Auth & Web Security
+* **Local Cryptographic JWT Verification (`GoogleTokenVerifierService`):** Verifying Google ID tokens against upstream public key sets (JWKs) locally without external HTTP bottlenecks, caching raw key data to avoid OpenSSL serialization errors in PHP 8.1+.
+* **Atomic Linking & Conflict Prevention:** Enforcing atomic transactions with row-level locks (`lockForUpdate`), preventing insecure auto-linking by email alone, and rejecting colliding sub/email identifiers.
+* **Strict Web Perimeter Isolation:** Web portals strictly limited to administrative staff (`Super Admin`, `Ministry Admin`), immediately terminating citizen sessions reaching `/dashboard` and redirecting with mobile guidance and direct APK download, while disabling public web registration (`/register` → 404).
+* **Google Identity Services (GIS) on Web:** Clean popup GIS flow with CSRF token protection, rate limiting, and a unified error notification container on login.
+
 ---
 
 ## Web Dashboards & Portals
@@ -458,12 +507,19 @@ Web interfaces are built using **Laravel Blade**, **Livewire 3**, and **Tailwind
 | **Super Admin Global Dashboard** | `/admin/dashboard` | Nationwide KPI monitoring, ministry oversight, and strategic project tracking | Strict Middleware (`super_admin`) |
 | **Central Ministry Management** | `/admin/ministries` | Ministry registration with auto-generated codes, interactive supervisor assignment | Strict Middleware (`super_admin`) |
 | **System User Administration** | `/admin/users` | User directory with optimized prefix search, role assignments, and status controls | Strict Middleware (`super_admin`) |
+| **Platform Settings & Branding** | `/admin/settings` | System settings, dynamic branding, APK distribution, and audit activity logs | Strict Middleware (`super_admin`) |
+| **Project Execution Phases (Global)** | `/admin/projects/{project}/phases` | Central governance of project execution phases, weights, and milestones | Strict Middleware (`super_admin`) |
 | **Ministry Admin Workstation** | `/ministry/dashboard` | Ministry-level KPI overview, trending alerts, and quick action triage | Strict Middleware (`ministry_admin`) |
 | **Ministry Complaints Operations** | `/ministry/complaints` | Ticket lifecycle management, direct field dispatch, inter-agency forwarding, and rejection | Strict Middleware (`ministry_admin`) |
 | **Ministry Service Departments** | `/ministry/departments` | Self-service creation and governance of specialized departmental divisions | Strict Middleware (`ministry_admin`) |
 | **Ministry Complaint Categories** | `/ministry/categories` | Hierarchical taxonomy builder (root and subcategories) linked to service departments | Strict Middleware (`ministry_admin`) |
 | **Field Workforce Management** | `/ministry/workers` | Field staff roster, citizen promotion via autocomplete search, and guarded demotion | Strict Middleware (`ministry_admin`) |
 | **Field Assignments Tracker** | `/ministry/assignments` | Operational tracking of field assignments, resolution proofs, and geospatial audits | Strict Middleware (`ministry_admin`) |
+| **Ministry Project Phases** | `/ministry/projects/{project}/phases` | Operational tracking and phase progress management for ministry projects | Strict Middleware (`ministry_admin`) |
+| **Digital Identity Auth (Google GIS)** | `/login/google` | Secure administrative authentication via Google Identity Services | Public / Rate Limited (`throttle:login`) |
+
+> [!NOTE]
+> Public web registration (`/register`) is completely disabled (`404 Not Found`). Web portals are exclusively reserved for administrative cadres, while citizens register and file complaints solely via the Flutter mobile application.
 
 ---
 
@@ -471,16 +527,17 @@ Web interfaces are built using **Laravel Blade**, **Livewire 3**, and **Tailwind
 
 * **Backend & API Architecture:**
   * Framework: Laravel 13 running on PHP 8.3+.
-  * Authentication: Laravel Jetstream and Laravel Sanctum token management.
+  * Authentication: Laravel Jetstream, Laravel Sanctum token management, and `firebase/php-jwt` for local offline cryptographic verification of Google JWKs.
   * API Layer: RESTful APIs versioned under `/api/v1` and optimized internal search routes `/internal/search/*`.
   * Transactions & Authorization: Atomic operations via `DB::transaction`, granular Policy authorization, and scoped search engines (`UserSearchService`).
+  * Settings & Services: Centralized `SiteSettingService` with high-performance caching and dynamic head metadata rendering.
 * **Database Management System:**
   * Database: MySQL 8+.
   * Schema: 18 normalized relational tables with foreign keys, composite indexes, and cascade deletion rules.
   * Performance & Indexing: Specialized B-Tree indexes on frequent search columns (`name`, `phone`, `is_active`, `department_id`) enabling fast prefix scans and eliminating full table scans.
 * **Web Dashboards:**
   * Components: Laravel Blade, Livewire 3, Alpine.js, and Tailwind CSS.
-  * Interactive Components: Unified reactive search picker (`<x-user-search-picker>`) featuring input debouncing and AbortController request cancellation.
+  * Interactive Components: Unified reactive search picker (`<x-user-search-picker>`) featuring input debouncing and AbortController request cancellation, alongside dynamic `<x-head-tags>` metadata component.
   * Layout: Responsive desktop sidebar / mobile touch drawer in an Obsidian Dark Theme with full RTL support.
 * **Mobile Application:**
   * Framework: Flutter (Dart SDK `^3.13.1`).
@@ -498,6 +555,7 @@ Web interfaces are built using **Laravel Blade**, **Livewire 3**, and **Tailwind
 * **Data Integrity & Auditability:** Camera-locked geocoding prevents spatial spoofing, field worker GPS verification (Geofencing) is enforced prior to completion, and all status transitions are logged in `complaint_timeline`.
 * **Concurrency Management:** Database transactions with row-level locks (`lockForUpdate`) and unique constraints eliminate race conditions and counter discrepancies.
 * **Query Efficiency & Indexed Search:** Utilizing B-Tree indexes for prefix lookups, eliminating full table scans, and capping query result sets to safeguard database and server performance.
+* **Perimeter Isolation & Cryptographic Verification:** Clear separation of access tiers (citizens strictly confined to mobile, administrators via hardened web portals) and offline cryptographic verification of Google tokens.
 * **Privacy by Default:** Public publishing requires explicit citizen consent, and public feeds strictly redact personal phone numbers, names, and identifiers.
 * **Security & Rate Limiting:** Rate limiting (Throttle) guards sensitive auth and search routes, signed URLs secure email tokens, and generic error messages prevent user enumeration.
 
@@ -613,6 +671,7 @@ All platform endpoints are versioned under `/api/v1` and authenticated using San
 | `GET` | `/api/v1/projects` | Browse active developmental projects and progress | Public |
 | `GET` | `/api/v1/projects/{id}` | View detailed project breakdown and contributions | Public |
 | `POST` | `/api/v1/projects/{id}/contribute` | Register simulated project contribution with precise arithmetic | Authenticated (`auth:sanctum`) |
+| `GET` | `/api/v1/settings` | Browse public platform settings, branding metadata, and direct mobile APK download link | Public |
 
 ---
 
@@ -633,7 +692,7 @@ All platform endpoints are versioned under `/api/v1` and authenticated using San
 - [x] Super Admin global oversight dashboard (`/admin/*`).
 - [x] Ministry Admin operational processing workstation (`/ministry/*`).
 - [x] Responsive web interface with dark theme, desktop sidebar, mobile drawer, and RTL support.
-- [x] Backend automated test suite (139 backend tests passing 100% with 608 assertions covering field workflows, ministry structure, and optimized search).
+- [x] Backend automated test suite (177 backend tests passing 100% with 794 assertions covering full security, auth, and API paths).
 - [x] Mobile onboarding flow and first-launch persistence (Flutter Onboarding Flow).
 - [x] Mobile authentication system (Login, registration, logout, and GoRouter auth guards with Riverpod).
 - [x] API enrichment (Phase 01): Active ministries, cascading taxonomy categories, assignment acceptance, and GPS verification.
@@ -652,3 +711,6 @@ All platform endpoints are versioned under `/api/v1` and authenticated using San
 - [x] Decentralized Ministry Structure & Category Management (Phase 14): Self-service service departments (`/ministry/departments`) and cascading complaint categories (`/ministry/categories`) with automated routing, supervisor assignment, and auto-generated ministry codes (`/admin/ministries`) (16 tests, 51 assertions).
 - [x] High-Performance Unified User Search & Indexing (Phase 15): Database B-Tree indexing, scoped search service (`UserSearchService`), rate-limited search API, and reusable Alpine.js autocomplete picker (`<x-user-search-picker>`) eliminating heavy DOM dumps (11 tests, 36 assertions).
 - [x] Mobile Visual Modernization (Phase 16): Redesigned profile and edit profile views featuring Yemeni cultural motifs and locked security rows, alongside curved-banner notification center with segmented filter capsules.
+- [x] Platform Settings, Dynamic Branding & APK Distribution (Phase 17): Comprehensive settings management, branding logo/favicon, mobile APK direct hosting, dynamic `<x-head-tags>` SEO component, and `GET /api/v1/settings` (8 tests, 39 assertions).
+- [x] Developmental Project Execution Phases (Phase 18): Full lifecycle tracking of project milestones, relative weights, target dates, and progress percentages for Super Admins and Ministry Admins (7 tests, 33 assertions).
+- [x] Cryptographic Google Authentication & Web Perimeter Isolation (Phase 19): `GoogleTokenVerifierService` with local JWK verification and OpenSSL serialization fixes, web Google Identity Services, administrative-only web access policy with instant citizen logout from `/dashboard`, disabled `/register` (404), and unified error container (10 tests, 38 assertions).
