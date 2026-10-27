@@ -237,6 +237,17 @@ class SecurityPolicyAndAccountStatusTest extends TestCase
      */
     public function test_web_registration_does_not_permit_role_elevation(): void
     {
+        if (! \Laravel\Fortify\Features::enabled(\Laravel\Fortify\Features::registration())) {
+            $this->post('/register', [
+                'name' => 'هاكر تجريبي',
+                'email' => 'hacker.web@test.com',
+                'password' => 'Password123!',
+                'password_confirmation' => 'Password123!',
+            ])->assertStatus(404);
+
+            return;
+        }
+
         $this->post('/register', [
             'name' => 'هاكر تجريبي',
             'email' => 'hacker.web@test.com',
