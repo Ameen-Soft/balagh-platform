@@ -16,6 +16,7 @@
             <h1 class="text-2xl sm:text-3xl font-black text-white tracking-tight">
                 {{ setting('site_name', 'منصة بــــادر') }}
             </h1>
+            <p class="text-xs text-zinc-400 font-medium mt-1.5">بوابة الدخول الموحدة للكوادر الإدارية ومشرفي الوزارات</p>
         </div>
 
         <!-- Auth Card (Near-Black Obsidian) -->
@@ -170,8 +171,22 @@
             @endif
         </div>
 
+        <!-- Citizen Guidance Banner -->
+        <div class="mt-4 p-4 rounded-3xl bg-zinc-900/60 backdrop-blur-md border border-zinc-800/80 text-center text-xs text-zinc-400 leading-relaxed shadow-lg">
+            <div class="flex items-center justify-center gap-1.5 text-zinc-300 font-bold mb-1">
+                <svg class="w-4 h-4 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                <span>مواطن وترغب بتقديم أو متابعة بلاغ؟</span>
+            </div>
+            <p class="text-[11px] text-zinc-400">
+                هذه البوابة مخصصة للكوادر الإدارية. لتقديم ومتابعة البلاغات يرجى استخدام 
+                <span class="text-white font-semibold">تطبيق بادر الذكي</span>
+                أو 
+                <a href="{{ route('public.complaints.index') }}" class="text-red-400 hover:text-red-300 font-bold transition underline underline-offset-4">تصفح البلاغات العامة</a>.
+            </p>
+        </div>
+
         <!-- Return to Home -->
-        <div class="text-center mt-6">
+        <div class="text-center mt-5">
             <a href="{{ url('/') }}" class="inline-flex items-center gap-1.5 text-xs font-bold text-zinc-400 hover:text-white transition">
                 <span>← العودة إلى الصفحة الرئيسية</span>
             </a>

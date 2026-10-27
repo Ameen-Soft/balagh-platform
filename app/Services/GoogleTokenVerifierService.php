@@ -121,7 +121,7 @@ class GoogleTokenVerifierService
      */
     public function getPublicKeys(): array
     {
-        return Cache::remember(self::CACHE_KEY, self::CACHE_TTL, function () {
+        $jwks = Cache::remember(self::CACHE_KEY, self::CACHE_TTL, function () {
             try {
                 $response = Http::timeout(10)->get(self::JWKS_URL);
             } catch (\Throwable $e) {
@@ -138,16 +138,18 @@ class GoogleTokenVerifierService
                 ]);
             }
 
-            $jwks = $response->json();
+            $data = $response->json();
 
-            if (! isset($jwks['keys']) || ! is_array($jwks['keys'])) {
+            if (! isset($data['keys']) || ! is_array($data['keys'])) {
                 Log::error('Invalid JWKS structure returned from Google.');
                 throw ValidationException::withMessages([
                     'id_token' => ['بنية شهادات Google غير صالحة.'],
                 ]);
             }
 
-            return JWK::parseKeySet($jwks);
+            return $data;
         });
+
+        return JWK::parseKeySet($jwks);
     }
 }

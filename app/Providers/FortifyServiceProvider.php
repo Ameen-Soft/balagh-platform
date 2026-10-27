@@ -52,6 +52,12 @@ class FortifyServiceProvider extends ServiceProvider
                     ]);
                 }
 
+                if (! $user->hasRole(['Super Admin', 'Ministry Admin'])) {
+                    throw ValidationException::withMessages([
+                        Fortify::username() => ['بوابة الويب مخصصة للكادر الإداري والمشرفين فقط. يرجى من المواطنين استخدام تطبيق بادر للهواتف الذكية.'],
+                    ]);
+                }
+
                 return $user;
             }
 
