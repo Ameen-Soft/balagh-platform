@@ -24,18 +24,18 @@
             <!-- Subtle accent bar inside card -->
             <div class="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-red-600 via-amber-500 to-zinc-800"></div>
 
-            <!-- Validation Errors -->
-            @if ($errors->any())
-                <div class="mb-6 p-4 rounded-2xl bg-red-950/80 border border-red-800/80 text-red-300 text-xs font-bold space-y-1">
-                    <div class="flex items-center gap-2 text-red-200 mb-1">
-                        <svg class="w-4 h-4 text-red-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
-                        <span>تعذر تسجيل الدخول:</span>
-                    </div>
+            <!-- Unified Validation & Auth Errors Box -->
+            <div id="auth-error-box" class="google-auth-error {{ $errors->any() ? '' : 'hidden' }} mb-6 p-4 rounded-2xl bg-red-950/80 border border-red-800/80 text-red-300 text-xs font-bold space-y-1.5 transition-all">
+                <div class="flex items-center gap-2 text-red-200 mb-1">
+                    <svg class="w-4 h-4 text-red-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+                    <span>تعذر تسجيل الدخول:</span>
+                </div>
+                <div id="auth-error-content" class="space-y-1">
                     @foreach ($errors->all() as $error)
                         <p class="leading-relaxed text-red-400">• {{ $error }}</p>
                     @endforeach
                 </div>
-            @endif
+            </div>
 
             @session('status')
                 <div class="mb-6 p-4 rounded-2xl bg-emerald-950/80 border border-emerald-800/80 text-emerald-300 text-xs font-bold flex items-center gap-2">
@@ -132,14 +132,6 @@
                     </div>
                 </div>
 
-                <!-- Google Auth Error Message Box -->
-                <div id="google-auth-error" class="hidden mb-4 p-3.5 rounded-2xl bg-red-950/80 border border-red-800/80 text-red-300 text-xs font-bold leading-relaxed flex items-start gap-2">
-                    <svg class="w-4 h-4 text-red-400 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
-                    </svg>
-                    <span id="google-auth-error-text"></span>
-                </div>
-
                 <!-- Google Auth Loading Indicator -->
                 <div id="google-auth-loading" class="hidden mb-4 p-3 rounded-2xl bg-zinc-900/90 border border-zinc-700 text-zinc-300 text-xs font-bold items-center justify-center gap-2">
                     <svg class="animate-spin h-4 w-4 text-red-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
@@ -172,17 +164,25 @@
         </div>
 
         <!-- Citizen Guidance Banner -->
-        <div class="mt-4 p-4 rounded-3xl bg-zinc-900/60 backdrop-blur-md border border-zinc-800/80 text-center text-xs text-zinc-400 leading-relaxed shadow-lg">
-            <div class="flex items-center justify-center gap-1.5 text-zinc-300 font-bold mb-1">
+        <div class="mt-4 p-5 rounded-3xl bg-zinc-900/60 backdrop-blur-md border border-zinc-800/80 text-center text-xs text-zinc-400 leading-relaxed shadow-lg">
+            <div class="flex items-center justify-center gap-1.5 text-zinc-300 font-bold mb-1.5">
                 <svg class="w-4 h-4 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                 <span>مواطن وترغب بتقديم أو متابعة بلاغ؟</span>
             </div>
-            <p class="text-[11px] text-zinc-400">
+            <p class="text-[11px] text-zinc-400 mb-3">
                 هذه البوابة مخصصة للكوادر الإدارية. لتقديم ومتابعة البلاغات يرجى استخدام 
                 <span class="text-white font-semibold">تطبيق بادر الذكي</span>
                 أو 
                 <a href="{{ route('public.complaints.index') }}" class="text-red-400 hover:text-red-300 font-bold transition underline underline-offset-4">تصفح البلاغات العامة</a>.
             </p>
+            @if(setting_url('app_apk_file'))
+                <div class="flex items-center justify-center gap-3 pt-1">
+                    <a href="{{ setting_url('app_apk_file') }}" download class="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-red-600 hover:bg-red-700 text-xs text-white font-bold transition shadow-md shadow-red-900/30 hover:scale-105 active:scale-95 group">
+                        <svg class="w-4 h-4 text-white group-hover:translate-y-0.5 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+                        <span>تنزيل تطبيق بادر (APK)</span>
+                    </a>
+                </div>
+            @endif
         </div>
 
         <!-- Return to Home -->
@@ -198,13 +198,13 @@
         <script src="https://accounts.google.com/gsi/client" async defer></script>
         <script>
             function handleGoogleSignIn(response) {
-                const errorBox = document.getElementById('google-auth-error');
-                const errorText = document.getElementById('google-auth-error-text');
+                const errorBox = document.getElementById('auth-error-box');
+                const errorContent = document.getElementById('auth-error-content');
                 const loadingBox = document.getElementById('google-auth-loading');
 
                 if (errorBox) {
                     errorBox.classList.add('hidden');
-                    if (errorText) errorText.textContent = '';
+                    if (errorContent) errorContent.innerHTML = '';
                 }
                 if (loadingBox) {
                     loadingBox.classList.remove('hidden');
@@ -242,9 +242,10 @@
                                 msg = data.errors[firstKey][0];
                             }
                         }
-                        if (errorBox && errorText) {
-                            errorText.textContent = msg;
+                        if (errorBox && errorContent) {
+                            errorContent.innerHTML = `<p class="leading-relaxed text-red-400">• ${msg}</p>`;
                             errorBox.classList.remove('hidden');
+                            errorBox.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
                         } else {
                             alert(msg);
                         }
@@ -255,9 +256,10 @@
                         loadingBox.classList.add('hidden');
                         loadingBox.classList.remove('flex');
                     }
-                    if (errorBox && errorText) {
-                        errorText.textContent = 'تعذر الاتصال بالخادم، يرجى التحقق من اتصالك بالإنترنت.';
+                    if (errorBox && errorContent) {
+                        errorContent.innerHTML = '<p class="leading-relaxed text-red-400">• تعذر الاتصال بالخادم، يرجى التحقق من اتصالك بالإنترنت.</p>';
                         errorBox.classList.remove('hidden');
+                        errorBox.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
                     }
                 });
             }
