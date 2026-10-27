@@ -173,7 +173,14 @@ Route::middleware([
             return redirect()->route('ministry.dashboard');
         }
 
-        return view('dashboard');
+        // Citizens or non-admin users reaching the web dashboard are logged out of web session and redirected with guidance
+        auth()->guard('web')->logout();
+        request()->session()->invalidate();
+        request()->session()->regenerateToken();
+
+        return redirect()->route('login')->withErrors([
+            'email' => 'بوابة الويب مخصصة للكادر الإداري والمشرفين فقط. يرجى من المواطنين استخدام تطبيق بادر للهواتف الذكية.',
+        ]);
     })->name('dashboard');
 
     // High-Performance Unified User Search Endpoint

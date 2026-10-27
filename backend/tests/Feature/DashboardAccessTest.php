@@ -22,18 +22,19 @@ class DashboardAccessTest extends TestCase
     }
 
     /**
-     * Test that a user without any team (current_team_id is null and no team records)
-     * can load /dashboard with HTTP 200 without encountering the currentTeam 500 error.
+     * Test that an admin user without any team (current_team_id is null and no team records)
+     * can load /dashboard without encountering the currentTeam 500 error and redirects to admin dashboard.
      */
-    public function test_user_without_team_can_view_dashboard_successfully(): void
+    public function test_admin_without_team_can_access_dashboard_successfully(): void
     {
-        $citizenRole = Role::where('name', 'Citizen')->firstOrFail();
+        $superAdminRole = Role::where('name', 'Super Admin')->firstOrFail();
 
         $user = User::factory()->create([
             'current_team_id' => null,
             'is_active' => true,
+            'email_verified_at' => now(),
         ]);
-        $user->roles()->sync([$citizenRole->id]);
+        $user->roles()->sync([$superAdminRole->id]);
 
         // Assert strictly that user has no team associations in DB
         $this->assertNull($user->current_team_id);
@@ -41,46 +42,29 @@ class DashboardAccessTest extends TestCase
 
         $response = $this->actingAs($user)->get('/dashboard');
 
-        $response->assertStatus(200);
-        $response->assertViewIs('dashboard');
-        // Assert that the page rendered cleanly without error
-        $response->assertSeeText('Dashboard');
+        $response->assertRedirect(route('admin.dashboard'));
     }
 
     /**
-     * Test that registering via standard web registration creates a citizen without a team,
-     * assigns the Citizen role, and can immediately view /dashboard.
+     * Test that a citizen attempting to access the web /dashboard is logged out
+     * and redirected to the login page with guidance to use the mobile app.
      */
-    public function test_newly_registered_web_user_gets_citizen_role_no_team_and_can_access_dashboard(): void
+    public function test_citizen_accessing_web_dashboard_is_logged_out_and_redirected_to_login(): void
     {
-        $response = $this->post('/register', [
-            'name' => 'مواطن تجريبي',
-            'email' => 'citizen.test@balagh.gov.ye',
-            'password' => 'SecurePassword123!',
-            'password_confirmation' => 'SecurePassword123!',
+        $citizenRole = Role::where('name', 'Citizen')->firstOrFail();
+
+        $citizen = User::factory()->create([
+            'current_team_id' => null,
+            'is_active' => true,
+            'email_verified_at' => now(),
         ]);
+        $citizen->roles()->sync([$citizenRole->id]);
 
-        $this->assertAuthenticated();
-        $response->assertRedirect(route('dashboard', absolute: false));
+        $response = $this->actingAs($citizen)->get('/dashboard');
 
-        $user = User::where('email', 'citizen.test@balagh.gov.ye')->firstOrFail();
-
-        // Must NOT have a team created or assigned
-        $this->assertNull($user->current_team_id);
-        $this->assertEquals(0, Team::where('user_id', $user->id)->count());
-
-        // Must have Citizen role only
-        $this->assertTrue($user->hasRole('Citizen'));
-        $this->assertFalse($user->hasRole('Super Admin'));
-        $this->assertFalse($user->hasRole('Ministry Admin'));
-
-        // Mark email verified to satisfy 'verified' middleware on /dashboard
-        $user->markEmailAsVerified();
-
-        // Dashboard must load with HTTP 200
-        $dashboardResponse = $this->actingAs($user)->get('/dashboard');
-        $dashboardResponse->assertStatus(200);
-        $dashboardResponse->assertViewIs('dashboard');
+        $response->assertRedirect(route('login'));
+        $response->assertSessionHasErrors(['email']);
+        $this->assertGuest('web');
     }
 
     /**

@@ -41,7 +41,7 @@ class GoogleAuthTest extends TestCase
         $response->assertSee('https://accounts.google.com/gsi/client');
     }
 
-    public function test_google_login_registers_new_user_as_citizen_and_logs_in_to_web_session(): void
+    public function test_google_login_on_web_rejects_citizen_and_directs_to_mobile(): void
     {
         $mockVerifier = Mockery::mock(GoogleTokenVerifierService::class);
         $mockVerifier->shouldReceive('verify')
@@ -60,13 +60,14 @@ class GoogleAuthTest extends TestCase
             'credential' => 'valid-google-jwt-new-user',
         ]);
 
-        $response->assertStatus(200);
-        $response->assertJson([
-            'success' => true,
-            'redirect' => route('dashboard'),
-        ]);
+        $response->assertStatus(422);
+        $response->assertJsonValidationErrors(['email']);
+        $this->assertStringContainsString('بوابة الويب مخصصة للكادر الإداري', $response->json('errors.email.0'));
 
-        // Verify user was created in the database
+        // Verify web session was not granted
+        $this->assertGuest('web');
+
+        // Verify user account was created in the database for mobile use
         $this->assertDatabaseHas('users', [
             'email' => 'citizen.ahmed@example.test',
             'google_id' => 'google-user-123456',
@@ -76,12 +77,7 @@ class GoogleAuthTest extends TestCase
 
         $user = User::where('email', 'citizen.ahmed@example.test')->first();
         $this->assertNotNull($user);
-        $this->assertNotNull($user->email_verified_at);
         $this->assertTrue($user->hasRole('Citizen'));
-        $this->assertFalse($user->hasRole('Super Admin'));
-
-        // Verify web session
-        $this->assertAuthenticatedAs($user, 'web');
     }
 
     public function test_google_login_authenticates_existing_linked_user_and_redirects_based_on_role(): void

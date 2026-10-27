@@ -39,6 +39,12 @@ class GoogleWebAuthController extends Controller
             $webClientId ?: ''
         );
 
+        if (! $user->hasRole(['Super Admin', 'Ministry Admin'])) {
+            throw ValidationException::withMessages([
+                'email' => ['بوابة الويب مخصصة للكادر الإداري والمشرفين فقط. يرجى من المواطنين استخدام تطبيق بادر للهواتف الذكية.'],
+            ]);
+        }
+
         // Authenticate into the Web guard
         Auth::guard('web')->login($user, $request->boolean('remember', false));
 

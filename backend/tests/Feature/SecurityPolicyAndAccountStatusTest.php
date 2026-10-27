@@ -99,17 +99,24 @@ class SecurityPolicyAndAccountStatusTest extends TestCase
      */
     public function test_active_web_session_is_terminated_immediately_when_user_is_deactivated(): void
     {
-        // User starts active
-        $this->actingAs($this->citizen, 'web');
+        $superAdminRole = Role::where('name', 'Super Admin')->firstOrFail();
+        $admin = User::factory()->create([
+            'email_verified_at' => now(),
+            'is_active' => true,
+        ]);
+        $admin->roles()->sync([$superAdminRole->id]);
 
-        $response = $this->get('/dashboard');
+        // User starts active
+        $this->actingAs($admin, 'web');
+
+        $response = $this->get('/admin/dashboard');
         $response->assertStatus(200);
 
-        // User is deactivated in background by admin
-        $this->citizen->update(['is_active' => false]);
+        // User is deactivated in background
+        $admin->update(['is_active' => false]);
 
         // Subsequent request must be intercepted by EnsureAccountIsActive
-        $subsequentResponse = $this->get('/dashboard');
+        $subsequentResponse = $this->get('/admin/dashboard');
 
         $subsequentResponse->assertRedirect(route('login'));
         $this->assertGuest('web');
