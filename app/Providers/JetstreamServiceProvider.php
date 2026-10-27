@@ -29,12 +29,13 @@ class JetstreamServiceProvider extends ServiceProvider
     {
         $this->configurePermissions();
 
-        Jetstream::createTeamsUsing(CreateTeam::class);
-        Jetstream::updateTeamNamesUsing(UpdateTeamName::class);
-        Jetstream::addTeamMembersUsing(AddTeamMember::class);
-        Jetstream::inviteTeamMembersUsing(InviteTeamMember::class);
-        Jetstream::removeTeamMembersUsing(RemoveTeamMember::class);
-        Jetstream::deleteTeamsUsing(DeleteTeam::class);
+        // Team actions are disabled since Jetstream Teams feature is deactivated.
+        // Jetstream::createTeamsUsing(CreateTeam::class);
+        // Jetstream::updateTeamNamesUsing(UpdateTeamName::class);
+        // Jetstream::addTeamMembersUsing(AddTeamMember::class);
+        // Jetstream::inviteTeamMembersUsing(InviteTeamMember::class);
+        // Jetstream::removeTeamMembersUsing(RemoveTeamMember::class);
+        // Jetstream::deleteTeamsUsing(DeleteTeam::class);
         Jetstream::deleteUsersUsing(DeleteUser::class);
     }
 

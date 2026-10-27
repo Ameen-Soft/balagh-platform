@@ -13,7 +13,7 @@ class DeleteUser implements DeletesUsers
     /**
      * Create a new action instance.
      */
-    public function __construct(protected DeletesTeams $deletesTeams) {}
+    public function __construct(protected ?DeletesTeams $deletesTeams = null) {}
 
     /**
      * Delete the given user.
@@ -35,8 +35,10 @@ class DeleteUser implements DeletesUsers
     {
         $user->teams()->detach();
 
-        $user->ownedTeams->each(function (Team $team) {
-            $this->deletesTeams->delete($team);
-        });
+        if ($this->deletesTeams) {
+            $user->ownedTeams->each(function (Team $team) {
+                $this->deletesTeams->delete($team);
+            });
+        }
     }
 }

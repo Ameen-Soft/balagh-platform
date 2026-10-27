@@ -115,6 +115,59 @@
                     </button>
                 </div>
             </form>
+
+            @php
+                $googleClientId = config('services.google.web_client_id') ?: config('services.google.client_id');
+            @endphp
+
+            @if($googleClientId)
+                <!-- Divider -->
+                <div class="relative my-6">
+                    <div class="absolute inset-0 flex items-center">
+                        <div class="w-full border-t border-zinc-800"></div>
+                    </div>
+                    <div class="relative flex justify-center text-xs">
+                        <span class="px-4 bg-[#0d0d11] text-zinc-400 font-semibold">أو المتابعة عبر الهوية الرقمية</span>
+                    </div>
+                </div>
+
+                <!-- Google Auth Error Message Box -->
+                <div id="google-auth-error" class="hidden mb-4 p-3.5 rounded-2xl bg-red-950/80 border border-red-800/80 text-red-300 text-xs font-bold leading-relaxed flex items-start gap-2">
+                    <svg class="w-4 h-4 text-red-400 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                    </svg>
+                    <span id="google-auth-error-text"></span>
+                </div>
+
+                <!-- Google Auth Loading Indicator -->
+                <div id="google-auth-loading" class="hidden mb-4 p-3 rounded-2xl bg-zinc-900/90 border border-zinc-700 text-zinc-300 text-xs font-bold items-center justify-center gap-2">
+                    <svg class="animate-spin h-4 w-4 text-red-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
+                    </svg>
+                    <span>جارٍ التحقق من الحساب وتأمين الجلسة...</span>
+                </div>
+
+                <!-- Google Identity Services Button -->
+                <div class="w-full flex justify-center">
+                    <div id="g_id_onload"
+                         data-client_id="{{ $googleClientId }}"
+                         data-context="signin"
+                         data-ux_mode="popup"
+                         data-callback="handleGoogleSignIn"
+                         data-auto_prompt="false">
+                    </div>
+                    <div class="g_id_signin w-full flex justify-center"
+                         data-type="standard"
+                         data-shape="rectangular"
+                         data-theme="outline"
+                         data-text="signin_with"
+                         data-size="large"
+                         data-logo_alignment="center"
+                         data-width="380">
+                    </div>
+                </div>
+            @endif
         </div>
 
         <!-- Return to Home -->
@@ -124,4 +177,76 @@
             </a>
         </div>
     </div>
+
+    @push('scripts')
+    @if($googleClientId)
+        <script src="https://accounts.google.com/gsi/client" async defer></script>
+        <script>
+            function handleGoogleSignIn(response) {
+                const errorBox = document.getElementById('google-auth-error');
+                const errorText = document.getElementById('google-auth-error-text');
+                const loadingBox = document.getElementById('google-auth-loading');
+
+                if (errorBox) {
+                    errorBox.classList.add('hidden');
+                    if (errorText) errorText.textContent = '';
+                }
+                if (loadingBox) {
+                    loadingBox.classList.remove('hidden');
+                    loadingBox.classList.add('flex');
+                }
+
+                const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+                const rememberMe = document.getElementById('remember_me')?.checked || false;
+
+                fetch("{{ route('login.google') }}", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "Accept": "application/json",
+                        "X-CSRF-TOKEN": csrfToken || ''
+                    },
+                    body: JSON.stringify({
+                        credential: response.credential,
+                        remember: rememberMe
+                    })
+                })
+                .then(async (res) => {
+                    const data = await res.json().catch(() => ({}));
+                    if (res.ok && data.redirect) {
+                        window.location.href = data.redirect;
+                    } else {
+                        if (loadingBox) {
+                            loadingBox.classList.add('hidden');
+                            loadingBox.classList.remove('flex');
+                        }
+                        let msg = data.message || 'فشل تسجيل الدخول بواسطة Google.';
+                        if (data.errors) {
+                            const firstKey = Object.keys(data.errors)[0];
+                            if (firstKey && data.errors[firstKey] && data.errors[firstKey][0]) {
+                                msg = data.errors[firstKey][0];
+                            }
+                        }
+                        if (errorBox && errorText) {
+                            errorText.textContent = msg;
+                            errorBox.classList.remove('hidden');
+                        } else {
+                            alert(msg);
+                        }
+                    }
+                })
+                .catch((err) => {
+                    if (loadingBox) {
+                        loadingBox.classList.add('hidden');
+                        loadingBox.classList.remove('flex');
+                    }
+                    if (errorBox && errorText) {
+                        errorText.textContent = 'تعذر الاتصال بالخادم، يرجى التحقق من اتصالك بالإنترنت.';
+                        errorBox.classList.remove('hidden');
+                    }
+                });
+            }
+        </script>
+    @endif
+    @endpush
 </x-guest-layout>
