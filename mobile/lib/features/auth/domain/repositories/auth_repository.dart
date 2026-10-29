@@ -24,6 +24,10 @@ abstract class AuthRepository {
 
   Future<bool> hasSavedToken();
 
+  Future<UserEntity?> getCachedUser();
+
+  Future<void> saveCachedUser(UserEntity user);
+
   Future<void> sendEmailVerification({String? email});
 
   Future<bool> checkEmailVerificationStatus();

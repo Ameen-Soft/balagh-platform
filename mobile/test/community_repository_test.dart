@@ -12,6 +12,7 @@ import 'package:mobile/features/complaints/domain/entities/complaint_like_result
 
 class FakeSecureStorageService implements ISecureStorageService {
   String? token = 'fake_test_token';
+  String? userData;
 
   @override
   Future<void> saveToken(String token) async => this.token = token;
@@ -26,7 +27,19 @@ class FakeSecureStorageService implements ISecureStorageService {
   Future<bool> hasToken() async => token != null;
 
   @override
-  Future<void> clearAll() async => token = null;
+  Future<void> saveUserData(String userDataJson) async => userData = userDataJson;
+
+  @override
+  Future<String?> getUserData() async => userData;
+
+  @override
+  Future<void> deleteUserData() async => userData = null;
+
+  @override
+  Future<void> clearAll() async {
+    token = null;
+    userData = null;
+  }
 }
 
 class FakeApiClient extends ApiClient {

@@ -177,6 +177,39 @@ class UserModel {
     );
   }
 
+  factory UserModel.fromEntity(UserEntity entity) {
+    return UserModel(
+      id: entity.id,
+      name: entity.name,
+      email: entity.email,
+      phone: entity.phone,
+      nationalId: entity.nationalId,
+      isActive: entity.isActive,
+      isEmailVerified: entity.isEmailVerified,
+      department: entity.department != null
+          ? DepartmentModel(
+              id: entity.department!.id,
+              name: entity.department!.name,
+              ministryId: entity.department!.ministryId,
+              ministry: entity.department!.ministryName != null
+                  ? MinistryModel(
+                      id: entity.department!.ministryId ?? 0,
+                      name: entity.department!.ministryName!,
+                    )
+                  : null,
+            )
+          : null,
+      roles: entity.roles
+          .map((r) => RoleModel(
+                id: r.id,
+                name: r.name,
+                permissions: r.permissions,
+              ))
+          .toList(),
+      createdAt: entity.createdAt,
+    );
+  }
+
   Map<String, dynamic> toJson() {
     return {
       'id': id,

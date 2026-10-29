@@ -113,7 +113,10 @@ final appRouterProvider = Provider<GoRouter>((ref) {
               return;
             }
 
-            context.go('/login');
+            if (authState.isUnauthenticated || (authState.isError && !authState.isAuthenticated)) {
+              context.go('/login');
+              return;
+            }
           },
         ),
       ),
@@ -332,13 +335,13 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       // If on onboarding but it is completed, redirect according to auth
       if (isOnboarding) {
         if (authState.isAuthenticated) return '/home';
-        if (authState.isInitial) return '/splash';
+        if (authState.isInitial || authState.isRestoring) return '/splash';
         return '/login';
       }
 
-      // 2. While checking auth session (initial state), stay on splash to avoid flicker,
+      // 2. While checking auth session (initial or restoring state), stay on splash to avoid flicker,
       // EXCEPT when the user is explicitly on reset-password, verify-email, forgot-password, login or register!
-      if (authState.isInitial) {
+      if (authState.isInitial || authState.isRestoring) {
         if (isResetPassword || isVerifyEmail || isForgotPassword || isLogin || isRegister) {
           return null;
         }
@@ -374,8 +377,8 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         return null;
       }
 
-      // 4. User is unauthenticated or has error
-      if (authState.isUnauthenticated || authState.isError) {
+      // 4. User is unauthenticated or has error without an authenticated session
+      if (authState.isUnauthenticated || (authState.isError && !authState.isAuthenticated)) {
         if (!isLogin &&
             !isRegister &&
             !isForgotPassword &&

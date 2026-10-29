@@ -1,7 +1,9 @@
+import 'dart:convert';
 import 'package:mobile/core/storage/secure_storage_service.dart';
 import '../../domain/entities/user_entity.dart';
 import '../../domain/repositories/auth_repository.dart';
 import '../datasources/auth_remote_data_source.dart';
+import '../models/user_model.dart';
 
 class AuthRepositoryImpl implements AuthRepository {
   final AuthRemoteDataSource remoteDataSource;
@@ -11,6 +13,13 @@ class AuthRepositoryImpl implements AuthRepository {
     required this.remoteDataSource,
     required this.secureStorage,
   });
+
+  Future<void> _cacheUser(UserEntity user) async {
+    try {
+      final jsonStr = jsonEncode(UserModel.fromEntity(user).toJson());
+      await secureStorage.saveUserData(jsonStr);
+    } catch (_) {}
+  }
 
   @override
   Future<UserEntity> login({
@@ -25,7 +34,9 @@ class AuthRepositoryImpl implements AuthRepository {
     );
 
     await secureStorage.saveToken(authData.token);
-    return authData.user.toEntity();
+    final entity = authData.user.toEntity();
+    await _cacheUser(entity);
+    return entity;
   }
 
   @override
@@ -47,14 +58,18 @@ class AuthRepositoryImpl implements AuthRepository {
     );
 
     await secureStorage.saveToken(authData.token);
-    return authData.user.toEntity();
+    final entity = authData.user.toEntity();
+    await _cacheUser(entity);
+    return entity;
   }
 
   @override
   Future<UserEntity> loginWithGoogle(String idToken) async {
     final authData = await remoteDataSource.loginWithGoogle(idToken);
     await secureStorage.saveToken(authData.token);
-    return authData.user.toEntity();
+    final entity = authData.user.toEntity();
+    await _cacheUser(entity);
+    return entity;
   }
 
   @override
@@ -65,18 +80,38 @@ class AuthRepositoryImpl implements AuthRepository {
       // Even if remote logout fails (e.g. network offline), proceed with local token deletion
     } finally {
       await secureStorage.deleteToken();
+      await secureStorage.deleteUserData();
     }
   }
 
   @override
   Future<UserEntity> getCurrentUser() async {
     final userModel = await remoteDataSource.me();
-    return userModel.toEntity();
+    final entity = userModel.toEntity();
+    await _cacheUser(entity);
+    return entity;
   }
 
   @override
   Future<bool> hasSavedToken() async {
     return await secureStorage.hasToken();
+  }
+
+  @override
+  Future<UserEntity?> getCachedUser() async {
+    try {
+      final jsonStr = await secureStorage.getUserData();
+      if (jsonStr == null || jsonStr.isEmpty) return null;
+      final map = jsonDecode(jsonStr) as Map<String, dynamic>;
+      return UserModel.fromJson(map).toEntity();
+    } catch (_) {
+      return null;
+    }
+  }
+
+  @override
+  Future<void> saveCachedUser(UserEntity user) async {
+    await _cacheUser(user);
   }
 
   @override

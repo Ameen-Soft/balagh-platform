@@ -1,3 +1,5 @@
+import 'dart:async';
+import 'dart:io';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mobile/core/network/api_exceptions.dart';
 import '../domain/entities/user_entity.dart';
@@ -13,8 +15,9 @@ class AuthNotifier extends Notifier<AuthState> {
 
   AuthRepository get _repository => ref.read(authRepositoryProvider);
 
-  /// Check session on startup to restore auth state without flicker
+  /// Check session on startup to restore auth state without flicker or logout on offline
   Future<void> checkAuth() async {
+    state = AuthState.restoring();
     try {
       final hasToken = await _repository.hasSavedToken();
       if (!hasToken) {
@@ -22,10 +25,47 @@ class AuthNotifier extends Notifier<AuthState> {
         return;
       }
 
-      final user = await _repository.getCurrentUser();
-      state = AuthState.authenticated(user);
-    } catch (e) {
-      await _repository.logout();
+      // 1. Immediately restore locally saved user if available
+      final cachedUser = await _repository.getCachedUser();
+      if (cachedUser != null) {
+        state = AuthState.authenticated(cachedUser, isOffline: false);
+      }
+
+      // 2. Validate session and refresh latest data with the server
+      try {
+        final freshUser = await _repository.getCurrentUser();
+        state = AuthState.authenticated(freshUser, isOffline: false);
+      } on UnauthorizedException {
+        // Explicit 401 from server: session expired or token revoked!
+        await _repository.logout();
+        state = AuthState.unauthenticated();
+      } on ForbiddenException catch (e) {
+        // Explicit 403 from server: account deactivated / inactive!
+        await _repository.logout();
+        state = AuthState.error(e.message);
+      } catch (e) {
+        // Network disconnected, SocketException, TimeoutException, Server 5xx, etc.
+        // DO NOT LOG OUT! DO NOT CLEAR SAVED SESSION!
+        if (cachedUser != null) {
+          state = AuthState.serverUnavailable(
+            user: cachedUser,
+            message: 'تعذر الاتصال بالخادم.',
+          );
+        } else {
+          // Fallback user if token exists but cached user payload was missing
+          const fallbackUser = UserEntity(
+            id: 0,
+            name: 'مستخدم مسجل',
+            email: '',
+            isEmailVerified: true,
+          );
+          state = AuthState.serverUnavailable(
+            user: fallbackUser,
+            message: 'تعذر الاتصال بالخادم.',
+          );
+        }
+      }
+    } catch (_) {
       state = AuthState.unauthenticated();
     }
   }
@@ -135,10 +175,11 @@ class AuthNotifier extends Notifier<AuthState> {
     }
   }
 
-  /// Update the current authenticated user in memory
+  /// Update the current authenticated user in memory and update cached storage
   void updateCurrentUser(UserEntity updatedUser) {
     if (state.isAuthenticated) {
-      state = AuthState.authenticated(updatedUser);
+      state = AuthState.authenticated(updatedUser, isOffline: state.isOffline);
+      _repository.saveCachedUser(updatedUser);
     }
   }
 
@@ -146,8 +187,33 @@ class AuthNotifier extends Notifier<AuthState> {
   Future<void> refreshCurrentUser() async {
     try {
       final user = await _repository.getCurrentUser();
-      state = AuthState.authenticated(user);
-    } catch (_) {}
+      state = AuthState.authenticated(user, isOffline: false);
+    } on UnauthorizedException {
+      await _repository.logout();
+      state = AuthState.unauthenticated();
+    } on ForbiddenException catch (e) {
+      await _repository.logout();
+      state = AuthState.error(e.message);
+    } catch (_) {
+      // Keep existing user state if refresh fails due to network
+    }
+  }
+
+  /// Retry session verification when internet connectivity is restored
+  Future<void> retrySessionVerification() async {
+    if (!state.isAuthenticated) return;
+    try {
+      final freshUser = await _repository.getCurrentUser();
+      state = AuthState.authenticated(freshUser, isOffline: false);
+    } on UnauthorizedException {
+      await _repository.logout();
+      state = AuthState.unauthenticated();
+    } on ForbiddenException catch (e) {
+      await _repository.logout();
+      state = AuthState.error(e.message);
+    } catch (_) {
+      // Still offline, remain in current authenticated state
+    }
   }
 
   /// Request resending the verification email

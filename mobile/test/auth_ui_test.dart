@@ -92,6 +92,14 @@ class MockAuthRepository implements AuthRepository {
   @override
   Future<bool> hasSavedToken() async => false;
 
+  UserEntity? cachedUser;
+
+  @override
+  Future<UserEntity?> getCachedUser() async => cachedUser;
+
+  @override
+  Future<void> saveCachedUser(UserEntity user) async => cachedUser = user;
+
   @override
   Future<void> logout() async {}
 
@@ -560,6 +568,7 @@ void main() {
         );
         addTearDown(container.dispose);
         container.read(onboardingStatusProvider.notifier).setCompleted(true);
+        container.read(splashFinishedProvider.notifier).setFinished(true);
 
         final router = container.read(appRouterProvider);
         await tester.pumpWidget(
@@ -572,6 +581,7 @@ void main() {
           ),
         );
         await tester.pump();
+        await tester.pump(const Duration(milliseconds: 100));
 
         // Perform registration of unverified user
         await container.read(authNotifierProvider.notifier).register(
@@ -582,7 +592,7 @@ void main() {
             );
 
         await tester.pump();
-        await tester.pump(const Duration(milliseconds: 300));
+        await tester.pump(const Duration(milliseconds: 500));
 
         // Should NOT be on home, must be on email verification page!
         expect(find.text('التحقق من بريدك الإلكتروني'), findsOneWidget);

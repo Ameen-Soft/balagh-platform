@@ -126,6 +126,9 @@ class _HomePageState extends ConsumerState<HomePage> {
         child: RefreshIndicator(
           color: AppColors.yemenRed,
           onRefresh: () async {
+            await ref
+                .read(authNotifierProvider.notifier)
+                .retrySessionVerification();
             if (isFieldWorker) {
               await ref
                   .read(fieldWorkNotifierProvider.notifier)
@@ -144,6 +147,68 @@ class _HomePageState extends ConsumerState<HomePage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
+                // Offline session indicator banner
+                if (authState.isServerUnavailable || authState.isOffline) ...[
+                  Container(
+                    margin: const EdgeInsets.only(bottom: 12),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 14,
+                      vertical: 10,
+                    ),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFFEF3C7),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: const Color(0xFFFDE68A)),
+                    ),
+                    child: Row(
+                      children: [
+                        const Icon(
+                          Icons.wifi_off_rounded,
+                          color: Color(0xFFD97706),
+                          size: 20,
+                        ),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: Text(
+                            authState.errorMessage ??
+                                'تعذر الاتصال بالخادم.',
+                            style: const TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w600,
+                              color: Color(0xFF92400E),
+                            ),
+                          ),
+                        ),
+                        TextButton(
+                          onPressed: () {
+                            ref
+                                .read(authNotifierProvider.notifier)
+                                .retrySessionVerification();
+                            ref.invalidate(myComplaintsProvider);
+                            ref.invalidate(recentComplaintsProvider);
+                          },
+                          style: TextButton.styleFrom(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 8,
+                              vertical: 4,
+                            ),
+                            minimumSize: Size.zero,
+                            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                          ),
+                          child: const Text(
+                            'إعادة المحاولة',
+                            style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.bold,
+                              color: Color(0xFFB45309),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+
                 // 1. Top Bar matching the mockup
                 _buildTopBar(context, ref, user),
 

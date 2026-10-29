@@ -1,8 +1,12 @@
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:mobile/core/network/api_exceptions.dart';
 import 'package:mobile/features/auth/application/auth_state.dart';
+import 'package:mobile/features/auth/application/providers.dart';
 import 'package:mobile/features/auth/data/models/auth_response_model.dart';
 import 'package:mobile/features/auth/data/models/user_model.dart';
 import 'package:mobile/features/auth/domain/entities/user_entity.dart';
+import 'package:mobile/features/auth/domain/repositories/auth_repository.dart';
 
 void main() {
   group('Auth Models & Entities Tests', () {
@@ -94,6 +98,10 @@ void main() {
       expect(initial.isLoading, false);
       expect(initial.isUnauthenticated, false);
 
+      final restoring = AuthState.restoring();
+      expect(restoring.isRestoring, true);
+      expect(restoring.isAuthenticated, false);
+
       final loading = AuthState.loading();
       expect(loading.isLoading, true);
       expect(loading.isInitial, false);
@@ -107,6 +115,13 @@ void main() {
       expect(authenticated.isAuthenticated, true);
       expect(authenticated.user?.name, 'فاطمة');
       expect(authenticated.user?.primaryRoleName, 'مواطن');
+      expect(authenticated.isOffline, false);
+
+      final offlineAuth = AuthState.serverUnavailable(user: user);
+      expect(offlineAuth.isAuthenticated, true);
+      expect(offlineAuth.isServerUnavailable, true);
+      expect(offlineAuth.isOffline, true);
+      expect(offlineAuth.user?.name, 'فاطمة');
 
       final unauthenticated = AuthState.unauthenticated();
       expect(unauthenticated.isUnauthenticated, true);
@@ -122,5 +137,320 @@ void main() {
       expect(error.errorMessage, 'بيانات الاعتماد غير صحيحة');
       expect(error.validationErrors?['email']?.first, 'البريد الإلكتروني غير مسجل');
     });
+
+    test('UserModel.fromEntity creates round-trip JSON identical to UserEntity', () {
+      const entity = UserEntity(
+        id: 7,
+        name: 'جمال الشامي',
+        email: 'gamal@example.ye',
+        phone: '777123456',
+        nationalId: '1234567890',
+        isActive: true,
+        isEmailVerified: true,
+        department: DepartmentEntity(
+          id: 3,
+          name: 'إدارة النظافة',
+          ministryId: 1,
+          ministryName: 'وزارة الإدارة المحلية',
+        ),
+        roles: [
+          RoleEntity(
+            id: 2,
+            name: 'field_worker',
+            permissions: ['execute-tasks'],
+          ),
+        ],
+      );
+
+      final model = UserModel.fromEntity(entity);
+      final json = model.toJson();
+      final restored = UserModel.fromJson(json).toEntity();
+
+      expect(restored.id, entity.id);
+      expect(restored.name, entity.name);
+      expect(restored.email, entity.email);
+      expect(restored.phone, entity.phone);
+      expect(restored.nationalId, entity.nationalId);
+      expect(restored.isActive, true);
+      expect(restored.isEmailVerified, true);
+      expect(restored.isFieldWorker, true);
+      expect(restored.department?.name, 'إدارة النظافة');
+      expect(restored.department?.ministryName, 'وزارة الإدارة المحلية');
+    });
   });
+
+  group('Session Restoration & Offline Resilience Tests', () {
+    late TestAuthRepository repo;
+    late ProviderContainer container;
+
+    const savedUser = UserEntity(
+      id: 10,
+      name: 'هشام القدسي',
+      email: 'hisham@example.ye',
+      isEmailVerified: true,
+    );
+
+    setUp(() {
+      repo = TestAuthRepository();
+      container = ProviderContainer(
+        overrides: [
+          authRepositoryProvider.overrideWithValue(repo),
+        ],
+      );
+    });
+
+    tearDown(() {
+      container.dispose();
+    });
+
+    test('جلسة محفوظة وإنترنت متاح: يستعيد التطبيق المستخدم بصورة طبيعية', () async {
+      repo.hasToken = true;
+      repo.cachedUser = savedUser;
+      repo.currentUser = const UserEntity(
+        id: 10,
+        name: 'هشام القدسي المحدث',
+        email: 'hisham@example.ye',
+        isEmailVerified: true,
+      );
+
+      final notifier = container.read(authNotifierProvider.notifier);
+      await notifier.checkAuth();
+
+      final state = container.read(authNotifierProvider);
+      expect(state.isAuthenticated, true);
+      expect(state.status, AuthStatus.authenticated);
+      expect(state.isOffline, false);
+      expect(state.user?.name, 'هشام القدسي المحدث');
+      expect(repo.logoutCalled, false);
+      expect(repo.savedUserLocally?.name, 'هشام القدسي المحدث');
+    });
+
+    test('جلسة محفوظة والإنترنت مغلق: لا يُحوَّل المستخدم إلى تسجيل الدخول ويحتفظ بالجلسة المحلية', () async {
+      repo.hasToken = true;
+      repo.cachedUser = savedUser;
+      repo.shouldThrowNetworkError = true;
+
+      final notifier = container.read(authNotifierProvider.notifier);
+      await notifier.checkAuth();
+
+      final state = container.read(authNotifierProvider);
+      // User is kept authenticated offline
+      expect(state.isAuthenticated, true);
+      expect(state.isUnauthenticated, false);
+      expect(state.isServerUnavailable, true);
+      expect(state.isOffline, true);
+      expect(state.user?.id, 10);
+      expect(state.user?.name, 'هشام القدسي');
+      // Token is NEVER cleared
+      expect(repo.logoutCalled, false);
+      expect(repo.hasToken, true);
+    });
+
+    test('فشل الاتصال أثناء التحقق من الجلسة: لا تُمسح بيانات الجلسة إطلاقاً', () async {
+      repo.hasToken = true;
+      repo.cachedUser = savedUser;
+      repo.shouldThrowNetworkError = true;
+
+      final notifier = container.read(authNotifierProvider.notifier);
+      await notifier.checkAuth();
+
+      expect(repo.hasToken, true);
+      expect(repo.cachedUser, isNotNull);
+      expect(repo.cachedUser?.id, 10);
+      expect(repo.logoutCalled, false);
+    });
+
+    test('إعادة الاتصال بالإنترنت: يستأنف التطبيق التحقق وتحديث البيانات بصورة صحيحة', () async {
+      // 1. App starts offline
+      repo.hasToken = true;
+      repo.cachedUser = savedUser;
+      repo.shouldThrowNetworkError = true;
+
+      final notifier = container.read(authNotifierProvider.notifier);
+      await notifier.checkAuth();
+
+      expect(container.read(authNotifierProvider).isServerUnavailable, true);
+
+      // 2. Internet is restored
+      repo.shouldThrowNetworkError = false;
+      repo.currentUser = const UserEntity(
+        id: 10,
+        name: 'هشام القدسي أونلاين',
+        email: 'hisham@example.ye',
+        isEmailVerified: true,
+      );
+
+      await notifier.retrySessionVerification();
+
+      final state = container.read(authNotifierProvider);
+      expect(state.status, AuthStatus.authenticated);
+      expect(state.isAuthenticated, true);
+      expect(state.isServerUnavailable, false);
+      expect(state.isOffline, false);
+      expect(state.user?.name, 'هشام القدسي أونلاين');
+    });
+
+    test('عدم وجود جلسة محفوظة: تظهر حالة غير مسجل الدخول ليتم توجيهه إلى تسجيل الدخول', () async {
+      repo.hasToken = false;
+      repo.cachedUser = null;
+
+      final notifier = container.read(authNotifierProvider.notifier);
+      await notifier.checkAuth();
+
+      final state = container.read(authNotifierProvider);
+      expect(state.isUnauthenticated, true);
+      expect(state.isAuthenticated, false);
+    });
+
+    test('انتهاء صلاحية الرمز أو إبطاله من الخادم (401): يُطبّق السلوك الآمن الصحيح بمسح الجلسة', () async {
+      repo.hasToken = true;
+      repo.cachedUser = savedUser;
+      repo.shouldThrowUnauthorized = true;
+
+      final notifier = container.read(authNotifierProvider.notifier);
+      await notifier.checkAuth();
+
+      final state = container.read(authNotifierProvider);
+      expect(state.isUnauthenticated, true);
+      expect(state.isAuthenticated, false);
+      expect(repo.logoutCalled, true);
+      expect(repo.hasToken, false);
+      expect(repo.cachedUser, isNull);
+    });
+
+    test('الحساب المرفوض أو غير النشط (403): لا يتم تجاوز التحقق الأمني وتُمسح الجلسة', () async {
+      repo.hasToken = true;
+      repo.cachedUser = savedUser;
+      repo.shouldThrowForbidden = true;
+
+      final notifier = container.read(authNotifierProvider.notifier);
+      await notifier.checkAuth();
+
+      final state = container.read(authNotifierProvider);
+      expect(state.isError, true);
+      expect(state.isAuthenticated, false);
+      expect(repo.logoutCalled, true);
+      expect(repo.hasToken, false);
+      expect(repo.cachedUser, isNull);
+    });
+
+    test('تسجيل الخروج يدويًا: تُمسح الجلسة نهائياً ويُمنع استعادتها', () async {
+      repo.hasToken = true;
+      repo.cachedUser = savedUser;
+
+      final notifier = container.read(authNotifierProvider.notifier);
+      // User restores authenticated session
+      await notifier.checkAuth();
+      expect(container.read(authNotifierProvider).isAuthenticated, true);
+
+      // User performs logout
+      await notifier.logout();
+
+      final state = container.read(authNotifierProvider);
+      expect(state.isUnauthenticated, true);
+      expect(repo.logoutCalled, true);
+      expect(repo.hasToken, false);
+      expect(repo.cachedUser, isNull);
+
+      // Subsequent checkAuth remains unauthenticated
+      await notifier.checkAuth();
+      expect(container.read(authNotifierProvider).isUnauthenticated, true);
+    });
+  });
+}
+
+class TestAuthRepository implements AuthRepository {
+  bool hasToken = false;
+  UserEntity? cachedUser;
+  UserEntity? currentUser;
+  UserEntity? savedUserLocally;
+  bool shouldThrowNetworkError = false;
+  bool shouldThrowUnauthorized = false;
+  bool shouldThrowForbidden = false;
+  bool logoutCalled = false;
+
+  @override
+  Future<bool> hasSavedToken() async => hasToken;
+
+  @override
+  Future<UserEntity?> getCachedUser() async => cachedUser;
+
+  @override
+  Future<void> saveCachedUser(UserEntity user) async {
+    savedUserLocally = user;
+    cachedUser = user;
+  }
+
+  @override
+  Future<UserEntity> getCurrentUser() async {
+    if (shouldThrowNetworkError) {
+      throw const NetworkException('تعذر الاتصال بالخادم، يرجى التحقق من اتصال الإنترنت.');
+    }
+    if (shouldThrowUnauthorized) {
+      throw const UnauthorizedException('انتهت صلاحية الجلسة، يرجى تسجيل الدخول مجدداً.');
+    }
+    if (shouldThrowForbidden) {
+      throw const ForbiddenException('حسابك غير نشط، يرجى التواصل مع الإدارة.');
+    }
+    final user = currentUser ??
+        const UserEntity(
+          id: 1,
+          name: 'مواطن مسجل',
+          email: 'citizen@example.ye',
+          isEmailVerified: true,
+        );
+    savedUserLocally = user;
+    return user;
+  }
+
+  @override
+  Future<void> logout() async {
+    logoutCalled = true;
+    hasToken = false;
+    cachedUser = null;
+    savedUserLocally = null;
+  }
+
+  @override
+  Future<UserEntity> login({
+    required String email,
+    required String password,
+    String? deviceName,
+  }) async {
+    return const UserEntity(id: 1, name: 'تجريبي', email: 'test@example.ye');
+  }
+
+  @override
+  Future<UserEntity> loginWithGoogle(String idToken) async {
+    return const UserEntity(id: 1, name: 'تجريبي', email: 'test@example.ye');
+  }
+
+  @override
+  Future<UserEntity> register({
+    required String name,
+    required String email,
+    required String password,
+    required String passwordConfirmation,
+    String? phone,
+    String? nationalId,
+  }) async {
+    return const UserEntity(id: 1, name: 'تجريبي', email: 'test@example.ye');
+  }
+
+  @override
+  Future<void> sendEmailVerification({String? email}) async {}
+
+  @override
+  Future<bool> checkEmailVerificationStatus() async => true;
+
+  @override
+  Future<void> forgotPassword(String email) async {}
+
+  @override
+  Future<void> resetPassword({
+    required String email,
+    required String token,
+    required String password,
+    required String passwordConfirmation,
+  }) async {}
 }

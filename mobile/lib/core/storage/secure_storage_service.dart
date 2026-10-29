@@ -5,6 +5,9 @@ abstract class ISecureStorageService {
   Future<String?> getToken();
   Future<void> deleteToken();
   Future<bool> hasToken();
+  Future<void> saveUserData(String userDataJson);
+  Future<String?> getUserData();
+  Future<void> deleteUserData();
   Future<void> clearAll();
 }
 
@@ -12,6 +15,7 @@ class SecureStorageService implements ISecureStorageService {
   final FlutterSecureStorage _storage;
 
   static const String _tokenKey = 'auth_token';
+  static const String _userDataKey = 'auth_user_data';
 
   SecureStorageService({FlutterSecureStorage? storage})
       : _storage = storage ??
@@ -43,6 +47,21 @@ class SecureStorageService implements ISecureStorageService {
   Future<bool> hasToken() async {
     final token = await getToken();
     return token != null && token.isNotEmpty;
+  }
+
+  @override
+  Future<void> saveUserData(String userDataJson) async {
+    await _storage.write(key: _userDataKey, value: userDataJson);
+  }
+
+  @override
+  Future<String?> getUserData() async {
+    return await _storage.read(key: _userDataKey);
+  }
+
+  @override
+  Future<void> deleteUserData() async {
+    await _storage.delete(key: _userDataKey);
   }
 
   @override
