@@ -22,7 +22,7 @@ class StatisticsQueryService
         $resolvedCount = Complaint::where('status', 'resolved')->count();
         $inProgressCount = Complaint::where('status', 'in_progress')->count();
         $underReviewCount = Complaint::where('status', 'under_review')->count();
-        $submittedCount = Complaint::where('status', 'submitted')->count();
+        $submittedCount = Complaint::whereIn('status', ['new', 'submitted'])->count();
         $rejectedCount = Complaint::where('status', 'rejected')->count();
         $closedCount = Complaint::where('status', 'closed')->count();
 
@@ -73,7 +73,7 @@ class StatisticsQueryService
         });
 
         $total = (clone $baseQuery)->count();
-        $submitted = (clone $baseQuery)->where('status', 'submitted')->count();
+        $submitted = (clone $baseQuery)->whereIn('status', ['new', 'submitted'])->count();
         $underReview = (clone $baseQuery)->where('status', 'under_review')->count();
         $inProgress = (clone $baseQuery)->where('status', 'in_progress')->count();
         $resolved = (clone $baseQuery)->where('status', 'resolved')->count();
@@ -130,7 +130,12 @@ class StatisticsQueryService
         $statuses = ['submitted', 'under_review', 'in_progress', 'resolved', 'rejected', 'closed'];
         $formatted = [];
         foreach ($statuses as $status) {
-            $formatted[$status] = $results[$status] ?? 0;
+            if ($status === 'submitted') {
+                $formatted['submitted'] = ($results['submitted'] ?? 0) + ($results['new'] ?? 0);
+                $formatted['new'] = $formatted['submitted'];
+            } else {
+                $formatted[$status] = $results[$status] ?? 0;
+            }
         }
 
         return $formatted;

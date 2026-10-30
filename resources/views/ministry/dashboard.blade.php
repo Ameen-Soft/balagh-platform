@@ -114,9 +114,9 @@
                     <div>
                         <h3 class="text-sm sm:text-base font-bold text-slate-900 flex items-center gap-2">
                             <span class="w-2.5 h-2.5 rounded-full bg-red-600"></span>
-                            سجل البلاغات والشكاوى الواردة للإدارة
+                            سجل البلاغات والشكاوى الواردة للوزارة
                         </h3>
-                        <p class="text-[11px] sm:text-xs text-slate-500 mt-0.5">أحدث البلاغات التي تتطلب المعالجة أو الإسناد الميداني</p>
+                        <p class="text-[11px] sm:text-xs text-slate-500 mt-0.5">أحدث البلاغات التي تتطلب المعالجة أو الإسناد الميداني بمختلف الإدارات</p>
                     </div>
                     <a href="{{ route('ministry.complaints.index') }}" class="text-xs font-bold text-red-600 hover:text-red-700 transition flex items-center gap-1">
                         <span>عرض كافة البلاغات</span>
@@ -145,7 +145,12 @@
                                     </td>
                                     <td class="py-4 px-5 max-w-xs">
                                         <p class="font-bold text-slate-800 truncate group-hover:text-red-600 transition">{{ $c->title }}</p>
-                                        <p class="text-[10px] text-slate-400 truncate">{{ $c->category?->name ?? 'بلاغ عام' }}</p>
+                                        <p class="text-[10px] text-slate-400 truncate">
+                                            {{ $c->category?->name ?? 'بلاغ عام' }}
+                                            @if($c->currentDepartment)
+                                                • <span class="text-amber-600 font-medium">{{ $c->currentDepartment->name }}</span>
+                                            @endif
+                                        </p>
                                     </td>
                                     <td class="py-4 px-5 text-slate-600 whitespace-nowrap">
                                         <div class="flex items-center gap-1.5">
@@ -177,7 +182,7 @@
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="6" class="text-center py-12 text-slate-400">لا توجد بلاغات واردة للإدارة حالياً.</td>
+                                    <td colspan="6" class="text-center py-12 text-slate-400">لا توجد بلاغات واردة للوزارة حالياً.</td>
                                 </tr>
                             @endforelse
                         </tbody>

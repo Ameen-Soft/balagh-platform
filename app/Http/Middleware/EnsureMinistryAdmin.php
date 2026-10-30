@@ -25,8 +25,8 @@ class EnsureMinistryAdmin
             abort(403, 'حسابك معطل حالياً. يرجى التواصل مع مسؤول النظام.');
         }
 
-        if (! $user->department_id) {
-            abort(403, 'لم يتم تعيين جهة أو إدارة حكومية لهذا الحساب بعد.');
+        if (! $user->department_id || ! $user->department?->ministry_id) {
+            abort(403, 'لم يتم تعيين جهة أو وزارة حكومية صالحة لهذا الحساب بعد.');
         }
 
         return $next($request);

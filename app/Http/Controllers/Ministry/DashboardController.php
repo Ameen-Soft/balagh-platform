@@ -20,29 +20,33 @@ class DashboardController extends Controller
     public function index(): View
     {
         $user = auth()->user();
-        $deptId = $user->department_id;
+        $ministryId = $user->department?->ministry_id;
 
-        $deptOverview = $this->statsQuery->getDepartmentOverview($deptId);
+        if (! $ministryId) {
+            abort(403, 'حساب المشرف غير مرتبط بوزارة معتمدة في النظام.');
+        }
 
-        // Urgent complaints in this department
-        $urgentComplaints = Complaint::with(['citizen:id,name,phone', 'category:id,name'])
-            ->where('current_department_id', $deptId)
+        $deptOverview = $this->statsQuery->getDepartmentOverview($user->department_id);
+
+        // Urgent complaints across all departments in this ministry
+        $urgentComplaints = Complaint::with(['citizen:id,name,phone', 'category:id,name', 'currentDepartment:id,name'])
+            ->whereHas('currentDepartment', fn ($q) => $q->where('ministry_id', $ministryId))
             ->where('priority', 'urgent')
             ->whereNotIn('status', ['resolved', 'closed', 'rejected'])
             ->latest()
             ->take(5)
             ->get();
 
-        // Recent incoming complaints
-        $recentComplaints = Complaint::with(['citizen:id,name', 'category:id,name'])
-            ->where('current_department_id', $deptId)
+        // Recent incoming complaints across all departments in this ministry
+        $recentComplaints = Complaint::with(['citizen:id,name', 'category:id,name', 'currentDepartment:id,name'])
+            ->whereHas('currentDepartment', fn ($q) => $q->where('ministry_id', $ministryId))
             ->latest()
             ->take(8)
             ->get();
 
-        // Recent active field assignments
+        // Recent active field assignments in this ministry
         $recentAssignments = FieldAssignment::with(['worker:id,name', 'complaint:id,title'])
-            ->whereHas('complaint', fn ($q) => $q->where('current_department_id', $deptId))
+            ->whereHas('complaint.currentDepartment', fn ($q) => $q->where('ministry_id', $ministryId))
             ->latest()
             ->take(5)
             ->get();

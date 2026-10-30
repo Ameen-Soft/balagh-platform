@@ -27,13 +27,18 @@ class ComplaintQueryService
         }
 
         // Filter by Department ID
-        if (! empty($filters['department_id'])) {
+        if (! empty($filters['department_id']) && $filters['department_id'] !== 'all') {
             $query->where('current_department_id', $filters['department_id']);
         }
 
         // Filter by Status
         if (! empty($filters['status']) && $filters['status'] !== 'all') {
-            $query->where('status', $filters['status']);
+            $status = $filters['status'];
+            if (in_array($status, ['new', 'submitted'], true)) {
+                $query->whereIn('status', ['new', 'submitted']);
+            } else {
+                $query->where('status', $status);
+            }
         }
 
         // Filter by Priority

@@ -232,7 +232,7 @@ class WebDashboardsAndSecurityTest extends TestCase
 
         $complaintsResponse = $this->actingAs($this->ministryAdmin)->get(route('ministry.complaints.index'));
         $complaintsResponse->assertStatus(200)
-            ->assertSee('سجل البلاغات والشكاوى الواردة للإدارة');
+            ->assertSee('سجل البلاغات والشكاوى الواردة للوزارة');
     }
 
     public function test_ministry_admin_can_update_complaint_status_operationally(): void
