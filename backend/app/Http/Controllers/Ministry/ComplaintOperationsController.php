@@ -25,21 +25,40 @@ class ComplaintOperationsController extends Controller
     ) {}
 
     /**
-     * List complaints strictly scoped to the Ministry Admin's department.
+     * List complaints strictly scoped to the Ministry Admin's ministry with optional department filter.
      */
     public function index(Request $request): View
     {
         $user = auth()->user();
-        $deptId = $user->department_id;
+        $ministryId = $user->department?->ministry_id;
 
-        $filters = $request->only(['search', 'status', 'priority', 'category_id', 'date_from', 'date_to', 'sort_by', 'sort_dir']);
-        $filters['department_id'] = $deptId; // Strictly scoped
+        if (! $ministryId) {
+            abort(403, 'حساب المشرف غير مرتبط بوزارة معتمدة في النظام.');
+        }
+
+        $departments = Department::where('ministry_id', $ministryId)
+            ->where('is_active', true)
+            ->orderBy('name')
+            ->get();
+        $validDeptIds = $departments->pluck('id')->toArray();
+
+        $filters = $request->only(['search', 'status', 'priority', 'category_id', 'department_id', 'date_from', 'date_to', 'sort_by', 'sort_dir']);
+        $filters['ministry_id'] = $ministryId; // Always scoped to user's ministry
+
+        if ($request->filled('department_id') && $request->get('department_id') !== 'all') {
+            $selectedDeptId = (int) $request->get('department_id');
+            if (! in_array($selectedDeptId, $validDeptIds, true)) {
+                abort(403, 'الإدارة الخدمية المحددة غير تابعة لوزارتك أو غير صالحة.');
+            }
+            $filters['department_id'] = $selectedDeptId;
+        } else {
+            unset($filters['department_id']);
+        }
 
         $complaints = $this->complaintQuery->paginateComplaints($filters, 15);
-        $ministryDeptIds = Department::where('ministry_id', $user->department?->ministry_id)->pluck('id');
-        $categories = Category::whereIn('department_id', $ministryDeptIds)->orWhereNull('department_id')->get();
+        $categories = Category::whereIn('department_id', $validDeptIds)->orWhereNull('department_id')->get();
 
-        return view('ministry.complaints.index', compact('complaints', 'categories', 'filters'));
+        return view('ministry.complaints.index', compact('complaints', 'categories', 'departments', 'filters'));
     }
 
     /**
@@ -48,16 +67,22 @@ class ComplaintOperationsController extends Controller
     public function show(int|string $id): View
     {
         $user = auth()->user();
+        $ministryId = $user->department?->ministry_id;
+
+        if (! $ministryId) {
+            abort(403, 'حساب المشرف غير مرتبط بوزارة معتمدة في النظام.');
+        }
+
         $complaint = $this->complaintQuery->getComplaintDossier($id);
 
-        // Security check: must belong to user's department/ministry
-        if ($complaint->current_department_id !== $user->department_id &&
-            $complaint->currentDepartment?->ministry_id !== $user->department?->ministry_id) {
+        // Security check: must belong to user's ministry
+        if ($complaint->currentDepartment?->ministry_id !== $ministryId) {
             abort(403, 'لا تملك صلاحية معالجة هذا البلاغ التابع لجهة حكومية أخرى.');
         }
 
-        // Available field workers in this department
-        $fieldWorkers = User::where('department_id', $user->department_id)
+        // Available field workers across this ministry
+        $ministryDeptIds = Department::where('ministry_id', $ministryId)->pluck('id');
+        $fieldWorkers = User::whereIn('department_id', $ministryDeptIds)
             ->where('is_active', true)
             ->whereHas('roles', fn ($q) => $q->where('name', 'Field Worker'))
             ->get();
@@ -131,8 +156,8 @@ class ComplaintOperationsController extends Controller
      */
     protected function authorizeComplaintAccess(Complaint $complaint, User $user): void
     {
-        if ($complaint->current_department_id !== $user->department_id &&
-            $complaint->currentDepartment?->ministry_id !== $user->department?->ministry_id) {
+        $ministryId = $user->department?->ministry_id;
+        if (! $ministryId || $complaint->currentDepartment?->ministry_id !== $ministryId) {
             abort(403, 'غير مصرح لك بإجراء عمليات على هذا البلاغ.');
         }
     }

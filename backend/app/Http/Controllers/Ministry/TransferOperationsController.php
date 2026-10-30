@@ -15,7 +15,13 @@ class TransferOperationsController extends Controller
     public function index(Request $request): View
     {
         $user = auth()->user();
-        $deptId = $user->department_id;
+        $ministryId = $user->department?->ministry_id;
+
+        if (! $ministryId) {
+            abort(403, 'حساب المشرف غير مرتبط بوزارة معتمدة في النظام.');
+        }
+
+        $deptIds = \App\Models\Department::where('ministry_id', $ministryId)->pluck('id');
         $type = $request->get('type', 'incoming'); // incoming or outgoing
 
         if ($type === 'outgoing') {
@@ -24,7 +30,7 @@ class TransferOperationsController extends Controller
                 'toDepartment.ministry',
                 'transferredByUser:id,name',
             ])
-                ->where('from_department_id', $deptId)
+                ->whereIn('from_department_id', $deptIds)
                 ->latest()
                 ->paginate(15);
         } else {
@@ -33,7 +39,7 @@ class TransferOperationsController extends Controller
                 'fromDepartment.ministry',
                 'transferredByUser:id,name',
             ])
-                ->where('to_department_id', $deptId)
+                ->whereIn('to_department_id', $deptIds)
                 ->latest()
                 ->paginate(15);
         }

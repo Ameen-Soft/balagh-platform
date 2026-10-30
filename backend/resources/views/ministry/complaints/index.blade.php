@@ -1,12 +1,25 @@
-<x-ministry-layout title="معالجة البلاغات والشكاوى" headerTitle="سجل البلاغات والشكاوى الواردة للإدارة">
+<x-ministry-layout title="معالجة البلاغات والشكاوى" headerTitle="سجل البلاغات والشكاوى الواردة للوزارة">
     <!-- Filter Bar -->
     <div class="bg-white rounded-2xl border border-slate-200/80 p-6 mb-8 shadow-xs">
-        <form method="GET" action="{{ route('ministry.complaints.index') }}" class="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <form method="GET" action="{{ route('ministry.complaints.index') }}" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             <!-- Search -->
-            <div class="md:col-span-2">
+            <div>
                 <label class="block text-xs font-bold text-slate-700 mb-1.5">البحث (رقم، عنوان، هاتف المواطن)</label>
-                <input type="text" name="search" value="{{ request('search') }}" placeholder="ابحث برقم البلاغ، العنوان، اسم المواطن..." 
+                <input type="text" name="search" value="{{ request('search') }}" placeholder="ابحث برقم البلاغ، العنوان..." 
                        class="w-full py-2 px-3 rounded-xl border border-slate-300 text-xs focus:ring-2 focus:ring-red-500">
+            </div>
+
+            <!-- Department Filter -->
+            <div>
+                <label class="block text-xs font-bold text-slate-700 mb-1.5">الإدارة الخدمية</label>
+                <select name="department_id" class="w-full py-2 px-3 rounded-xl border border-slate-300 text-xs focus:ring-2 focus:ring-red-500">
+                    <option value="all">كل الإدارات</option>
+                    @foreach($departments as $dept)
+                        <option value="{{ $dept->id }}" {{ request('department_id') == $dept->id ? 'selected' : '' }}>
+                            {{ $dept->name }}
+                        </option>
+                    @endforeach
+                </select>
             </div>
 
             <!-- Status -->
@@ -14,7 +27,7 @@
                 <label class="block text-xs font-bold text-slate-700 mb-1.5">الحالة الإجرائية</label>
                 <select name="status" class="w-full py-2 px-3 rounded-xl border border-slate-300 text-xs focus:ring-2 focus:ring-red-500">
                     <option value="all">جميع الحالات</option>
-                    <option value="submitted" {{ request('status') === 'submitted' ? 'selected' : '' }}>جديد وارد (Submitted)</option>
+                    <option value="new" {{ request('status') === 'new' || request('status') === 'submitted' ? 'selected' : '' }}>جديد وارد (New / Submitted)</option>
                     <option value="under_review" {{ request('status') === 'under_review' ? 'selected' : '' }}>قيد المراجعة (Under Review)</option>
                     <option value="assigned" {{ request('status') === 'assigned' ? 'selected' : '' }}>مسند للميدان (Assigned)</option>
                     <option value="in_progress" {{ request('status') === 'in_progress' ? 'selected' : '' }}>قيد التنفيذ (In Progress)</option>
@@ -28,7 +41,7 @@
                 <button type="submit" class="flex-1 py-2 px-4 rounded-xl bg-black text-white font-bold text-xs hover:bg-zinc-800 transition">
                     تصفية
                 </button>
-                @if(request()->hasAny(['search', 'status', 'priority']))
+                @if(request()->hasAny(['search', 'status', 'priority', 'department_id', 'category_id']))
                     <a href="{{ route('ministry.complaints.index') }}" class="py-2 px-3 rounded-xl bg-slate-100 text-slate-600 text-xs font-bold">
                         إلغاء
                     </a>
@@ -40,8 +53,8 @@
     <!-- Complaints Table & Mobile Cards -->
     <div class="bg-white rounded-2xl border border-slate-200/80 shadow-xs overflow-hidden">
         <div class="p-4 border-b border-slate-100 flex flex-wrap items-center justify-between gap-2 text-xs text-slate-500">
-            <span class="font-bold">إجمالي البلاغات المسندة للجهة: {{ $complaints->total() }}</span>
-            <span class="text-amber-600 font-bold">نطاق الإشراف: {{ auth()->user()->department?->name }}</span>
+            <span class="font-bold">إجمالي البلاغات: {{ $complaints->total() }}</span>
+            <span class="text-amber-600 font-bold">نطاق الوزارة: {{ auth()->user()->department?->ministry?->name }}</span>
         </div>
 
         <!-- Desktop Table View (md and up) -->
@@ -50,7 +63,7 @@
                 <thead class="bg-slate-50 text-slate-500 uppercase tracking-wider font-bold border-b border-slate-200/80">
                     <tr>
                         <th class="py-3.5 px-6">رقم البلاغ</th>
-                        <th class="py-3.5 px-6">عنوان البلاغ</th>
+                        <th class="py-3.5 px-6">عنوان البلاغ والإدارة</th>
                         <th class="py-3.5 px-6">المواطن</th>
                         <th class="py-3.5 px-6">الأولوية</th>
                         <th class="py-3.5 px-6">الحالة</th>
@@ -62,7 +75,12 @@
                     @forelse($complaints as $c)
                         <tr class="hover:bg-slate-50/80 transition">
                             <td class="py-4 px-6 font-mono font-bold text-slate-900 whitespace-nowrap">#{{ $c->complaint_number }}</td>
-                            <td class="py-4 px-6 font-bold text-slate-800 max-w-xs truncate">{{ $c->title }}</td>
+                            <td class="py-4 px-6 font-bold text-slate-800 max-w-xs truncate">
+                                <p class="truncate">{{ $c->title }}</p>
+                                @if($c->currentDepartment)
+                                    <p class="text-[10px] text-amber-600 font-medium truncate">{{ $c->currentDepartment->name }}</p>
+                                @endif
+                            </td>
                             <td class="py-4 px-6 text-slate-600 whitespace-nowrap">
                                 <p class="font-bold text-slate-800">{{ $c->citizen?->name }}</p>
                                 <p class="text-[10px] text-slate-400 font-mono">{{ $c->citizen?->phone }}</p>
@@ -118,6 +136,9 @@
 
                     <div>
                         <h4 class="text-sm font-bold text-slate-900 leading-snug">{{ $c->title }}</h4>
+                        @if($c->currentDepartment)
+                            <span class="inline-block text-[11px] text-amber-700 bg-amber-50 px-2 py-0.5 rounded border border-amber-200/60 mt-1">{{ $c->currentDepartment->name }}</span>
+                        @endif
                         <div class="flex flex-wrap items-center justify-between text-xs text-slate-500 mt-2 gap-2 pt-2 border-t border-slate-200/60">
                             <span class="font-medium text-slate-700">المواطن: {{ $c->citizen?->name }} ({{ $c->citizen?->phone }})</span>
                             <span class="text-[11px] text-slate-400">{{ $c->created_at->format('Y-m-d') }}</span>

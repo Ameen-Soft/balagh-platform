@@ -15,7 +15,12 @@ class FieldAssignmentController extends Controller
     public function index(Request $request): View
     {
         $user = auth()->user();
-        $deptId = $user->department_id;
+        $ministryId = $user->department?->ministry_id;
+
+        if (! $ministryId) {
+            abort(403, 'حساب المشرف غير مرتبط بوزارة معتمدة في النظام.');
+        }
+
         $status = $request->get('status');
 
         $query = FieldAssignment::with([
@@ -23,7 +28,7 @@ class FieldAssignmentController extends Controller
             'assignedBy:id,name',
             'complaint:id,title,status,priority',
             'evidence',
-        ])->whereHas('complaint', fn ($q) => $q->where('current_department_id', $deptId));
+        ])->whereHas('complaint.currentDepartment', fn ($q) => $q->where('ministry_id', $ministryId));
 
         if ($status && in_array($status, ['pending', 'accepted', 'in_progress', 'completed', 'failed'])) {
             $query->where('status', $status);
