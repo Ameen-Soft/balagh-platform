@@ -39,11 +39,42 @@ class ValidationService
             ]);
         }
 
-        // 3. Category existence and active validation
-        $category = Category::find($data['category_id']);
+        // 3. Category existence, hierarchy, active state, and ministry integrity validation
+        $category = Category::with(['parent', 'department'])->find($data['category_id']);
         if (! $category) {
             throw ValidationException::withMessages([
                 'category_id' => ['التصنيف المختار غير متوفر في النظام.'],
+            ]);
+        }
+
+        if ($category->level === 1 || empty($category->parent_id)) {
+            throw ValidationException::withMessages([
+                'category_id' => ['لا يمكن تقديم بلاغ على تصنيف رئيسي مباشرة؛ يرجى اختيار نوع المشكلة من التصنيفات الفرعية.'],
+            ]);
+        }
+
+        if (! $category->is_active) {
+            throw ValidationException::withMessages([
+                'category_id' => ['هذا التصنيف معطل حالياً ولا يمكن استقبال بلاغات جديدة عليه.'],
+            ]);
+        }
+
+        if ($category->parent && ! $category->parent->is_active) {
+            throw ValidationException::withMessages([
+                'category_id' => ['التصنيف الرئيسي التابع له هذا التصنيف معطل حالياً.'],
+            ]);
+        }
+
+        if (! $category->department_id || ! $category->department || ! $category->department->is_active) {
+            throw ValidationException::withMessages([
+                'category_id' => ['الإدارة الخدمية المسؤولة عن هذا التصنيف غير متوفرة أو معطلة حالياً.'],
+            ]);
+        }
+
+        $minId = $category->ministry_id ?? $category->parent?->ministry_id;
+        if ($minId && $category->department->ministry_id !== $minId) {
+            throw ValidationException::withMessages([
+                'category_id' => ['بيانات التصنيف غير متوافقة مع الإدارة المسؤولة أو الوزارة التابعة لها.'],
             ]);
         }
 

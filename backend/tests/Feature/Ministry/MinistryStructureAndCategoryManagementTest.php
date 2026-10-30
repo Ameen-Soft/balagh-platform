@@ -301,21 +301,21 @@ class MinistryStructureAndCategoryManagementTest extends TestCase
     }
 
     /**
-     * 11. Ministry Admin can create root category for their department.
+     * 11. Ministry Admin can create root category for their ministry.
      */
     public function test_ministry_admin_can_create_root_category_for_their_department(): void
     {
         $response = $this->actingAs($this->ministryAdmin)
             ->post(route('ministry.categories.store'), [
                 'name' => 'انهيارات الجسور الجبلية',
-                'department_id' => $this->department->id,
                 'description' => 'بلاغات تصدع الجسور وجدران السند',
             ]);
 
         $response->assertRedirect();
         $this->assertDatabaseHas('categories', [
             'name' => 'انهيارات الجسور الجبلية',
-            'department_id' => $this->department->id,
+            'ministry_id' => $this->ministry->id,
+            'department_id' => null,
             'level' => 1,
             'parent_id' => null,
         ]);
@@ -327,10 +327,12 @@ class MinistryStructureAndCategoryManagementTest extends TestCase
     public function test_ministry_admin_can_create_subcategory_linked_to_valid_parent_in_same_ministry(): void
     {
         $rootCat = Category::create([
-            'department_id' => $this->department->id,
+            'ministry_id' => $this->ministry->id,
             'name' => 'صيانة الطرق',
             'description' => 'أعمال عامة للطرق',
-            'level' => 1,
+            'parent_id' => null,
+            'department_id' => null,
+            'is_active' => true,
         ]);
 
         $response = $this->actingAs($this->ministryAdmin)
@@ -344,6 +346,7 @@ class MinistryStructureAndCategoryManagementTest extends TestCase
         $response->assertRedirect();
         $this->assertDatabaseHas('categories', [
             'name' => 'حفر صغيرة في الأحياء',
+            'ministry_id' => $this->ministry->id,
             'department_id' => $this->department->id,
             'parent_id' => $rootCat->id,
             'level' => 2,
@@ -435,18 +438,28 @@ class MinistryStructureAndCategoryManagementTest extends TestCase
             'is_active' => true,
         ]);
 
-        // 2. Create category under this department
-        $emergencyCat = Category::create([
+        // 2. Create root category and subcategory under this department
+        $mainCat = Category::create([
+            'ministry_id' => $this->ministry->id,
+            'name' => 'قطاع الطوارئ والإنقاذ',
+            'parent_id' => null,
+            'department_id' => null,
+            'is_active' => true,
+        ]);
+
+        $emergencySubCat = Category::create([
+            'ministry_id' => $this->ministry->id,
+            'parent_id' => $mainCat->id,
             'department_id' => $newDept->id,
             'name' => 'انهيار صخري مفاجئ',
             'description' => 'طوارئ الطرق الجبلية',
-            'level' => 1,
+            'is_active' => true,
         ]);
 
-        // 3. Citizen submits a complaint using this new category
+        // 3. Citizen submits a complaint using this new subcategory
         $complaintService = app(ComplaintService::class);
         $complaint = $complaintService->createComplaint([
-            'category_id' => $emergencyCat->id,
+            'category_id' => $emergencySubCat->id,
             'title' => 'تساقط صخور في نقيل يسلح',
             'description' => 'انهيار صخري يعيق حركة السير بالكامل',
             'priority' => 'urgent',

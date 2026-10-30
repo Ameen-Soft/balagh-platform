@@ -3,57 +3,65 @@
 namespace App\Services;
 
 use App\Models\Category;
-use App\Models\Department;
+use DomainException;
+use Illuminate\Support\Facades\Log;
 
 class RoutingService
 {
     /**
-     * Determine the designated ministry and department for a given category.
-     * Includes a robust fallback mechanism if direct mapping is missing.
+     * Determine the designated ministry and department for a given subcategory.
+     * Strictly verifies active state and ministry integrity.
+     * Throws an exception if routing cannot be safely established (no random fallback).
      *
-     * @return array{ministry_id: int, department_id: int, is_fallback: bool}
+     * @return array{ministry_id: int, department_id: int}
+     * @throws DomainException
      */
     public function route(int $categoryId): array
     {
-        $category = Category::with('department')->find($categoryId);
+        $category = Category::with(['department.ministry', 'parent'])->find($categoryId);
 
-        // Check if category has a valid department associated
-        if ($category && $category->department_id && $category->department) {
-            $department = $category->department;
-
-            if ($department->ministry_id) {
-                return [
-                    'ministry_id' => (int) $department->ministry_id,
-                    'department_id' => (int) $department->id,
-                    'is_fallback' => false,
-                ];
-            }
+        if (! $category) {
+            throw new DomainException('التصنيف المطلوب غير متوفر في النظام.');
         }
 
-        // If parent category exists, check if parent has a department mapping
-        if ($category && $category->parent_id) {
-            $parentCategory = Category::with('department')->find($category->parent_id);
-            if ($parentCategory && $parentCategory->department_id && $parentCategory->department) {
-                return [
-                    'ministry_id' => (int) $parentCategory->department->ministry_id,
-                    'department_id' => (int) $parentCategory->department->id,
-                    'is_fallback' => false,
-                ];
-            }
+        if (! $category->is_active) {
+            throw new DomainException('هذا التصنيف معطل حالياً ولا يمكن استقبال بلاغات جديدة عليه.');
         }
 
-        // Fallback to configured default department and ministry
-        $fallbackDepartmentId = (int) config('balagh.routing.fallback_department_id', 1);
-        $department = Department::find($fallbackDepartmentId);
+        if ($category->level === 1 || empty($category->parent_id)) {
+            throw new DomainException('لا يمكن تقديم بلاغ على تصنيف رئيسي مباشرة؛ يرجى اختيار نوع المشكلة من التصنيفات الفرعية.');
+        }
 
-        $fallbackMinistryId = $department
-            ? (int) $department->ministry_id
-            : (int) config('balagh.routing.fallback_ministry_id', 1);
+        if ($category->parent && ! $category->parent->is_active) {
+            throw new DomainException('التصنيف الرئيسي التابع له هذا التصنيف معطل حالياً.');
+        }
+
+        if (! $category->department_id || ! $category->department) {
+            throw new DomainException('لم يتم تعيين إدارة خدمية مسؤولة لهذا التصنيف.');
+        }
+
+        if (! $category->department->is_active) {
+            throw new DomainException('الإدارة الخدمية المسؤولة عن هذا التصنيف معطلة حالياً.');
+        }
+
+        $ministryId = $category->ministry_id ?? $category->parent?->ministry_id ?? $category->department->ministry_id;
+        $departmentMinistryId = $category->department->ministry_id;
+        $parentMinistryId = $category->parent?->ministry_id;
+
+        // Tri-partite integrity check: subcategory.ministry_id = parent.ministry_id = department.ministry_id
+        if ($ministryId !== $departmentMinistryId || ($parentMinistryId && $ministryId !== $parentMinistryId)) {
+            Log::critical('Ministry mismatch in category routing', [
+                'category_id' => $category->id,
+                'category_ministry' => $ministryId,
+                'parent_ministry' => $parentMinistryId,
+                'department_ministry' => $departmentMinistryId,
+            ]);
+            throw new DomainException('تعذر توجيه البلاغ بسبب عدم تطابق تبعية الوزارة بين التصنيف والإدارة المسؤولة.');
+        }
 
         return [
-            'ministry_id' => $fallbackMinistryId,
-            'department_id' => $fallbackDepartmentId,
-            'is_fallback' => true,
+            'ministry_id' => (int) $ministryId,
+            'department_id' => (int) $category->department_id,
         ];
     }
 }
