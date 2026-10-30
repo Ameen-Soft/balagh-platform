@@ -77,6 +77,9 @@ Route::middleware([
     // Categories Management
     Route::get('/categories', [CategoryManagementController::class, 'index'])->name('categories.index');
     Route::post('/categories', [CategoryManagementController::class, 'store'])->name('categories.store');
+    Route::match(['put', 'post'], '/categories/{category}', [CategoryManagementController::class, 'update'])->name('categories.update');
+    Route::post('/categories/{category}/toggle-active', [CategoryManagementController::class, 'toggleActive'])->name('categories.toggle_active');
+    Route::delete('/categories/{category}', [CategoryManagementController::class, 'destroy'])->name('categories.destroy');
 
     // Users & Roles Management
     Route::get('/users', [UserManagementController::class, 'index'])->name('users.index');
@@ -129,6 +132,9 @@ Route::middleware([
     // Complaint Categories Management
     Route::get('/categories', [MinistryCategoryController::class, 'index'])->name('categories.index');
     Route::post('/categories', [MinistryCategoryController::class, 'store'])->name('categories.store');
+    Route::match(['put', 'post'], '/categories/{category}', [MinistryCategoryController::class, 'update'])->name('categories.update');
+    Route::post('/categories/{category}/toggle-active', [MinistryCategoryController::class, 'toggleActive'])->name('categories.toggle_active');
+    Route::delete('/categories/{category}', [MinistryCategoryController::class, 'destroy'])->name('categories.destroy');
 
     // Field Tasks & Assignments
     Route::get('/assignments', [FieldAssignmentController::class, 'index'])->name('assignments.index');

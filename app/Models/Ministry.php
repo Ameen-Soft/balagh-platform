@@ -40,4 +40,14 @@ class Ministry extends Model
             'id'                      // Local key on departments table...
         );
     }
+
+    public function categories()
+    {
+        return $this->hasMany(Category::class);
+    }
+
+    public function rootCategories()
+    {
+        return $this->hasMany(Category::class)->whereNull('parent_id');
+    }
 }

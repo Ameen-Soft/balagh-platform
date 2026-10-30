@@ -21,11 +21,17 @@ class CategoryController extends Controller
     {
         $query = Category::query();
 
-        // Filter by Ministry ID through the department relation
+        // Enforce active categories only (with active parents) for API consumption
+        $query->active();
+
+        // Filter by Ministry ID directly or via department
         if ($request->filled('ministry_id')) {
             $ministryId = (int) $request->query('ministry_id');
-            $query->whereHas('department', function ($q) use ($ministryId) {
-                $q->where('ministry_id', $ministryId);
+            $query->where(function ($q) use ($ministryId) {
+                $q->where('ministry_id', $ministryId)
+                    ->orWhereHas('department', function ($dq) use ($ministryId) {
+                        $dq->where('ministry_id', $ministryId);
+                    });
             });
         }
 
@@ -55,7 +61,11 @@ class CategoryController extends Controller
             });
         }
 
-        $categories = $query->with(['children', 'department.ministry'])
+        $categories = $query->with([
+            'children' => fn ($q) => $q->where('is_active', true),
+            'department.ministry',
+            'parent',
+        ])
             ->orderBy('level')
             ->orderBy('name')
             ->get();

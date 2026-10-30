@@ -124,8 +124,8 @@ class Phase01EnrichmentApiTest extends TestCase
 
         // Every category in the returned data must belong to the specified ministry
         foreach ($response->json('data') as $cat) {
-            $department = Department::find($cat['department_id']);
-            $this->assertEquals($this->ministry->id, $department->ministry_id);
+            $catMinistryId = $cat['ministry_id'] ?? ($cat['department_id'] ? Department::find($cat['department_id'])?->ministry_id : null);
+            $this->assertEquals($this->ministry->id, $catMinistryId);
         }
     }
 
