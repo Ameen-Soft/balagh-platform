@@ -246,4 +246,66 @@ class SiteSettingsAndHeadTagsTest extends TestCase
             'action' => 'delete_site_setting_file',
         ]);
     }
+
+    public function test_super_admin_can_upload_apk_via_dedicated_endpoint(): void
+    {
+        Storage::fake('public');
+
+        $apkFile = UploadedFile::fake()->create('bader_release.apk', 2048, 'application/vnd.android.package-archive');
+
+        $response = $this->actingAs($this->superAdmin)
+            ->postJson(route('admin.settings.upload_apk'), [
+                'app_apk_file' => $apkFile,
+            ]);
+
+        $response->assertStatus(200)
+            ->assertJson([
+                'success' => true,
+                'message' => 'تم رفع وتثبيت تطبيق الأندرويد بنجاح.',
+                'file_name' => 'bader_release.apk',
+            ]);
+
+        $savedApk = Setting::get('app_apk_file');
+        $this->assertNotNull($savedApk);
+        Storage::disk('public')->assertExists($savedApk);
+
+        $this->assertDatabaseHas('activity_logs', [
+            'user_id' => $this->superAdmin->id,
+            'action' => 'upload_apk_file',
+        ]);
+    }
+
+    public function test_super_admin_cannot_upload_non_apk_files(): void
+    {
+        Storage::fake('public');
+
+        $pdfFile = UploadedFile::fake()->create('document.pdf', 500, 'application/pdf');
+
+        $response = $this->actingAs($this->superAdmin)
+            ->postJson(route('admin.settings.upload_apk'), [
+                'app_apk_file' => $pdfFile,
+            ]);
+
+        $response->assertStatus(422)
+            ->assertJsonValidationErrors(['app_apk_file']);
+    }
+
+    public function test_super_admin_can_delete_apk_via_ajax(): void
+    {
+        Storage::fake('public');
+        Storage::disk('public')->put('settings/ajax_app.apk', 'sample apk binary content');
+        Setting::set('app_apk_file', 'settings/ajax_app.apk');
+
+        $response = $this->actingAs($this->superAdmin)
+            ->deleteJson(route('admin.settings.delete_apk'));
+
+        $response->assertStatus(200)
+            ->assertJson([
+                'success' => true,
+                'message' => 'تم حذف ملف تطبيق الأندرويد (APK) بنجاح.',
+            ]);
+
+        $this->assertNull(Setting::get('app_apk_file'));
+        Storage::disk('public')->assertMissing('settings/ajax_app.apk');
+    }
 }

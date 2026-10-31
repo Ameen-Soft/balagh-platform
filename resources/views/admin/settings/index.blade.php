@@ -178,50 +178,175 @@
                     </div>
                 </div>
 
-                <!-- Android APK File Upload -->
-                <div class="bg-white rounded-2xl border border-slate-200/80 p-6 shadow-xs">
-                    <h3 class="text-sm font-bold text-slate-900 mb-4 pb-3 border-b border-slate-100 flex items-center gap-2">
-                        <span class="w-2.5 h-2.5 rounded-full bg-emerald-600"></span>
-                        تطبيق الهاتف (Android APK)
-                    </h3>
+                <!-- Android APK File Upload (With Real-Time Progress Bar & 100MB Support) -->
+                <div x-data="apkUploadManager()" class="bg-white rounded-2xl border border-slate-200/80 p-6 shadow-xs space-y-5">
+                    <div class="flex items-center justify-between pb-3 border-b border-slate-100 flex-wrap gap-2">
+                        <h3 class="text-sm font-bold text-slate-900 flex items-center gap-2">
+                            <span class="w-2.5 h-2.5 rounded-full bg-emerald-600"></span>
+                            <span>تطبيق الهاتف (Android APK)</span>
+                        </h3>
+                    </div>
 
-                    <div class="flex flex-col sm:flex-row items-center justify-between gap-6 p-4 rounded-xl border border-slate-200 bg-slate-50/50">
-                        <div class="flex items-center gap-4">
-                            <div class="w-14 h-14 rounded-2xl bg-emerald-100 text-emerald-600 flex items-center justify-center shrink-0">
-                                <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <!-- Dynamic Alerts for APK Upload -->
+                    <div x-show="errorMessage" x-cloak class="p-4 rounded-xl bg-red-50 border border-red-200 text-red-800 text-xs font-bold flex items-center justify-between gap-3 shadow-xs">
+                        <div class="flex items-center gap-2">
+                            <svg class="w-5 h-5 text-red-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            <span x-text="errorMessage"></span>
+                        </div>
+                        <button type="button" @click="errorMessage = ''" class="text-red-500 hover:text-red-800">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                        </button>
+                    </div>
+
+                    <div x-show="successMessage" x-cloak class="p-4 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-bold flex items-center justify-between gap-3 shadow-xs">
+                        <div class="flex items-center gap-2">
+                            <svg class="w-5 h-5 text-emerald-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            <span x-text="successMessage"></span>
+                        </div>
+                        <button type="button" @click="successMessage = ''" class="text-emerald-500 hover:text-emerald-800">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                        </button>
+                    </div>
+
+                    <!-- Current APK Status Card -->
+                    <div class="flex flex-col sm:flex-row items-center justify-between gap-4 p-4 rounded-xl border border-slate-200 bg-slate-50/70">
+                        <div class="flex items-center gap-3.5 w-full sm:w-auto">
+                            <div class="w-12 h-12 rounded-xl bg-emerald-100 text-emerald-600 flex items-center justify-center shrink-0 shadow-2xs">
+                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z" />
                                 </svg>
                             </div>
                             <div>
-                                <h4 class="text-xs font-bold text-slate-800">حزمة تطبيق أندرويد (.apk)</h4>
-                                @if ($settings->get('app_apk_file'))
-                                    <div class="mt-2 flex items-center gap-3 flex-wrap">
-                                        <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-emerald-100 text-emerald-800 text-[10px] font-bold">
-                                            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
-                                            التطبيق مرفوع ومتوفر للتحميل
-                                        </span>
-                                        <a href="{{ asset('storage/' . $settings->get('app_apk_file')) }}" download class="text-[11px] font-bold text-slate-700 hover:text-black flex items-center gap-1 underline">
-                                            <svg class="w-3.5 h-3.5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
-                                            تحميل النسخة الحالية
-                                        </a>
-                                        <button type="submit" form="delete-apk-form" onclick="return confirm('هل أنت متأكد من رغبتك في حذف ملف تطبيق الأندرويد نهائياً من الموقع؟')" class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-red-100 text-red-700 hover:bg-red-200 text-[10px] font-bold transition cursor-pointer">
-                                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
-                                            <span>حذف التطبيق</span>
-                                        </button>
-                                    </div>
-                                @else
-                                    <div class="mt-2">
+                                <h4 class="text-xs font-bold text-slate-800">حالة التطبيق على المنصة</h4>
+                                <div class="mt-1.5 flex items-center gap-2 flex-wrap">
+                                    <template x-if="hasApk">
+                                        <div class="flex items-center gap-2 flex-wrap">
+                                            <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-emerald-100 text-emerald-800 text-[10px] font-bold">
+                                                <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                                                التطبيق مرفوع ومتوفر للتحميل للجمهور
+                                            </span>
+                                            <a :href="apkUrl" download class="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-700 hover:text-emerald-900 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 px-2.5 py-1 rounded-lg transition">
+                                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+                                                تحميل النسخة الحالية
+                                            </a>
+                                            <button type="button" @click="deleteApk()" class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-red-100 text-red-700 hover:bg-red-200 text-[10px] font-bold transition cursor-pointer">
+                                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                                                <span>حذف التطبيق</span>
+                                            </button>
+                                        </div>
+                                    </template>
+                                    <template x-if="!hasApk">
                                         <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-amber-100 text-amber-800 text-[10px] font-bold">
-                                            لم يتم رفع ملف APK حتى الآن
+                                            لم يتم رفع ملف APK حتى الآن (رابط التنزيل معطل في الصفحة الرئيسية وصفحة تسجيل الدخول)
                                         </span>
-                                    </div>
-                                @endif
+                                    </template>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Upload Dropzone & File Selector -->
+                    <div class="space-y-4">
+                        <input type="file" 
+                               x-ref="apkFileInput" 
+                               accept=".apk" 
+                               @change="handleFileSelect($event)" 
+                               class="hidden">
+
+                        <!-- Dropzone Area -->
+                        <div @dragover.prevent="isDragging = true"
+                             @dragleave.prevent="isDragging = false"
+                             @drop.prevent="handleDrop($event)"
+                             @click="if(!isUploading) $refs.apkFileInput.click()"
+                             :class="{
+                                 'border-emerald-500 bg-emerald-50/50 scale-[1.005]': isDragging,
+                                 'border-slate-300 hover:border-emerald-500 hover:bg-emerald-50/20': !isDragging && !isUploading,
+                                 'opacity-60 cursor-not-allowed': isUploading
+                             }"
+                             class="border-2 border-dashed rounded-2xl p-6 text-center cursor-pointer transition-all duration-200">
+                            
+                            <div class="flex flex-col items-center justify-center gap-2">
+                                <div class="w-12 h-12 rounded-2xl bg-emerald-100 text-emerald-600 flex items-center justify-center">
+                                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                                    </svg>
+                                </div>
+                                <span class="text-xs font-bold text-slate-800">
+                                    اسحب وأفلت ملف تطبيق الأندرويد (.apk) هنا أو <span class="text-emerald-600 underline">تصفح من جهازك</span>
+                                </span>
+                                <span class="text-[11px] text-slate-500">
+                                    الحد الأقصى لحجم الملف: <strong class="text-slate-700">100 ميجابايت (100MB)</strong> — الصيغة المدعومة: <strong class="text-slate-700">.apk</strong>
+                                </span>
                             </div>
                         </div>
 
-                        <div class="w-full sm:w-auto shrink-0">
-                            <label class="block text-[11px] font-bold text-slate-700 mb-1">رفع ملف APK جديد:</label>
-                            <input type="file" name="app_apk_file" accept=".apk" class="text-xs file:mr-2 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-emerald-600 file:text-white hover:file:bg-emerald-700 w-full text-slate-500 cursor-pointer">
+                        <!-- Selected File Preview & Start Upload Button -->
+                        <div x-show="selectedFile && !isUploading" x-cloak class="p-4 rounded-xl border border-emerald-200 bg-emerald-50/40 flex flex-col sm:flex-row items-center justify-between gap-4">
+                            <div class="flex items-center gap-3">
+                                <div class="w-10 h-10 rounded-xl bg-emerald-600 text-white flex items-center justify-center shrink-0">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                    </svg>
+                                </div>
+                                <div>
+                                    <div class="flex items-center gap-2">
+                                        <span class="text-xs font-bold text-slate-900" x-text="fileName"></span>
+                                        <span class="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-[10px] font-bold" x-text="formattedSize"></span>
+                                    </div>
+                                    <span class="text-[11px] text-slate-500">جاهز للرفع والتثبيت على السيرفر</span>
+                                </div>
+                            </div>
+
+                            <div class="flex items-center gap-2 w-full sm:w-auto justify-end">
+                                <button type="button" 
+                                        @click="clearSelectedFile()" 
+                                        class="px-3 py-2 rounded-xl border border-slate-300 text-slate-600 hover:bg-slate-100 text-xs font-bold transition">
+                                    إلغاء
+                                </button>
+                                <button type="button" 
+                                        @click="startUpload()" 
+                                        class="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition flex items-center gap-2 shadow-sm">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+                                    </svg>
+                                    <span>بدء رفع التطبيق الآن</span>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Real-Time Upload Progress Bar -->
+                        <div x-show="isUploading" x-cloak class="p-5 rounded-xl border border-emerald-300 bg-white shadow-sm space-y-3">
+                            <div class="flex items-center justify-between gap-4 text-xs">
+                                <div class="flex items-center gap-2 font-bold text-slate-800">
+                                    <svg class="w-4 h-4 text-emerald-600 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                                    </svg>
+                                    <span x-text="statusText"></span>
+                                </div>
+                                <div class="flex items-center gap-3 shrink-0">
+                                    <span class="font-extrabold text-sm text-emerald-600" x-text="uploadProgress + '%'"></span>
+                                    <button type="button" 
+                                            @click="cancelUpload()" 
+                                            class="text-[11px] font-bold text-red-600 hover:text-red-800 underline">
+                                        إلغاء الرفع
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Progress Track & Bar -->
+                            <div class="w-full h-3 bg-slate-100 rounded-full overflow-hidden border border-slate-200">
+                                <div class="h-full bg-gradient-to-r from-emerald-500 to-teal-500 rounded-full transition-all duration-150 ease-out" 
+                                     :style="'width: ' + uploadProgress + '%'"></div>
+                            </div>
+
+                            <div class="flex items-center justify-between text-[11px] text-slate-500 font-mono">
+                                <span>تم نقل: <strong class="text-slate-800 font-bold" x-text="uploadedMb"></strong> MB من أصل <strong class="text-slate-800 font-bold" x-text="totalMb"></strong> MB</span>
+                                <span class="text-slate-400">يرجى عدم إغلاق الصفحة أثناء الرفع</span>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -480,4 +605,225 @@
             @method('DELETE')
         </form>
     </div>
+
+    @push('scripts')
+    <script>
+        (function() {
+            function apkUploadManager() {
+                return {
+                    hasApk: {{ $settings->get('app_apk_file') ? 'true' : 'false' }},
+                    apkUrl: '{{ $settings->get('app_apk_file') ? asset('storage/' . ltrim($settings->get('app_apk_file'), '/')) : '' }}',
+                    selectedFile: null,
+                    fileName: '',
+                    formattedSize: '',
+                    isDragging: false,
+                    isUploading: false,
+                    uploadProgress: 0,
+                    uploadedMb: '0.0',
+                    totalMb: '0.0',
+                    statusText: '',
+                    errorMessage: '',
+                    successMessage: '',
+                    xhr: null,
+
+                    handleFileSelect(event) {
+                        const file = event.target.files ? event.target.files[0] : null;
+                        this.validateAndSetFile(file);
+                    },
+
+                    handleDrop(event) {
+                        this.isDragging = false;
+                        const file = event.dataTransfer.files ? event.dataTransfer.files[0] : null;
+                        this.validateAndSetFile(file);
+                    },
+
+                    validateAndSetFile(file) {
+                        this.errorMessage = '';
+                        this.successMessage = '';
+                        if (!file) {
+                            this.clearSelectedFile();
+                            return;
+                        }
+
+                        // Check file extension
+                        const ext = file.name.split('.').pop().toLowerCase();
+                        if (ext !== 'apk') {
+                            this.errorMessage = 'الملف المحدد غير صالح. يجب اختيار ملف بصيغة أندرويد (.apk) فقط.';
+                            this.clearSelectedFile();
+                            return;
+                        }
+
+                        // Check file size (100MB = 100 * 1024 * 1024 bytes)
+                        const maxBytes = 100 * 1024 * 1024;
+                        if (file.size > maxBytes) {
+                            const sizeMb = (file.size / (1024 * 1024)).toFixed(1);
+                            this.errorMessage = `حجم الملف (${sizeMb} ميجابايت) يتجاوز الحد الأقصى المسموح به (100 ميجابايت).`;
+                            this.clearSelectedFile();
+                            return;
+                        }
+
+                        this.selectedFile = file;
+                        this.fileName = file.name;
+                        this.formattedSize = (file.size / (1024 * 1024)).toFixed(2) + ' MB';
+                        this.totalMb = (file.size / (1024 * 1024)).toFixed(1);
+                        this.uploadedMb = '0.0';
+                    },
+
+                    clearSelectedFile() {
+                        this.selectedFile = null;
+                        this.fileName = '';
+                        this.formattedSize = '';
+                        this.uploadProgress = 0;
+                        this.statusText = '';
+                        if (this.$refs.apkFileInput) {
+                            this.$refs.apkFileInput.value = '';
+                        }
+                    },
+
+                    cancelUpload() {
+                        if (this.xhr) {
+                            this.xhr.abort();
+                            this.xhr = null;
+                        }
+                        this.isUploading = false;
+                        this.uploadProgress = 0;
+                        this.statusText = '';
+                        this.errorMessage = 'تم إلغاء عملية الرفع.';
+                    },
+
+                    startUpload() {
+                        if (!this.selectedFile || this.isUploading) return;
+
+                        this.isUploading = true;
+                        this.uploadProgress = 0;
+                        this.errorMessage = '';
+                        this.successMessage = '';
+                        this.statusText = 'بدء نقل الملف إلى السيرفر...';
+
+                        const formData = new FormData();
+                        formData.append('app_apk_file', this.selectedFile);
+
+                        const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') 
+                                          || '{{ csrf_token() }}';
+
+                        this.xhr = new XMLHttpRequest();
+                        this.xhr.open('POST', '{{ route('admin.settings.upload_apk') }}', true);
+                        this.xhr.setRequestHeader('X-CSRF-TOKEN', csrfToken);
+                        this.xhr.setRequestHeader('Accept', 'application/json');
+
+                        this.xhr.upload.onprogress = (e) => {
+                            if (e.lengthComputable) {
+                                const percent = Math.round((e.loaded / e.total) * 100);
+                                this.uploadProgress = Math.min(percent, 99);
+                                this.uploadedMb = (e.loaded / (1024 * 1024)).toFixed(1);
+                                this.totalMb = (e.total / (1024 * 1024)).toFixed(1);
+
+                                if (this.uploadProgress >= 99) {
+                                    this.statusText = 'اكتمل نقل الملف، جاري التحقق وتثبيت الحزمة على الخادم...';
+                                } else {
+                                    this.statusText = `جاري الرفع... ${this.uploadedMb} MB من أصل ${this.totalMb} MB (${this.uploadProgress}%)`;
+                                }
+                            }
+                        };
+
+                        this.xhr.onload = () => {
+                            this.isUploading = false;
+                            const status = this.xhr.status;
+
+                            try {
+                                const response = JSON.parse(this.xhr.responseText);
+
+                                if (status >= 200 && status < 300 && response.success) {
+                                    this.uploadProgress = 100;
+                                    this.statusText = 'اكتمل بنجاح!';
+                                    this.successMessage = response.message || 'تم رفع وتثبيت تطبيق الأندرويد بنجاح.';
+                                    this.hasApk = true;
+                                    this.apkUrl = response.file_url;
+                                    this.clearSelectedFile();
+                                } else {
+                                    this.uploadProgress = 0;
+                                    if (response.errors && response.errors.app_apk_file) {
+                                        this.errorMessage = response.errors.app_apk_file[0];
+                                    } else {
+                                        this.errorMessage = response.message || 'فشل رفع الملف. يرجى المحاولة لاحقاً.';
+                                    }
+                                }
+                            } catch (e) {
+                                this.uploadProgress = 0;
+                                if (status === 413) {
+                                    this.errorMessage = 'حجم الملف يتجاوز الحد المسموح به في إعدادات خادم الويب (Nginx client_max_body_size أو PHP post_max_size). يرجى التأكد من ضبط السيرفر للسماح برفع 100MB.';
+                                } else if (status === 419) {
+                                    this.errorMessage = 'انتهت صلاحية الجلسة (CSRF Token)، يرجى تحديث الصفحة والمحاولة مجدداً.';
+                                } else {
+                                    this.errorMessage = `حدث خطأ أثناء معالجة الملف في الخادم (رمز الاستجابة: ${status}).`;
+                                }
+                            }
+                            this.xhr = null;
+                        };
+
+                        this.xhr.onerror = () => {
+                            this.isUploading = false;
+                            this.uploadProgress = 0;
+                            this.errorMessage = 'فشل الاتصال بالخادم. يرجى التحقق من اتصال الإنترنت وإعدادات السيرفر.';
+                            this.xhr = null;
+                        };
+
+                        this.xhr.ontimeout = () => {
+                            this.isUploading = false;
+                            this.uploadProgress = 0;
+                            this.errorMessage = 'انتهت مهلة الطلب (Timeout). استغرقت عملية الرفع وقتاً أطول من المتوقع.';
+                            this.xhr = null;
+                        };
+
+                        this.xhr.timeout = 15 * 60 * 1000; // 15 minutes timeout
+                        this.xhr.send(formData);
+                    },
+
+                    deleteApk() {
+                        if (!confirm('هل أنت متأكد من رغبتك في حذف ملف تطبيق الأندرويد نهائياً من الموقع؟')) {
+                            return;
+                        }
+                        this.errorMessage = '';
+                        this.successMessage = '';
+
+                        const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') 
+                                          || '{{ csrf_token() }}';
+
+                        fetch('{{ route('admin.settings.delete_apk') }}', {
+                            method: 'DELETE',
+                            headers: {
+                                'X-CSRF-TOKEN': csrfToken,
+                                'Accept': 'application/json',
+                                'Content-Type': 'application/json',
+                            }
+                        })
+                        .then(res => res.json())
+                        .then(data => {
+                            if (data.success) {
+                                this.hasApk = false;
+                                this.apkUrl = '';
+                                this.successMessage = data.message || 'تم حذف ملف التطبيق بنجاح.';
+                            } else {
+                                this.errorMessage = data.message || 'فشل حذف الملف.';
+                            }
+                        })
+                        .catch(() => {
+                            document.getElementById('delete-apk-form').submit();
+                        });
+                    }
+                };
+            }
+
+            window.apkUploadManager = apkUploadManager;
+
+            if (window.Alpine) {
+                window.Alpine.data('apkUploadManager', apkUploadManager);
+            } else {
+                document.addEventListener('alpine:init', () => {
+                    window.Alpine.data('apkUploadManager', apkUploadManager);
+                });
+            }
+        })();
+    </script>
+    @endpush
 </x-admin-layout>

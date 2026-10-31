@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Setting;
 use App\Services\SettingService;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -45,7 +46,7 @@ class SiteSettingController extends Controller
             'app_apk_file' => [
                 'nullable',
                 'file',
-                'max:153600',
+                'max:102400',
                 function ($attribute, $value, $fail) {
                     if ($value instanceof \Illuminate\Http\UploadedFile) {
                         $ext = strtolower($value->getClientOriginalExtension());
@@ -96,13 +97,92 @@ class SiteSettingController extends Controller
     }
 
     /**
+     * Handle asynchronous APK upload with real-time progress tracking and validation up to 100MB.
+     */
+    public function uploadApk(Request $request): JsonResponse
+    {
+        $this->ensureSuperAdmin($request);
+
+        // Increase execution time and memory limits for processing uploads up to 100MB
+        @ini_set('max_execution_time', '600');
+        @ini_set('memory_limit', '512M');
+        if (function_exists('set_time_limit')) {
+            @set_time_limit(600);
+        }
+
+        $request->validate([
+            'app_apk_file' => [
+                'required',
+                'file',
+                'max:102400', // 100MB in KB
+                function ($attribute, $value, $fail) {
+                    if ($value instanceof \Illuminate\Http\UploadedFile) {
+                        $ext = strtolower($value->getClientOriginalExtension());
+                        if ($ext !== 'apk') {
+                            $fail('يجب أن يكون الملف المرفوع بصيغة تطبيق أندرويد (.apk) فقط.');
+                        }
+                    }
+                },
+            ],
+        ], [
+            'app_apk_file.required' => 'يرجى اختيار ملف APK لرفعه.',
+            'app_apk_file.file' => 'الملف المرفوع غير صالح.',
+            'app_apk_file.max' => 'حجم ملف التطبيق يتجاوز الحد الأقصى المسموح به (100 ميجابايت).',
+        ]);
+
+        $file = $request->file('app_apk_file');
+
+        // Delete old file if present
+        $oldPath = Setting::get('app_apk_file');
+        if ($oldPath && is_string($oldPath)) {
+            $this->settingService->deleteSettingFile('app_apk_file', null);
+        }
+
+        // Upload new file to public settings directory
+        $upload = app(\App\Services\FileUploadService::class)->upload($file, 'settings');
+        Setting::set('app_apk_file', $upload['file_path'], 'general');
+        Setting::clearCache();
+
+        // Audit log
+        \App\Models\ActivityLog::create([
+            'user_id' => $request->user()->id,
+            'action' => 'upload_apk_file',
+            'model_type' => Setting::class,
+            'model_id' => 0,
+            'changes' => [
+                'file_name' => $upload['file_name'],
+                'file_size' => $upload['file_size'],
+                'file_path' => $upload['file_path'],
+            ],
+            'ip_address' => $request->ip(),
+        ]);
+
+        $fileSizeMb = round($upload['file_size'] / (1024 * 1024), 2);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'تم رفع وتثبيت تطبيق الأندرويد بنجاح.',
+            'file_url' => asset('storage/' . ltrim($upload['file_path'], '/')),
+            'file_name' => $upload['file_name'],
+            'file_size' => $fileSizeMb . ' MB',
+        ]);
+    }
+
+    /**
      * Delete the uploaded APK file.
      */
-    public function deleteApk(Request $request): RedirectResponse
+    public function deleteApk(Request $request): JsonResponse|RedirectResponse
     {
         $this->ensureSuperAdmin($request);
 
         $this->settingService->deleteSettingFile('app_apk_file', $request->user());
+
+        if ($request->expectsJson() || $request->ajax()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'تم حذف ملف تطبيق الأندرويد (APK) بنجاح.',
+            ]);
+        }
 
         return back()->with('success', 'تم حذف ملف تطبيق الأندرويد (APK) بنجاح.');
     }

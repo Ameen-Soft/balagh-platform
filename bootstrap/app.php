@@ -36,8 +36,19 @@ return Application::configure(basePath: dirname(__DIR__))
             fn (Request $request) => $request->is('api/*') || $request->expectsJson(),
         );
 
+        $exceptions->render(function (\Illuminate\Http\Exceptions\PostTooLargeException $e, Request $request) {
+            if ($request->is('api/*') || $request->expectsJson() || $request->ajax()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'حجم الملف المرفوع كبير جداً ويتجاوز الحد الأقصى المسموح به في إعدادات الخادم (PHP post_max_size / 100MB).',
+                ], 413);
+            }
+
+            return back()->withErrors(['app_apk_file' => 'حجم الملف كبير جداً ويتجاوز الحد الأقصى المسموح به في السيرفر.']);
+        });
+
         $exceptions->render(function (ValidationException $e, Request $request) {
-            if ($request->is('api/*') || $request->expectsJson()) {
+            if ($request->is('api/*') || $request->expectsJson() || $request->ajax()) {
                 return response()->json([
                     'success' => false,
                     'message' => $e->getMessage() ?: 'بيانات الإدخال غير صالحة، يرجى التحقق من الحقول المطلوبة.',
