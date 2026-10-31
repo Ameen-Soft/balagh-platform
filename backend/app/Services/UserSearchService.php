@@ -54,16 +54,21 @@ class UserSearchService
                     throw new AccessDeniedHttpException('غير مصرح لك باستعراض الكادر الميداني.');
                 }
 
-                $departmentId = $authUser->department_id;
-                if (! $departmentId && ! $authUser->hasRole('Super Admin')) {
-                    throw new AccessDeniedHttpException('حساب المشرف غير مرتبط بقسم حكومي.');
+                $ministryId = $authUser->department?->ministry_id;
+                if (! $ministryId && ! $authUser->hasRole('Super Admin')) {
+                    throw new AccessDeniedHttpException('حساب المشرف غير مرتبط بجهة حكومية معتمدة.');
                 }
 
                 $baseQuery->where('is_active', true)
                     ->whereHas('roles', fn ($q) => $q->where('name', 'Field Worker'));
 
-                if ($departmentId && ! $authUser->hasRole('Super Admin')) {
-                    $baseQuery->where('department_id', $departmentId);
+                if (! $authUser->hasRole('Super Admin') && $ministryId) {
+                    $ministryDeptIds = \App\Models\Department::where('ministry_id', $ministryId)->pluck('id');
+                    if (! empty($filters['department_id']) && in_array((int) $filters['department_id'], $ministryDeptIds->toArray())) {
+                        $baseQuery->where('department_id', (int) $filters['department_id']);
+                    } else {
+                        $baseQuery->whereIn('department_id', $ministryDeptIds);
+                    }
                 }
                 break;
 

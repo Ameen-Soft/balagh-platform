@@ -79,7 +79,7 @@ class Category extends Model
     }
 
     /**
-     * Scope to active categories whose parents (if any) are also active.
+     * Scope to active categories whose parents (if any) and departments (if any) are also active.
      */
     public function scopeActive($query)
     {
@@ -88,6 +88,12 @@ class Category extends Model
                 $q->whereNull('parent_id')
                     ->orWhereHas('parent', function ($pq) {
                         $pq->where('is_active', true);
+                    });
+            })
+            ->where(function ($q) {
+                $q->whereNull('department_id')
+                    ->orWhereHas('department', function ($dq) {
+                        $dq->where('is_active', true);
                     });
             });
     }

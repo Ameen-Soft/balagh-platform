@@ -128,6 +128,10 @@ Route::middleware([
     // Service Departments Management
     Route::get('/departments', [MinistryDepartmentController::class, 'index'])->name('departments.index');
     Route::post('/departments', [MinistryDepartmentController::class, 'store'])->name('departments.store');
+    Route::get('/departments/{department}', [MinistryDepartmentController::class, 'show'])->name('departments.show');
+    Route::match(['put', 'post'], '/departments/{department}', [MinistryDepartmentController::class, 'update'])->name('departments.update');
+    Route::post('/departments/{department}/toggle-active', [MinistryDepartmentController::class, 'toggleActive'])->name('departments.toggle_active');
+    Route::delete('/departments/{department}', [MinistryDepartmentController::class, 'destroy'])->name('departments.destroy');
 
     // Complaint Categories Management
     Route::get('/categories', [MinistryCategoryController::class, 'index'])->name('categories.index');
@@ -141,6 +145,11 @@ Route::middleware([
 
     // Field Workers Management
     Route::get('/workers', [WorkerManagementController::class, 'index'])->name('workers.index');
+    Route::post('/workers', [WorkerManagementController::class, 'store'])->name('workers.store');
+    Route::get('/workers/{user}', [WorkerManagementController::class, 'show'])->name('workers.show');
+    Route::match(['put', 'post'], '/workers/{user}', [WorkerManagementController::class, 'update'])->name('workers.update');
+    Route::post('/workers/{user}/toggle-active', [WorkerManagementController::class, 'toggleActive'])->name('workers.toggle_active');
+    Route::delete('/workers/{user}', [WorkerManagementController::class, 'destroy'])->name('workers.destroy');
     Route::post('/workers/{user}/promote', [WorkerManagementController::class, 'promote'])->name('workers.promote');
     Route::post('/workers/{user}/demote', [WorkerManagementController::class, 'demote'])->name('workers.demote');
 
