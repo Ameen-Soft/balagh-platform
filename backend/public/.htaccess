@@ -23,3 +23,26 @@
     RewriteCond %{REQUEST_FILENAME} !-f
     RewriteRule ^ index.php [L]
 </IfModule>
+
+# Allow large uploads up to 100MB for mobile APK
+<IfModule mod_php.c>
+    php_value upload_max_filesize 120M
+    php_value post_max_size 130M
+    php_value max_execution_time 600
+    php_value max_input_time 600
+    php_value memory_limit 512M
+</IfModule>
+<IfModule mod_php7.c>
+    php_value upload_max_filesize 120M
+    php_value post_max_size 130M
+    php_value max_execution_time 600
+    php_value max_input_time 600
+    php_value memory_limit 512M
+</IfModule>
+<IfModule mod_php8.c>
+    php_value upload_max_filesize 120M
+    php_value post_max_size 130M
+    php_value max_execution_time 600
+    php_value max_input_time 600
+    php_value memory_limit 512M
+</IfModule>
