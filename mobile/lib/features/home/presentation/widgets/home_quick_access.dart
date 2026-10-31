@@ -52,79 +52,85 @@ class HomeQuickAccess extends StatelessWidget {
         ),
         const SizedBox(height: 14),
 
-        // Row 1: 4 Cards (Clean icons & titles without subtitles for optimal UX)
-        Row(
-          children: [
-            Expanded(
-              child: _buildQuickCard(
-                icon: Icons.campaign_rounded,
-                iconColor: AppColors.yemenRed,
-                title: 'البلاغات العامة',
-                onTap: onPublicComplaintsTap,
+        // Row 1: 4 Cards (Clean icons & titles with uniform height across all cards)
+        IntrinsicHeight(
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Expanded(
+                child: _buildQuickCard(
+                  icon: Icons.campaign_rounded,
+                  iconColor: AppColors.yemenRed,
+                  title: 'البلاغات العامة',
+                  onTap: onPublicComplaintsTap,
+                ),
               ),
-            ),
-            const SizedBox(width: 8),
-            Expanded(
-              child: _buildQuickCard(
-                icon: Icons.assignment_outlined,
-                iconColor: const Color(0xFF374151),
-                title: 'متابعة البلاغات',
-                onTap: onMyComplaintsTap,
+              const SizedBox(width: 8),
+              Expanded(
+                child: _buildQuickCard(
+                  icon: Icons.assignment_outlined,
+                  iconColor: const Color(0xFF374151),
+                  title: 'متابعة البلاغات',
+                  onTap: onMyComplaintsTap,
+                ),
               ),
-            ),
-            const SizedBox(width: 8),
-            Expanded(
-              child: _buildQuickCard(
-                icon: Icons.account_tree_outlined,
-                iconColor: AppColors.yemenRed,
-                title: 'المشاريع المجتمعية',
-                onTap: onProjectsTap,
+              const SizedBox(width: 8),
+              Expanded(
+                child: _buildQuickCard(
+                  icon: Icons.account_tree_outlined,
+                  iconColor: AppColors.yemenRed,
+                  title: 'المشاريع المجتمعية',
+                  onTap: onProjectsTap,
+                ),
               ),
-            ),
-            const SizedBox(width: 8),
-            Expanded(
-              child: _buildQuickCard(
-                icon: Icons.map_outlined,
-                iconColor: const Color(0xFF374151),
-                title: 'الخريطة',
-                onTap: onMapTap,
+              const SizedBox(width: 8),
+              Expanded(
+                child: _buildQuickCard(
+                  icon: Icons.map_outlined,
+                  iconColor: const Color(0xFF374151),
+                  title: 'الخريطة',
+                  onTap: onMapTap,
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
 
         const SizedBox(height: 10),
 
-        // Row 2: 3 Cards (wider)
-        Row(
-          children: [
-            Expanded(
-              child: _buildQuickCard(
-                icon: Icons.person_rounded,
-                iconColor: AppColors.yemenRed,
-                title: 'الملف الشخصي',
-                onTap: onProfileTap,
+        // Row 2: 3 Cards (wider, uniform height)
+        IntrinsicHeight(
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Expanded(
+                child: _buildQuickCard(
+                  icon: Icons.person_rounded,
+                  iconColor: AppColors.yemenRed,
+                  title: 'الملف الشخصي',
+                  onTap: onProfileTap,
+                ),
               ),
-            ),
-            const SizedBox(width: 8),
-            Expanded(
-              child: _buildQuickCard(
-                icon: Icons.notifications_active_outlined,
-                iconColor: AppColors.yemenRed,
-                title: 'الإشعارات',
-                onTap: onNotificationsTap,
+              const SizedBox(width: 8),
+              Expanded(
+                child: _buildQuickCard(
+                  icon: Icons.notifications_active_outlined,
+                  iconColor: AppColors.yemenRed,
+                  title: 'الإشعارات',
+                  onTap: onNotificationsTap,
+                ),
               ),
-            ),
-            const SizedBox(width: 8),
-            Expanded(
-              child: _buildQuickCard(
-                icon: Icons.headset_mic_outlined,
-                iconColor: const Color(0xFF374151),
-                title: 'الدعم والمساعدة',
-                onTap: onSupportTap,
+              const SizedBox(width: 8),
+              Expanded(
+                child: _buildQuickCard(
+                  icon: Icons.headset_mic_outlined,
+                  iconColor: const Color(0xFF374151),
+                  title: 'الدعم والمساعدة',
+                  onTap: onSupportTap,
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ],
     );
@@ -140,7 +146,7 @@ class HomeQuickAccess extends StatelessWidget {
       onTap: onTap,
       borderRadius: BorderRadius.circular(16),
       child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 4),
+        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 4),
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(16),
@@ -154,22 +160,26 @@ class HomeQuickAccess extends StatelessWidget {
           ],
         ),
         child: Column(
-          mainAxisSize: MainAxisSize.min,
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(icon, size: 28, color: iconColor),
-            const SizedBox(height: 8),
-            Text(
-              title,
-              style: const TextStyle(
-                fontSize: 12,
-                fontWeight: FontWeight.w800,
-                color: AppColors.yemenBlack,
-                height: 1.25,
+            Icon(icon, size: 26, color: iconColor),
+            const SizedBox(height: 6),
+            SizedBox(
+              height: 32,
+              child: Center(
+                child: Text(
+                  title,
+                  style: const TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w800,
+                    color: AppColors.yemenBlack,
+                    height: 1.2,
+                  ),
+                  textAlign: TextAlign.center,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                ),
               ),
-              textAlign: TextAlign.center,
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
             ),
           ],
         ),

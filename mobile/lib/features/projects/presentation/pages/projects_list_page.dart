@@ -79,7 +79,7 @@ class _ProjectsListPageState extends ConsumerState<ProjectsListPage> {
         onMapTap: () => context.push('/map'),
         onCreateComplaintTap: () => context.push('/create-complaint'),
         onComplaintsTap: () => context.push('/my-complaints'),
-        onMoreTap: () => _scaffoldKey.currentState?.openDrawer(),
+        onProfileTap: () => context.push('/profile'),
       ),
       body: Column(
         children: [

@@ -5,7 +5,7 @@ enum HomeBottomBarTab {
   home,
   map,
   complaints,
-  more,
+  profile,
   none,
 }
 
@@ -15,7 +15,7 @@ class HomeBottomBar extends StatelessWidget {
   final VoidCallback onMapTap;
   final VoidCallback onCreateComplaintTap;
   final VoidCallback onComplaintsTap;
-  final VoidCallback onMoreTap;
+  final VoidCallback onProfileTap;
 
   const HomeBottomBar({
     super.key,
@@ -24,7 +24,7 @@ class HomeBottomBar extends StatelessWidget {
     required this.onMapTap,
     required this.onCreateComplaintTap,
     required this.onComplaintsTap,
-    required this.onMoreTap,
+    required this.onProfileTap,
   });
 
   @override
@@ -84,12 +84,14 @@ class HomeBottomBar extends StatelessWidget {
                 onTap: onComplaintsTap,
               ),
 
-              // 5. المزيد
+              // 5. الملف الشخصي
               _buildNavItem(
-                icon: Icons.more_horiz_rounded,
-                label: 'المزيد',
-                isSelected: currentTab == HomeBottomBarTab.more,
-                onTap: onMoreTap,
+                icon: currentTab == HomeBottomBarTab.profile
+                    ? Icons.person_rounded
+                    : Icons.person_outline_rounded,
+                label: 'الملف الشخصي',
+                isSelected: currentTab == HomeBottomBarTab.profile,
+                onTap: onProfileTap,
               ),
             ],
           ),

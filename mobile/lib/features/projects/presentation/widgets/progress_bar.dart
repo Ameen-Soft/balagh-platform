@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+
 import '../../../../core/constants/app_colors.dart';
 
 class ProjectProgressBar extends StatelessWidget {
@@ -23,15 +24,17 @@ class ProjectProgressBar extends StatelessWidget {
     final currencyFormatter = NumberFormat('#,##0.##', 'ar');
     final validPercentage =
         progressPercentage.isNaN || progressPercentage.isInfinite
-            ? 0.0
-            : progressPercentage.clamp(0.0, 100.0);
+        ? 0.0
+        : progressPercentage.clamp(0.0, 100.0);
     final ratio = (validPercentage / 100.0).clamp(0.0, 1.0);
 
     final isCompleted = validPercentage >= 100;
-    final primaryColor =
-        isCompleted ? AppColors.yemenEmerald : AppColors.yemenRed;
-    final secondaryColor =
-        isCompleted ? const Color(0xFF059669) : const Color(0xFFEA580C);
+    final primaryColor = isCompleted
+        ? AppColors.yemenEmerald
+        : AppColors.yemenRed;
+    final secondaryColor = isCompleted
+        ? const Color(0xFF059669)
+        : const Color(0xFFEA580C);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -47,8 +50,10 @@ class ProjectProgressBar extends StatelessWidget {
           clipBehavior: Clip.antiAlias,
           child: LayoutBuilder(
             builder: (context, constraints) {
-              final fillWidth =
-                  (constraints.maxWidth * ratio).clamp(0.0, constraints.maxWidth);
+              final fillWidth = (constraints.maxWidth * ratio).clamp(
+                0.0,
+                constraints.maxWidth,
+              );
 
               return Stack(
                 alignment: Alignment.centerRight,
@@ -63,10 +68,7 @@ class ProjectProgressBar extends StatelessWidget {
                       gradient: LinearGradient(
                         begin: Alignment.centerRight,
                         end: Alignment.centerLeft,
-                        colors: [
-                          primaryColor,
-                          secondaryColor,
-                        ],
+                        colors: [primaryColor, secondaryColor],
                       ),
                       borderRadius: BorderRadius.circular(isCompact ? 8 : 12),
                     ),
@@ -78,7 +80,9 @@ class ProjectProgressBar extends StatelessWidget {
                       left: 12,
                       child: Container(
                         padding: const EdgeInsets.symmetric(
-                            horizontal: 8, vertical: 2),
+                          horizontal: 8,
+                          vertical: 2,
+                        ),
                         decoration: BoxDecoration(
                           color: ratio > 0.82
                               ? Colors.black.withValues(alpha: 0.25)
@@ -117,7 +121,7 @@ class ProjectProgressBar extends StatelessWidget {
               ),
               if (currentAmount >= targetAmount && targetAmount > 0)
                 const Text(
-                  'مكتمل التمويل 🎉',
+                  'مكتمل التمويل',
                   style: TextStyle(
                     fontSize: 11.5,
                     fontWeight: FontWeight.w800,

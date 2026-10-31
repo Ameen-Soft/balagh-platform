@@ -28,6 +28,7 @@ import 'package:mobile/features/map/presentation/pages/map_page.dart';
 import 'package:mobile/features/notifications/presentation/pages/notifications_page.dart';
 import 'package:mobile/features/profile/presentation/pages/profile_page.dart';
 import 'package:mobile/features/profile/presentation/pages/edit_profile_page.dart';
+import 'package:mobile/features/support/presentation/pages/support_page.dart';
 
 class OnboardingStatusNotifier extends Notifier<bool> {
   @override
@@ -279,6 +280,11 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         path: '/profile/edit',
         name: 'edit-profile',
         builder: (context, state) => const EditProfilePage(),
+      ),
+      GoRoute(
+        path: '/support',
+        name: 'support',
+        builder: (context, state) => const SupportPage(),
       ),
     ],
     redirect: (BuildContext context, GoRouterState state) {

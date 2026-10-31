@@ -4,7 +4,6 @@ import 'package:go_router/go_router.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../auth/application/providers.dart';
 import '../../../auth/domain/entities/user_entity.dart';
-import 'home_support_modal.dart';
 
 class HomeDrawer extends ConsumerWidget {
   final UserEntity? user;
@@ -195,7 +194,7 @@ class HomeDrawer extends ConsumerWidget {
                   title: 'الدعم والمساعدة',
                   onTap: () {
                     Navigator.of(context).pop();
-                    HomeSupportModal.show(context);
+                    context.push('/support');
                   },
                 ),
               ],

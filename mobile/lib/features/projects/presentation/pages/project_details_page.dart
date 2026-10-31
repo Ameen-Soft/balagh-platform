@@ -584,7 +584,7 @@ class _ProjectDetailsPageState extends ConsumerState<ProjectDetailsPage> {
                                         child: _buildMetricItem(
                                           label: 'المتبقي',
                                           value: remainingAmount <= 0
-                                              ? 'مكتمل 🎉'
+                                              ? 'مكتمل'
                                               : '${currencyFormatter.format(remainingAmount)} ر.ي',
                                           valueColor: remainingAmount <= 0
                                               ? AppColors.yemenEmerald

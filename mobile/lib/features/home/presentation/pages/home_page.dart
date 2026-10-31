@@ -14,7 +14,6 @@ import '../widgets/home_drawer.dart';
 import '../widgets/home_public_complaints_section.dart';
 import '../widgets/home_quick_access.dart';
 import '../widgets/home_stats_row.dart';
-import '../widgets/home_support_modal.dart';
 
 class HomePage extends ConsumerStatefulWidget {
   const HomePage({super.key});
@@ -120,7 +119,7 @@ class _HomePageState extends ConsumerState<HomePage> {
         onMapTap: () => context.push('/map'),
         onCreateComplaintTap: () => context.push('/create-complaint'),
         onComplaintsTap: () => context.push('/my-complaints'),
-        onMoreTap: () => _scaffoldKey.currentState?.openDrawer(),
+        onProfileTap: () => context.push('/profile'),
       ),
       body: SafeArea(
         child: RefreshIndicator(
@@ -251,7 +250,7 @@ class _HomePageState extends ConsumerState<HomePage> {
                       description:
                           'تواصل معنا في حال وجود أي استفسار أو تحتاج مساعدة.',
                       buttonText: 'تواصل معنا',
-                      onTap: () => HomeSupportModal.show(context),
+                      onTap: () => context.push('/support'),
                     ),
                   ],
                 ),
@@ -278,7 +277,7 @@ class _HomePageState extends ConsumerState<HomePage> {
                   onMapTap: () => context.push('/map'),
                   onProfileTap: () => context.push('/profile'),
                   onNotificationsTap: () => context.push('/notifications'),
-                  onSupportTap: () => HomeSupportModal.show(context),
+                  onSupportTap: () => context.push('/support'),
                 ),
 
                 const SizedBox(height: 24),
@@ -313,7 +312,7 @@ class _HomePageState extends ConsumerState<HomePage> {
     );
   }
 
-  /// Top Bar: Hamburger menu on the physical left, Notifications & User Avatar on the physical right
+  /// Top Bar: Notifications & User Avatar on the physical left, Sidebar Drawer icon on the physical right
   Widget _buildTopBar(BuildContext context, WidgetRef ref, UserEntity? user) {
     final unreadCount = ref.watch(unreadNotificationsCountProvider);
     final hasUnread = unreadCount > 0;
@@ -323,21 +322,17 @@ class _HomePageState extends ConsumerState<HomePage> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          // Left: Hamburger Menu Icon
-          IconButton(
-            icon: const Icon(
-              Icons.menu_rounded,
-              color: AppColors.yemenBlack,
-              size: 28,
-            ),
-            tooltip: 'القائمة الرئيسية',
-            onPressed: () => _scaffoldKey.currentState?.openDrawer(),
-          ),
-
-          // Right: Notification Bell & User Avatar
+          // Left: Notification Bell & User Avatar
           Row(
             mainAxisSize: MainAxisSize.min,
             children: [
+              // User Profile Avatar (First letter of name or network image)
+              GestureDetector(
+                onTap: () => context.push('/profile'),
+                child: _buildUserAvatar(user),
+              ),
+
+              const SizedBox(width: 4),
               // Notification Bell with Red Badge
               Stack(
                 clipBehavior: Clip.none,
@@ -366,14 +361,18 @@ class _HomePageState extends ConsumerState<HomePage> {
                     ),
                 ],
               ),
-              const SizedBox(width: 4),
-
-              // User Profile Avatar (First letter of name or network image)
-              GestureDetector(
-                onTap: () => context.push('/profile'),
-                child: _buildUserAvatar(user),
-              ),
             ],
+          ),
+
+          // Right: Hamburger Menu Icon (Sidebar Drawer)
+          IconButton(
+            icon: const Icon(
+              Icons.menu_rounded,
+              color: AppColors.yemenBlack,
+              size: 28,
+            ),
+            tooltip: 'القائمة الرئيسية',
+            onPressed: () => _scaffoldKey.currentState?.openDrawer(),
           ),
         ],
       ),

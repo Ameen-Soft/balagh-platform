@@ -180,7 +180,7 @@ class _CommunityComplaintsPageState
         onMapTap: () => context.push('/map'),
         onCreateComplaintTap: () => context.push('/create-complaint'),
         onComplaintsTap: () => context.push('/my-complaints'),
-        onMoreTap: () => _scaffoldKey.currentState?.openDrawer(),
+        onProfileTap: () => context.push('/profile'),
       ),
       body: SafeArea(
         top: false,
@@ -287,47 +287,7 @@ class _CommunityComplaintsPageState
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            // Left: Hamburger Menu Icon
-            IconButton(
-              icon: const Icon(
-                Icons.menu_rounded,
-                color: AppColors.yemenBlack,
-                size: 28,
-              ),
-              tooltip: 'القائمة الرئيسية',
-              onPressed: () => _scaffoldKey.currentState?.openDrawer(),
-            ),
-
-            // Center: Title and Subtitle
-            const Expanded(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    'البلاغات العامة',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      color: AppColors.yemenBlack,
-                      fontWeight: FontWeight.w900,
-                      fontSize: 22,
-                      letterSpacing: -0.3,
-                    ),
-                  ),
-                  SizedBox(height: 1),
-                  Text(
-                    'معاً لمدينة أجمل وخدمات أفضل',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      color: Color(0xFF6B7280),
-                      fontSize: 12,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-
-            // Right: Notification Bell & User Avatar
+            // Left: Notification Bell & User Avatar
             Row(
               mainAxisSize: MainAxisSize.min,
               children: [
@@ -367,6 +327,46 @@ class _CommunityComplaintsPageState
                   child: _buildUserAvatar(user),
                 ),
               ],
+            ),
+
+            // Center: Title and Subtitle
+            const Expanded(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    'البلاغات العامة',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      color: AppColors.yemenBlack,
+                      fontWeight: FontWeight.w900,
+                      fontSize: 22,
+                      letterSpacing: -0.3,
+                    ),
+                  ),
+                  SizedBox(height: 1),
+                  Text(
+                    'معاً لمدينة أجمل وخدمات أفضل',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      color: Color(0xFF6B7280),
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
+            // Right: Hamburger Menu Icon
+            IconButton(
+              icon: const Icon(
+                Icons.menu_rounded,
+                color: AppColors.yemenBlack,
+                size: 28,
+              ),
+              tooltip: 'القائمة الرئيسية',
+              onPressed: () => _scaffoldKey.currentState?.openDrawer(),
             ),
           ],
         ),
