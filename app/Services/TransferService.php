@@ -30,6 +30,12 @@ class TransferService
             ]);
         }
 
+        if (! $toDepartment->is_active) {
+            throw ValidationException::withMessages([
+                'to_department_id' => ['لا يمكن تحويل البلاغ إلى إدارة خدمية معطلة حالياً.'],
+            ]);
+        }
+
         $fromDepartmentId = $complaint->current_department_id;
         $fromDepartment = Department::find($fromDepartmentId);
 

@@ -90,6 +90,7 @@ class ComplaintOperationsController extends Controller
         // Target departments for potential transfer
         $otherDepartments = Department::with('ministry')
             ->where('id', '!=', $complaint->current_department_id)
+            ->where('is_active', true)
             ->get();
 
         return view('ministry.complaints.show', compact('complaint', 'fieldWorkers', 'otherDepartments'));
@@ -142,8 +143,22 @@ class ComplaintOperationsController extends Controller
         $this->authorizeComplaintAccess($complaint, $user);
 
         $validated = $request->validate([
-            'to_department_id' => 'required|exists:departments,id',
+            'to_department_id' => [
+                'required',
+                'exists:departments,id',
+                function ($attribute, $value, $fail) {
+                    $target = Department::find($value);
+                    if ($target && ! $target->is_active) {
+                        $fail('لا يمكن تحويل البلاغ إلى إدارة خدمية معطلة حالياً.');
+                    }
+                },
+            ],
             'reason' => 'required|string|min:5|max:1000',
+        ], [
+            'to_department_id.required' => 'يرجى اختيار الإدارة الخدمية المحال إليها.',
+            'to_department_id.exists' => 'الإدارة الخدمية المحددة غير موجودة.',
+            'reason.required' => 'يرجى كتابة سبب الإحالة.',
+            'reason.min' => 'سبب الإحالة يجب ألا يقل عن 5 أحرف.',
         ]);
 
         $this->transferService->transferComplaint($complaint, (int) $validated['to_department_id'], $validated['reason'], $user);
