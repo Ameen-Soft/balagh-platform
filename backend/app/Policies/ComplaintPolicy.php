@@ -30,7 +30,7 @@ class ComplaintPolicy
      */
     public function viewAny(User $user): bool
     {
-        return $user->hasPermission('complaints.view') || $user->hasRole('Citizen') || $user->hasRole('Field Worker');
+        return $user->hasPermission('complaints.view') || $user->hasRole(['Citizen', 'Field Worker', 'Ministry Admin', 'Super Admin']);
     }
 
     /**
@@ -38,7 +38,7 @@ class ComplaintPolicy
      */
     public function view(User $user, Complaint $complaint): bool
     {
-        // Citizen can view their own complaint
+        // Citizen / Creator can view their own complaint
         if ($complaint->citizen_id === $user->id) {
             return true;
         }
@@ -46,16 +46,12 @@ class ComplaintPolicy
         // Ministry Admin / Staff can view complaints routed to their ministry
         $userMinistryId = $user->department?->ministry_id;
         $complaintMinistryId = $complaint->currentDepartment?->ministry_id;
-        if ($userMinistryId && $complaintMinistryId === $userMinistryId) {
+        if ($userMinistryId && $complaintMinistryId === $userMinistryId && $user->hasRole(['Ministry Admin', 'Super Admin'])) {
             return $user->hasPermission('complaints.view');
         }
 
-        // Field Worker can view complaints assigned to them or within field work scope
+        // Field Worker can view complaints assigned to them
         if ($complaint->fieldAssignments()->where('worker_id', $user->id)->exists()) {
-            return true;
-        }
-
-        if ($user->hasRole('Field Worker') || $user->hasPermission('tasks.view')) {
             return true;
         }
 

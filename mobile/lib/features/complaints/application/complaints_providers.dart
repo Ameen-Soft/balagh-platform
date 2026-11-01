@@ -53,12 +53,14 @@ final subCategoriesProvider =
 
 final myComplaintsProvider =
     FutureProvider<List<ComplaintEntity>>((ref) async {
+  ref.watch(authNotifierProvider);
   final repository = ref.watch(complaintRepositoryProvider);
   return repository.getComplaints();
 });
 
 final recentComplaintsProvider =
     FutureProvider<List<ComplaintEntity>>((ref) async {
+  ref.watch(authNotifierProvider);
   final repository = ref.watch(complaintRepositoryProvider);
   return repository.getComplaints(page: 1);
 });

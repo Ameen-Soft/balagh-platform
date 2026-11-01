@@ -352,7 +352,7 @@ void main() {
     });
   });
 
-  group('MyComplaintsNotifier Error Differentiation', () {
+  group('MyComplaintsNotifier Error Differentiation & State Isolation', () {
     test('403 Forbidden in MyComplaints displays permission message', () async {
       mockRepo.exceptionToThrow = const ForbiddenException('This action is unauthorized.', 403);
 
@@ -374,6 +374,35 @@ void main() {
       final state = container.read(myComplaintsNotifierProvider);
       expect(state.errorMessage, isNotNull);
       expect(state.errorMessage!.contains('اتصال'), true);
+    });
+
+    test('Reset wipes complaints from state to prevent data leakage across accounts', () async {
+      mockRepo.complaintsToReturn = [
+        ComplaintEntity(
+          id: 101,
+          title: 'بلاغ المستخدم السابق',
+          description: 'تفاصيل خاصة',
+          status: 'new',
+          priority: 'medium',
+          latitude: 15.35,
+          longitude: 44.20,
+          createdAt: DateTime.now(),
+        ),
+      ];
+
+      final notifier = container.read(myComplaintsNotifierProvider.notifier);
+      await notifier.loadInitial();
+
+      expect(container.read(myComplaintsNotifierProvider).complaints.length, 1);
+      expect(container.read(myComplaintsNotifierProvider).complaints.first.title, 'بلاغ المستخدم السابق');
+
+      // Logout or account switch triggers reset
+      notifier.reset();
+
+      final resetState = container.read(myComplaintsNotifierProvider);
+      expect(resetState.complaints.isEmpty, true);
+      expect(resetState.total, 0);
+      expect(resetState.errorMessage, isNull);
     });
   });
 }

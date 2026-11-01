@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/network/api_exceptions.dart';
+import '../../auth/application/providers.dart';
 import '../domain/repositories/complaint_repository.dart';
 import 'complaints_providers.dart';
 import 'my_complaints_state.dart';
@@ -9,9 +10,21 @@ class MyComplaintsNotifier extends Notifier<MyComplaintsState> {
 
   @override
   MyComplaintsState build() {
-    // Initial fetch triggered automatically on provider construction
-    Future.microtask(() => loadInitial());
+    // Bind strictly to authenticated user session:
+    // If user changes, logs out, or token expires, reset to clean initial state.
+    final authState = ref.watch(authNotifierProvider);
+    final user = authState.user;
+
+    if (user != null && authState.isAuthenticated) {
+      Future.microtask(() => loadInitial());
+    }
+
     return MyComplaintsState.initial();
+  }
+
+  /// Reset state to clean initial empty state
+  void reset() {
+    state = MyComplaintsState.initial();
   }
 
   /// Initial load or reload of complaints (page 1)
