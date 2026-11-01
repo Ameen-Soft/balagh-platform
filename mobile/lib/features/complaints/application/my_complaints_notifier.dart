@@ -37,8 +37,19 @@ class MyComplaintsNotifier extends Notifier<MyComplaintsState> {
         isLoadingInitial: false,
         clearError: true,
       );
+    } on ApiException catch (e) {
+      final message = (e is ForbiddenException && (e.message == 'This action is unauthorized.' || e.message.isEmpty))
+          ? 'ليس لديك الصلاحية لعرض هذه البلاغات.'
+          : e.message;
+      state = state.copyWith(
+        isLoadingInitial: false,
+        errorMessage: message,
+      );
     } catch (e) {
-      final message = e is ApiException ? e.message : 'تعذر تحميل قائمة البلاغات. يرجى المحاولة مجدداً.';
+      final errStr = e.toString();
+      final message = errStr.contains('Exception:')
+          ? errStr.replaceAll('Exception:', '').trim()
+          : (errStr.isNotEmpty ? errStr : 'تعذر تحميل قائمة البلاغات. يرجى المحاولة مجدداً.');
       state = state.copyWith(
         isLoadingInitial: false,
         errorMessage: message,
@@ -101,10 +112,19 @@ class MyComplaintsNotifier extends Notifier<MyComplaintsState> {
         isRefreshing: false,
         clearError: true,
       );
+    } on ApiException catch (e) {
+      final message = (e is ForbiddenException && (e.message == 'This action is unauthorized.' || e.message.isEmpty))
+          ? 'ليس لديك الصلاحية لتحديث هذه البلاغات.'
+          : e.message;
+      state = state.copyWith(
+        isRefreshing: false,
+        errorMessage: message,
+      );
     } catch (e) {
-      final message = e is ApiException
-          ? e.message
-          : 'تعذر تحديث البيانات. يرجى التحقق من الاتصال.';
+      final errStr = e.toString();
+      final message = errStr.contains('Exception:')
+          ? errStr.replaceAll('Exception:', '').trim()
+          : (errStr.isNotEmpty ? errStr : 'تعذر تحديث البيانات. يرجى المحاولة مجدداً.');
       state = state.copyWith(
         isRefreshing: false,
         errorMessage: message,

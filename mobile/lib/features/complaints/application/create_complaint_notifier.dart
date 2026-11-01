@@ -1,4 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../../core/network/api_exceptions.dart';
 import '../../../core/services/camera_service.dart';
 import '../../../core/services/location_service.dart';
 import '../domain/entities/category_entity.dart';
@@ -221,12 +222,43 @@ class CreateComplaintNotifier extends Notifier<CreateComplaintState> {
       );
 
       return true;
+    } on ValidationException catch (e) {
+      state = state.copyWith(
+        isSubmitting: false,
+        errorMessage: e.firstErrorMessage.isNotEmpty ? e.firstErrorMessage : e.message,
+      );
+      return false;
+    } on UnauthorizedException catch (e) {
+      state = state.copyWith(
+        isSubmitting: false,
+        errorMessage: e.message.isNotEmpty ? e.message : 'انتهت صلاحية الجلسة، يرجى تسجيل الدخول مجدداً.',
+      );
+      return false;
+    } on ForbiddenException catch (e) {
+      state = state.copyWith(
+        isSubmitting: false,
+        errorMessage: e.message.isNotEmpty && e.message != 'This action is unauthorized.'
+            ? e.message
+            : 'ليس لديك الصلاحية لتقديم بلاغ جديد.',
+      );
+      return false;
+    } on NetworkException catch (e) {
+      state = state.copyWith(
+        isSubmitting: false,
+        errorMessage: e.message.isNotEmpty ? e.message : 'تعذر الاتصال بالخادم، يرجى التحقق من اتصال الإنترنت والمحاولة مجدداً.',
+      );
+      return false;
+    } on ApiException catch (e) {
+      state = state.copyWith(
+        isSubmitting: false,
+        errorMessage: e.message,
+      );
+      return false;
     } catch (e) {
-      String readableError = 'فشل في إرسال البلاغ. يرجى التحقق من اتصالك والمحاولة مجدداً.';
       final errStr = e.toString();
-      if (errStr.contains('Exception:')) {
-        readableError = errStr.replaceAll('Exception:', '').trim();
-      }
+      final readableError = errStr.contains('Exception:')
+          ? errStr.replaceAll('Exception:', '').trim()
+          : (errStr.isNotEmpty ? errStr : 'حدث خطأ غير متوقع أثناء إرسال البلاغ.');
 
       state = state.copyWith(
         isSubmitting: false,

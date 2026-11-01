@@ -2,12 +2,14 @@ import 'package:flutter/material.dart';
 import '../constants/app_colors.dart';
 
 class AppErrorState extends StatelessWidget {
+  final String? title;
   final String? message;
   final bool isNetworkError;
   final VoidCallback? onRetry;
 
   const AppErrorState({
     super.key,
+    this.title,
     this.message,
     this.isNetworkError = false,
     this.onRetry,
@@ -42,7 +44,7 @@ class AppErrorState extends StatelessWidget {
             ),
             const SizedBox(height: 16),
             Text(
-              isNetworkError ? 'تعذر الاتصال بالخادم' : 'حدث خطأ غير متوقع',
+              title ?? (isNetworkError ? 'تعذر الاتصال بالخادم' : 'حدث خطأ غير متوقع'),
               textAlign: TextAlign.center,
               style: const TextStyle(
                 fontSize: 16,

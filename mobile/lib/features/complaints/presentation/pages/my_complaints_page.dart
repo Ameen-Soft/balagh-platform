@@ -543,11 +543,17 @@ class _MyComplaintsPageState extends ConsumerState<MyComplaintsPage> {
       final isNetwork = state.errorMessage!.contains('اتصال') ||
           state.errorMessage!.contains('الإنترنت') ||
           state.errorMessage!.contains('شبكة');
+      final isAuth = state.errorMessage!.contains('صلاحية') ||
+          state.errorMessage!.contains('unauthorized') ||
+          state.errorMessage!.contains('جلسة');
       return ListView(
         physics: const AlwaysScrollableScrollPhysics(),
         children: [
           SizedBox(height: MediaQuery.of(context).size.height * 0.15),
           AppErrorState(
+            title: isNetwork
+                ? 'تعذر الاتصال بالخادم'
+                : (isAuth ? 'تنبيه الصلاحيات' : 'تعذر تحميل البلاغات'),
             message: state.errorMessage,
             isNetworkError: isNetwork,
             onRetry: () =>
