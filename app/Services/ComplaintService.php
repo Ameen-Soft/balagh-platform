@@ -215,17 +215,8 @@ class ComplaintService
     {
         $query = Complaint::with(['citizen', 'category', 'currentDepartment.ministry', 'attachments']);
 
-        // Data Scope based on Roles: Citizen and Field Worker only see complaints they filed
-        if (($user->hasRole('Citizen') || $user->hasRole('Field Worker')) && ! $user->hasRole('Super Admin') && ! $user->hasRole('Ministry Admin')) {
-            $query->where('citizen_id', $user->id);
-        } elseif ($user->department_id && ! $user->hasRole('Super Admin')) {
-            $userMinistryId = $user->department?->ministry_id;
-            if ($userMinistryId) {
-                $query->whereHas('currentDepartment', function ($q) use ($userMinistryId) {
-                    $q->where('ministry_id', $userMinistryId);
-                });
-            }
-        }
+        // Strict Functional Data Scope: "My Complaints" is strictly scoped to the authenticated user's own complaints
+        $query->where('citizen_id', $user->id);
 
         // Apply filters
         if (! empty($filters['status'])) {
