@@ -215,13 +215,9 @@ class ComplaintService
     {
         $query = Complaint::with(['citizen', 'category', 'currentDepartment.ministry', 'attachments']);
 
-        // Data Scope based on Roles
-        if ($user->hasRole('Citizen') && ! $user->hasRole('Super Admin')) {
+        // Data Scope based on Roles: Citizen and Field Worker only see complaints they filed
+        if (($user->hasRole('Citizen') || $user->hasRole('Field Worker')) && ! $user->hasRole('Super Admin') && ! $user->hasRole('Ministry Admin')) {
             $query->where('citizen_id', $user->id);
-        } elseif ($user->hasRole('Field Worker') && ! $user->hasRole('Super Admin')) {
-            $query->whereHas('fieldAssignments', function ($q) use ($user) {
-                $q->where('worker_id', $user->id);
-            });
         } elseif ($user->department_id && ! $user->hasRole('Super Admin')) {
             $userMinistryId = $user->department?->ministry_id;
             if ($userMinistryId) {

@@ -51,6 +51,8 @@ class RolePermissionSeeder extends Seeder
                 'projects.contribute',
             ],
             'Field Worker' => [
+                'complaints.create',
+                'complaints.view',
                 'tasks.view',
                 'tasks.update_status',
                 'evidence.upload',

@@ -30,7 +30,7 @@ class ComplaintPolicy
      */
     public function viewAny(User $user): bool
     {
-        return $user->hasPermission('complaints.view') || $user->hasRole('Citizen');
+        return $user->hasPermission('complaints.view') || $user->hasRole('Citizen') || $user->hasRole('Field Worker');
     }
 
     /**
@@ -67,7 +67,7 @@ class ComplaintPolicy
      */
     public function create(User $user): bool
     {
-        return $user->hasPermission('complaints.create') || $user->hasRole('Citizen');
+        return $user->hasPermission('complaints.create') || $user->hasRole('Citizen') || $user->hasRole('Field Worker');
     }
 
     /**
