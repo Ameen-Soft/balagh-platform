@@ -138,8 +138,14 @@ class SiteSettingController extends Controller
             $this->settingService->deleteSettingFile('app_apk_file', null);
         }
 
-        // Upload new file to public settings directory
-        $upload = app(\App\Services\FileUploadService::class)->upload($file, 'settings');
+        // Ensure any previous بادر.apk file is cleared from storage
+        $disk = config('balagh.storage.disk', 'public');
+        if (\Illuminate\Support\Facades\Storage::disk($disk)->exists('settings/بادر.apk')) {
+            \Illuminate\Support\Facades\Storage::disk($disk)->delete('settings/بادر.apk');
+        }
+
+        // Upload new file to public settings directory with exact name: بادر.apk
+        $upload = app(\App\Services\FileUploadService::class)->upload($file, 'settings', null, 'بادر.apk');
         Setting::set('app_apk_file', $upload['file_path'], 'general');
         Setting::clearCache();
 

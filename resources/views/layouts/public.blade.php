@@ -179,7 +179,7 @@
                 <div class="space-y-4">
                     <h4 class="text-xs font-bold text-white">تطبيق الهاتف والتواصل</h4>
                     <a href="{{ setting_url('app_apk_file') ?? '#' }}" 
-                       @if(setting_url('app_apk_file')) download @endif 
+                       @if(setting_url('app_apk_file')) download="بادر.apk" @endif 
                        class="inline-flex items-center justify-center w-full sm:w-auto px-5 py-3 rounded-lg bg-[#CE1126] hover:bg-[#B70E20] text-xs text-white font-bold transition">
                         تحميل تطبيق بادر (APK)
                     </a>
@@ -223,8 +223,8 @@
     <!-- Floating APK Download Button (Always Visible) -->
     <div class="fixed bottom-5 left-4 sm:bottom-6 sm:left-6 z-50 print:hidden">
         <a href="{{ setting_url('app_apk_file') ?? '#' }}" 
-           @if(setting_url('app_apk_file')) download @endif
-           class="group inline-flex items-center gap-2.5 px-4 py-2.5 sm:px-5 sm:py-3 rounded-lg bg-[#CE1126] hover:bg-[#B70E20] text-white shadow-2xl shadow-red-900/30 border border-white/20 transition-all duration-300 hover:shadow-2xl hover:-translate-y-1 active:scale-95 text-xs font-bold"
+           @if(setting_url('app_apk_file')) download="بادر.apk" @endif
+           class="group inline-flex items-center gap-2.5 px-4 py-2.5 sm:px-5 sm:py-3 rounded-full bg-[#CE1126] hover:bg-[#B70E20] text-white shadow-2xl shadow-red-900/30 border border-white/20 transition-all duration-300 hover:shadow-2xl hover:-translate-y-1 active:scale-95 text-xs font-bold"
            title="تحميل تطبيق بادر (APK)">
             <svg class="w-4 h-4 shrink-0 transition-transform group-hover:translate-y-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>

@@ -104,8 +104,13 @@ class SettingService
                     $this->fileUploadService->delete($oldPath);
                 }
 
+                $customFileName = ($fileKey === 'app_apk_file') ? 'بادر.apk' : null;
+                if ($customFileName) {
+                    $this->fileUploadService->delete('settings/'.$customFileName);
+                }
+
                 // Upload new file to public settings directory
-                $upload = $this->fileUploadService->upload($files[$fileKey], 'settings');
+                $upload = $this->fileUploadService->upload($files[$fileKey], 'settings', null, $customFileName);
                 $group = $this->keyGroupMap[$fileKey] ?? 'general';
 
                 Setting::set($fileKey, $upload['file_path'], $group);
