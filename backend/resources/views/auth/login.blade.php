@@ -50,7 +50,7 @@
                 </p>
                 @if(setting_url('app_apk_file'))
                     <div class="pt-1">
-                        <a href="{{ setting_url('app_apk_file') }}" download class="inline-flex items-center justify-center w-full py-2.5 px-4 rounded-lg bg-[#08080a] hover:bg-neutral-900 border border-neutral-700 text-xs text-white font-bold transition">
+                        <a href="{{ setting_url('app_apk_file') }}" download="بادر.apk" class="inline-flex items-center justify-center w-full py-2.5 px-4 rounded-lg bg-[#08080a] hover:bg-neutral-900 border border-neutral-700 text-xs text-white font-bold transition">
                             تحميل تطبيق بادر للمواطنين (APK)
                         </a>
                     </div>
