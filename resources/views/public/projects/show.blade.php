@@ -1,19 +1,29 @@
 <x-public-layout title="{{ $project->name }} - المشاريع التنموية - منصة بادر">
-    <div class="bg-gradient-to-b from-black via-[#08080a] to-[#0d0d11] text-white pt-28 pb-12 border-b border-zinc-800/80">
-        <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+    <!-- Institutional Project Header -->
+    <div class="bg-[#09090b] text-white py-10 border-b border-zinc-800">
+        <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+            <nav class="flex items-center gap-2 text-xs text-zinc-400 mb-4 font-semibold">
+                <a href="{{ url('/') }}" class="hover:text-white transition">الرئيسية</a>
+                <span>/</span>
+                <a href="{{ route('public.projects.index') }}" class="hover:text-white transition">المشاريع التنموية</a>
+                <span>/</span>
+                <span class="text-zinc-200 font-mono">#PRJ-{{ $project->id }}</span>
+            </nav>
+
             <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
-                    <div class="flex items-center gap-3">
-                        <span class="text-xs font-mono font-bold text-red-400 bg-red-950/80 px-2.5 py-1 rounded-md border border-red-800">
+                    <div class="flex items-center gap-2.5 mb-2">
+                        <span class="text-xs font-mono font-bold text-white bg-zinc-900 px-2.5 py-1 rounded border border-zinc-700">
                             #PRJ-{{ $project->id }}
                         </span>
-                        <span class="text-xs font-bold text-slate-400">مشروع تنموي معتمد</span>
+                        <span class="text-xs font-bold text-zinc-400">مشروع تنموي معتمد</span>
                     </div>
-                    <h1 class="text-2xl sm:text-3xl font-black mt-2 text-white">{{ $project->name }}</h1>
+                    <h1 class="text-2xl sm:text-3xl font-black text-white leading-snug">{{ $project->name }}</h1>
                 </div>
 
-                <div>
-                    <span class="px-3.5 py-1.5 rounded-xl text-sm font-bold {{ $project->status === 'completed' ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' : 'bg-amber-500/20 text-amber-400 border border-amber-500/30' }}">
+                <div class="shrink-0">
+                    <span class="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-bold {{ $project->status === 'completed' ? 'bg-emerald-950/90 text-emerald-400 border border-emerald-800' : 'bg-amber-950/90 text-amber-400 border border-amber-800' }}">
+                        <span class="w-2 h-2 rounded-full {{ $project->status === 'completed' ? 'bg-emerald-400' : 'bg-amber-400' }}"></span>
                         {{ $project->status === 'completed' ? 'مشروع مكتمل' : 'قيد التنفيذ والمتابعة' }}
                     </span>
                 </div>
@@ -21,82 +31,95 @@
         </div>
     </div>
 
-    <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            <!-- Project Main Info -->
-            <div class="lg:col-span-2 space-y-6">
-                <!-- Description Card -->
-                <div class="bg-white rounded-2xl border border-slate-200 p-6 shadow-xs">
-                    <h2 class="text-sm font-bold text-slate-900 mb-3">وصف المشروع وأهدافه</h2>
-                    <p class="text-sm text-slate-700 leading-relaxed whitespace-pre-line">{{ $project->description }}</p>
-                </div>
-
-                <!-- Progress Milestone Card -->
-                <div class="bg-white rounded-2xl border border-slate-200 p-6 shadow-xs">
-                    <h2 class="text-sm font-bold text-slate-900 mb-4">مؤشر التقدم ونسبة الإنجاز</h2>
-                    <div class="space-y-3">
-                        <div class="flex justify-between items-center text-sm font-bold">
-                            <span class="text-slate-600">نسبة الإنجاز الميداني المعتمدة</span>
-                            <span class="text-2xl font-black text-red-600">{{ $project->progress_percentage ?? 0 }}%</span>
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+            
+            <!-- Main Project Details (8 Cols) -->
+            <div class="lg:col-span-8 space-y-6">
+                <!-- Executive Progress Indicator Card -->
+                <div class="bg-white rounded-xl border border-slate-200 p-6">
+                    <div class="flex items-center justify-between mb-3">
+                        <div>
+                            <h2 class="text-sm font-black text-slate-900">مؤشر التقدم ونسبة الإنجاز الميداني</h2>
+                            <p class="text-xs text-slate-500 mt-0.5">نسبة التنفيذ المعتمدة من الفرق الهندسية المشرفة</p>
                         </div>
-                        <div class="w-full h-3.5 bg-slate-100 rounded-full overflow-hidden p-0.5 border border-slate-200">
-                            <div class="h-full bg-gradient-to-r from-red-600 to-amber-500 rounded-full transition-all duration-500" style="width: {{ $project->progress_percentage ?? 0 }}%"></div>
-                        </div>
+                        <span class="text-2xl font-black font-mono text-[#CE1126]">{{ $project->progress_percentage ?? 0 }}%</span>
+                    </div>
+                    <div class="w-full h-3 bg-slate-100 rounded-full overflow-hidden border border-slate-200">
+                        <div class="h-full {{ ($project->progress_percentage ?? 0) >= 100 ? 'bg-[#059669]' : 'bg-[#CE1126]' }} rounded-full transition-all duration-500" style="width: {{ min(100, max(0, $project->progress_percentage ?? 0)) }}%"></div>
                     </div>
                 </div>
 
-                <!-- Community Contributions -->
-                <div class="bg-white rounded-2xl border border-slate-200 p-6 shadow-xs">
-                    <h2 class="text-sm font-bold text-slate-900 mb-4">الملاحظات والمشاركات المجتمعية</h2>
-                    <div class="space-y-4">
+                <!-- Project Description -->
+                <div class="bg-white rounded-xl border border-slate-200 overflow-hidden">
+                    <div class="px-6 py-4 bg-slate-50 border-b border-slate-200">
+                        <h2 class="text-sm font-black text-slate-900">وصف المشروع وأهدافه التنموية</h2>
+                    </div>
+                    <div class="p-6">
+                        <p class="text-sm text-slate-700 leading-relaxed whitespace-pre-line">{{ $project->description }}</p>
+                    </div>
+                </div>
+
+                <!-- Community Contributions / Feedback -->
+                <div class="bg-white rounded-xl border border-slate-200 overflow-hidden">
+                    <div class="px-6 py-4 bg-slate-50 border-b border-slate-200 flex items-center justify-between">
+                        <h2 class="text-sm font-black text-slate-900">سجل الرقابة والمشاركات المجتمعية</h2>
+                        <span class="text-xs font-mono font-bold text-slate-600">{{ $project->contributions->count() }} مشاركة</span>
+                    </div>
+                    <div class="p-6 space-y-3">
                         @forelse($project->contributions as $contrib)
-                            <div class="p-4 rounded-xl bg-slate-50 border border-slate-200/80">
-                                <div class="flex items-center justify-between mb-1">
-                                    <span class="text-xs font-bold text-slate-800">مواطن مشارك</span>
-                                    <span class="text-[11px] text-slate-400">{{ $contrib->created_at->translatedFormat('d F Y') }}</span>
+                            <div class="p-4 rounded-lg bg-[#F8FAFC] border border-slate-200/80">
+                                <div class="flex items-center justify-between mb-1.5">
+                                    <span class="text-xs font-black text-slate-900">مساهمة رقابية من مواطن</span>
+                                    <span class="text-[11px] font-mono text-slate-500">{{ $contrib->created_at->translatedFormat('d F Y') }}</span>
                                 </div>
                                 <p class="text-xs text-slate-600 leading-relaxed">{{ $contrib->comment }}</p>
                             </div>
                         @empty
-                            <p class="text-xs text-slate-400">لا توجد مشاركات مجتمعية مسجلة حتى الآن.</p>
+                            <p class="text-xs font-semibold text-slate-500 py-2">لا توجد ملاحظات أو مشاركات مجتمعية مسجلة على هذا المشروع حتى الآن.</p>
                         @endforelse
                     </div>
                 </div>
             </div>
 
-            <!-- Sidebar Info -->
-            <div class="space-y-6">
-                <div class="bg-white rounded-2xl border border-slate-200 p-6 shadow-xs space-y-4">
-                    <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider">بيانات المشروع</h3>
-
-                    <div>
-                        <span class="text-[11px] text-slate-400 font-bold block">الميزانية المرصودة</span>
-                        <span class="text-sm font-bold text-slate-800">
-                            {{ $project->budget ? number_format($project->budget) . ' ريال يمني' : 'غير محددة' }}
-                        </span>
+            <!-- Sidebar Project Specifications (4 Cols) -->
+            <div class="lg:col-span-4 space-y-5">
+                <div class="bg-white rounded-xl border border-slate-200 overflow-hidden">
+                    <div class="px-5 py-4 bg-slate-900 text-white">
+                        <h3 class="text-xs font-bold uppercase tracking-wider">البيانات الأساسية للمشروع</h3>
                     </div>
 
-                    <div>
-                        <span class="text-[11px] text-slate-400 font-bold block">عدد المستفيدين المقدر</span>
-                        <span class="text-sm font-bold text-slate-800">{{ number_format($project->beneficiaries_count ?? 0) }} مواطن</span>
-                    </div>
+                    <div class="divide-y divide-slate-200 text-xs">
+                        <div class="p-4 flex flex-col gap-1">
+                            <span class="text-slate-500 font-semibold">الميزانية التقديرية المرصودة</span>
+                            <span class="font-black text-slate-900 text-sm font-mono">
+                                {{ $project->budget ? number_format($project->budget) . ' ريال يمني' : 'غير محددة' }}
+                            </span>
+                        </div>
 
-                    <div>
-                        <span class="text-[11px] text-slate-400 font-bold block">تاريخ الإطلاق</span>
-                        <span class="text-sm font-bold text-slate-800">{{ $project->created_at->translatedFormat('d F Y') }}</span>
-                    </div>
+                        <div class="p-4 flex flex-col gap-1">
+                            <span class="text-slate-500 font-semibold">عدد المستفيدين المقدر</span>
+                            <span class="font-black text-slate-900 text-sm font-mono">{{ number_format($project->beneficiaries_count ?? 0) }} مواطن</span>
+                        </div>
 
-                    <div>
-                        <span class="text-[11px] text-slate-400 font-bold block">المحافظة / الموقع</span>
-                        <span class="text-sm font-bold text-slate-800">{{ $project->governorate ?? 'الجمهورية اليمنية' }}</span>
+                        <div class="p-4 flex flex-col gap-1">
+                            <span class="text-slate-500 font-semibold">تاريخ الإدراج والإطلاق</span>
+                            <span class="font-bold text-slate-900 font-mono">{{ $project->created_at->translatedFormat('d F Y') }}</span>
+                        </div>
+
+                        <div class="p-4 flex flex-col gap-1">
+                            <span class="text-slate-500 font-semibold">النطاق الجغرافي</span>
+                            <span class="font-bold text-slate-900">{{ $project->governorate ?? 'الجمهورية اليمنية' }}</span>
+                        </div>
                     </div>
                 </div>
 
                 <a href="{{ route('public.projects.index') }}" 
-                   class="block text-center w-full py-3 rounded-xl bg-black text-white text-xs font-bold hover:bg-zinc-800 transition">
-                    ← العودة لقائمة المشاريع
+                   class="flex items-center justify-center gap-2 w-full py-3 px-4 rounded-lg bg-white border border-slate-300 text-slate-900 text-xs font-bold hover:bg-slate-100 transition">
+                    <span>← العودة لدليل المشاريع</span>
                 </a>
             </div>
+
         </div>
     </div>
 </x-public-layout>
